@@ -67,7 +67,17 @@ const ERPItemRow = ({
   return (
     <tr className="border-b border-border hover:bg-muted/50 group">
       {/* Fixed Left Columns */}
-      <td className="p-3 bg-card sticky left-0 z-10 border-r border-border">
+      <td className="p-3 bg-card sticky left-0 z-10 border-r border-border min-w-48">
+        <Input
+          type="text"
+          value={item?.item || ''}
+          onChange={(e) => onItemUpdate(item?.id, { item: e?.target?.value })}
+          placeholder="Enter item..."
+          className="w-full"
+        />
+      </td>
+      
+      <td className="p-3 bg-card sticky left-48 z-10 border-r border-border min-w-48">
         <div className="relative" ref={searchRef}>
           {isEditing ? (
             <>
@@ -107,33 +117,33 @@ const ERPItemRow = ({
           )}
         </div>
       </td>
-      <td className="p-3 bg-card sticky left-48 z-10 border-r border-border">
+      <td className="p-3 bg-card sticky left-96 z-10 border-r border-border min-w-48">
         <div className="text-sm text-muted-foreground max-w-48 truncate">
           {item?.specifications || '-'}
         </div>
       </td>
-             <td className="p-3 bg-card sticky left-96 z-10 border-r border-border">
+             <td className="p-3 bg-card sticky left-144 z-10 border-r border-border min-w-24">
          <Input
            type="number"
            value={item?.requiredQuantity || ''}
            onChange={(e) => handleQuantityChange(e?.target?.value)}
            placeholder="0"
-           className="w-24"
+           className="w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
            min="0"
            step="0.01"
          />
        </td>
-      <td className="p-3 bg-card sticky left-120 z-10 border-r border-border">
+      <td className="p-3 bg-card sticky left-168 z-10 border-r border-border min-w-24">
         <div className="text-sm text-muted-foreground">
           {item?.uom || '-'}
         </div>
       </td>
-      <td className="p-3 bg-card sticky left-144 z-10 border-r border-border">
+      <td className="p-3 bg-card sticky left-192 z-10 border-r border-border min-w-32">
         <div className="text-sm font-medium text-foreground">
-          ${item?.lastBuyingPrice || '0.00'}
+          ₹{typeof item?.lastBuyingPrice === 'number' ? item?.lastBuyingPrice?.toFixed(2) : (item?.lastBuyingPrice || '0.00')}
         </div>
       </td>
-      <td className="p-3 bg-card sticky left-168 z-10 border-r border-border">
+      <td className="p-3 bg-card sticky left-224 z-10 border-r border-border min-w-48">
         <div className="text-sm text-muted-foreground">
           {item?.lastVendor || '-'}
         </div>
@@ -147,12 +157,12 @@ const ERPItemRow = ({
               value={quote?.rate || ''}
               onChange={(e) => handleQuoteRateChange(quoteIndex, e?.target?.value)}
               placeholder="0.00"
-              className="w-24"
+              className="w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               min="0"
               step="0.01"
             />
             <div className="text-sm font-medium text-primary">
-              ${calculateAmount(quote?.rate || 0, item?.requiredQuantity || 0)}
+              ₹{calculateAmount(quote?.rate || 0, item?.requiredQuantity || 0)}
             </div>
           </div>
         </td>

@@ -3,7 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
 
-const TransportTableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRemove, onSupplierChange, onRemoveQuote }) => {
+const TransportTableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRemove, onSupplierChange, onRemoveQuote, onAddQuotation }) => {
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const fileInputRefs = useRef({});
 
@@ -101,121 +101,108 @@ const TransportTableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, 
           </div>
         </th>
 
-        {/* Dynamic Quote Column Headers with supplier info */}
-        {quotes?.map((quote, index) => {
-          const supplier = suppliers?.find(s => s?.id === quote?.supplierId);
-          const isSupplier1 = index === 0;
-          const isSupplier2 = index === 1;
-          
-          return (
-            <th key={index} className="p-3 text-left border-r border-border min-w-80 w-80">
-              <div className="space-y-3">
-                {/* Supplier Header with Remove Button */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Icon name="Building2" size={16} className="text-primary" />
-                    <span className="text-sm font-semibold text-foreground">
-                      {isSupplier1 ? 'Supplier 1' : isSupplier2 ? 'Supplier 2' : `Supplier ${index + 1}`}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    iconName="X"
-                    onClick={() => onRemoveQuote(index)}
-                    className="text-muted-foreground hover:text-destructive p-1 h-auto"
-                  />
+        {/* Dynamic Quote Column Headers - Matching Provided Data and Service Layout */}
+        {quotes?.map((quote, index) => (
+          <th key={index} className="p-3 text-left border-r border-border min-w-64">
+            <div className="space-y-3">
+              {/* Quote Header with Remove Button */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Icon name="Quote" size={16} className="text-primary" />
+                  <span className="text-sm font-semibold text-foreground">
+                    Quote {index + 1}
+                  </span>
                 </div>
-
-                {/* Supplier Selection */}
-                <div>
-                  <Select
-                    placeholder="Choose supplier..."
-                    options={supplierOptions}
-                    value={quote?.supplierId}
-                    onChange={(supplierId) => onSupplierChange(index, supplierId)}
-                    searchable
-                    className="text-xs"
-                  />
-                </div>
-
-                {/* Sub-headers for supplier data fields */}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="space-y-1">
-                    <div className="text-muted-foreground font-medium">Vendor Name</div>
-                    <div className="text-muted-foreground font-medium">Rate</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-muted-foreground font-medium">Sum Amount</div>
-                    <div className="text-muted-foreground font-medium">Attachment</div>
-                  </div>
-                </div>
-
-                {/* Compact PDF Upload Section */}
-                <div className="space-y-1">
-                  {attachedFiles?.[index] ? (
-                    <div className="flex items-center justify-between p-1.5 bg-muted rounded border border-border">
-                      <div className="flex items-center space-x-1 min-w-0">
-                        <Icon name="FileText" size={10} className="text-primary flex-shrink-0" />
-                        <span className="text-xs text-foreground truncate max-w-20" title={attachedFiles?.[index]?.name}>
-                          {attachedFiles?.[index]?.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-0.5 flex-shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          iconName="Download"
-                          onClick={() => {
-                            const url = URL.createObjectURL(attachedFiles?.[index]);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = attachedFiles?.[index]?.name;
-                            a?.click();
-                            URL.revokeObjectURL(url);
-                          }}
-                          className="p-0.5 h-auto w-auto"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          iconName="Trash2"
-                          onClick={() => onFileRemove(index)}
-                          className="text-destructive hover:text-destructive p-0.5 h-auto w-auto"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      iconName="Upload"
-                      iconPosition="left"
-                      onClick={() => {
-                        if (!fileInputRefs?.current?.[index]) {
-                          fileInputRefs.current[index] = document.createElement('input');
-                          fileInputRefs.current[index].type = 'file';
-                          fileInputRefs.current[index].accept = '.pdf';
-                          fileInputRefs.current[index].onchange = (e) => handleFileSelect(e, index);
-                        }
-                        fileInputRefs?.current?.[index]?.click();
-                      }}
-                      className="w-full h-7 text-xs bg-muted/50 hover:bg-muted border-dashed"
-                    >
-                      Upload PDF
-                    </Button>
-                  )}
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconName="X"
+                  onClick={() => onRemoveQuote(index)}
+                  className="text-muted-foreground hover:text-destructive p-1 h-auto"
+                />
               </div>
-            </th>
-          );
-        })}
 
-        {/* Actions Column Header */}
-        <th className="p-3 text-left min-w-32 w-32">
-          <div className="flex items-center space-x-2">
-            <Icon name="Settings" size={16} />
-            <span className="text-sm font-semibold text-foreground">Actions</span>
+              {/* Supplier Selection */}
+              <div>
+                <Select
+                  placeholder="Choose supplier..."
+                  options={supplierOptions}
+                  value={quote?.supplierId}
+                  onChange={(supplierId) => onSupplierChange(index, supplierId)}
+                  searchable
+                  className="text-xs"
+                />
+              </div>
+
+              {/* Compact PDF Upload Section */}
+              <div className="space-y-1">
+                {attachedFiles?.[index] ? (
+                  <div className="flex items-center justify-between p-1.5 bg-muted rounded border border-border">
+                    <div className="flex items-center space-x-1 min-w-0">
+                      <Icon name="FileText" size={10} className="text-primary flex-shrink-0" />
+                      <span className="text-xs text-foreground truncate max-w-20" title={attachedFiles?.[index]?.name}>
+                        {attachedFiles?.[index]?.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-0.5 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconName="Download"
+                        onClick={() => {
+                          const url = URL.createObjectURL(attachedFiles?.[index]);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = attachedFiles?.[index]?.name;
+                          a?.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="p-0.5 h-auto w-auto"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconName="Trash2"
+                        onClick={() => onFileRemove(index)}
+                        className="text-destructive hover:text-destructive p-0.5 h-auto w-auto"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    iconName="Upload"
+                    iconPosition="left"
+                    onClick={() => {
+                      if (!fileInputRefs?.current?.[index]) {
+                        fileInputRefs.current[index] = document.createElement('input');
+                        fileInputRefs.current[index].type = 'file';
+                        fileInputRefs.current[index].accept = '.pdf';
+                        fileInputRefs.current[index].onchange = (e) => handleFileSelect(e, index);
+                      }
+                      fileInputRefs?.current?.[index]?.click();
+                    }}
+                    className="w-full h-7 text-xs bg-muted/50 hover:bg-muted border-dashed"
+                  >
+                    Upload PDF
+                  </Button>
+                )}
+              </div>
+            </div>
+          </th>
+        ))}
+
+        {/* Add Quotation Button */}
+        <th className="p-3 text-center bg-muted/20 min-w-48">
+          <div className="flex items-center justify-center">
+            <button
+              onClick={onAddQuotation}
+              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Icon name="Plus" size={14} />
+              <span>Add Quotation</span>
+            </button>
           </div>
         </th>
       </tr>

@@ -7,6 +7,7 @@ import SummaryMetrics from './SummaryMetrics';
 import RejectModal from './RejectModal';
 import StatusIndicator from './StatusIndicator';
 import AdminQuotationComparisonTable from './AdminQuotationComparisonTable';
+import AppIcon from '../../../components/AppIcon';
 
 const AdminQuotationDetail = () => {
   const navigate = useNavigate();
@@ -15,7 +16,9 @@ const AdminQuotationDetail = () => {
 
   // Add admin approval state
   const [adminApproval, setAdminApproval] = useState({
-    provided_data: {}
+    provided_data: {},
+    service: {},
+    transport: {}
   });
 
   // Mock user data
@@ -39,8 +42,12 @@ const AdminQuotationDetail = () => {
     }
   ];
 
-  // Mock quotation data for approval
-  const mockQuotationData = {
+  // Get quotation data from localStorage or use mock data as fallback
+  const submittedQuotations = JSON.parse(localStorage.getItem('submittedQuotations') || '[]');
+  const quotationData = submittedQuotations.find(q => q.id === quotationId);
+  
+  // Mock quotation data - fallback if not found in localStorage
+  const mockQuotationData = quotationData || {
     id: quotationId || 'RFQ-2024-007',
     title: 'Industrial Equipment Procurement - Manufacturing Line Upgrade',
     description: 'Comprehensive procurement request for upgrading manufacturing line including machinery, safety equipment, and electronic components',
@@ -52,6 +59,8 @@ const AdminQuotationDetail = () => {
     specialRequirements: 'ISO 9001 certified suppliers required, 2-year warranty mandatory',
     status: 'Pending Approval',
     submissionTime: '2024-08-22 14:30:00',
+    commodityType: quotationData?.commodityTypeRaw || (quotationId?.includes('RFQ-2024-008') ? 'Service' : 
+                   quotationId?.includes('RFQ-2024-009') ? 'Transport' : 'Provided Data'),
          items: [
        {
          id: 1,
@@ -148,38 +157,38 @@ const AdminQuotationDetail = () => {
   const highestQuote = Math.max(...(mockQuotationData?.suppliers?.map(s => s?.totalQuote) || [0]));
   const averageQuote = totalEstimatedValue / (mockQuotationData?.suppliers?.length || 1);
 
-  // Transform mockQuotationData for the comparison table format
-  const transformedSuppliers = mockQuotationData?.suppliers?.map(supplier => ({
-    id: supplier?.id,
-    name: supplier?.name,
-    contact: supplier?.contact,
-    rating: supplier?.rating
+  // Transform quotation data for the comparison table format
+  const transformedSuppliers = mockQuotationData?.quotes?.map((quote, index) => ({
+    id: quote?.supplierId || `supplier-${index}`,
+    name: quote?.supplierId || `Supplier ${index + 1}`,
+    contact: `contact@supplier${index + 1}.com`,
+    rating: 4.5
   })) || [];
 
-  const transformedQuotes = mockQuotationData?.suppliers?.map(supplier => ({
-    id: supplier?.id,
-    items: supplier?.items || [],
-    totalQuote: supplier?.totalQuote,
-    footer: {
+  const transformedQuotes = mockQuotationData?.quotes?.map(quote => ({
+    id: quote?.supplierId,
+    rates: quote?.rates || {},
+    footer: quote?.footer || {
       transportation_freight: "Included in quote",
       packing_charges: "Extra as applicable", 
-      delivery_lead_time: supplier?.items?.[0]?.deliveryTime || "As per agreement",
-      warranty: supplier?.items?.[0]?.warranty || "Standard warranty",
-      currency: "USD",
-      remarks_of_quotation: supplier?.items?.[0]?.notes || "All terms as per RFQ"
+      delivery_lead_time: "As per agreement",
+      warranty: "Standard warranty",
+      currency: "INR",
+      remarks_of_quotation: "All terms as per RFQ"
     }
   })) || [];
 
   // Add handlers for admin approval fields
   const handleFinalSupplierChange = (itemId, field, value) => {
+    const commodityType = mockQuotationData?.commodityTypeRaw || 'provided_data';
     setAdminApproval(prev => ({
       ...prev,
-      provided_data: {
-        ...prev?.provided_data,
+      [commodityType]: {
+        ...prev?.[commodityType],
         [itemId]: {
-          ...prev?.provided_data?.[itemId],
+          ...prev?.[commodityType]?.[itemId],
           finalSupplier: {
-            ...prev?.provided_data?.[itemId]?.finalSupplier,
+            ...prev?.[commodityType]?.[itemId]?.finalSupplier,
             [field]: value
           }
         }
@@ -188,12 +197,13 @@ const AdminQuotationDetail = () => {
   };
 
   const handleFinalPriceChange = (itemId, value) => {
+    const commodityType = mockQuotationData?.commodityTypeRaw || 'provided_data';
     setAdminApproval(prev => ({
       ...prev,
-      provided_data: {
-        ...prev?.provided_data,
+      [commodityType]: {
+        ...prev?.[commodityType],
         [itemId]: {
-          ...prev?.provided_data?.[itemId],
+          ...prev?.[commodityType]?.[itemId],
           finalPrice: value
         }
       }
@@ -202,7 +212,8 @@ const AdminQuotationDetail = () => {
 
   // Calculate sum amount based on quantity and final price
   const calculateSumAmount = (itemId, quantity) => {
-    const finalPrice = adminApproval?.provided_data?.[itemId]?.finalPrice || 0;
+    const commodityType = mockQuotationData?.commodityTypeRaw || 'provided_data';
+    const finalPrice = adminApproval?.[commodityType]?.[itemId]?.finalPrice || 0;
     return (parseFloat(finalPrice) * quantity)?.toFixed(2);
   };
 
@@ -253,49 +264,56 @@ const AdminQuotationDetail = () => {
           />
         </div>
 
-        {/* Quotation Details */}
-        <div className="px-6 mb-6">
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Quotation Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-medium text-foreground mb-2">{mockQuotationData.title}</h3>
-                <p className="text-muted-foreground mb-4">{mockQuotationData.description}</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Requested By:</span>
-                    <span className="text-sm font-medium">{mockQuotationData.requestedBy}</span>
+
+
+        {/* Attached Documents Section */}
+        {(mockQuotationData?.attachments?.boqFile || mockQuotationData?.attachments?.drawingFile || mockQuotationData?.attachments?.quoteFiles) && (
+          <div className="px-6 mb-6">
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Attached Documents</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Service Documents */}
+                {mockQuotationData?.commodityType === 'Service' && (
+                  <>
+                    {mockQuotationData?.attachments?.boqFile && (
+                      <div className="p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <AppIcon name="FileText" size={16} className="text-blue-600" />
+                          <span className="text-sm font-medium text-foreground">Signed BOQ</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{mockQuotationData.attachments.boqFile.name}</p>
+                      </div>
+                    )}
+                    {mockQuotationData?.attachments?.drawingFile && (
+                      <div className="p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <AppIcon name="FileText" size={16} className="text-green-600" />
+                          <span className="text-sm font-medium text-foreground">Signed Drawing</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{mockQuotationData.attachments.drawingFile.name}</p>
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                {/* Quote Files */}
+                {mockQuotationData?.attachments?.quoteFiles && Object.keys(mockQuotationData.attachments.quoteFiles).length > 0 && (
+                  <div className="p-4 border border-border rounded-lg">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <AppIcon name="FileText" size={16} className="text-purple-600" />
+                      <span className="text-sm font-medium text-foreground">Quote Attachments</span>
+                    </div>
+                    <div className="space-y-1">
+                      {Object.entries(mockQuotationData.attachments.quoteFiles).map(([index, file]) => (
+                        <p key={index} className="text-xs text-muted-foreground">Quote {parseInt(index) + 1}: {file.name}</p>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Plant:</span>
-                    <span className="text-sm font-medium">{mockQuotationData.plant}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Submitted Date:</span>
-                    <span className="text-sm font-medium">{mockQuotationData.submittedDate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Deadline:</span>
-                    <span className="text-sm font-medium">{mockQuotationData.deadline}</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-foreground mb-2">Requirements</h3>
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-sm text-muted-foreground">Delivery Location:</span>
-                    <p className="text-sm font-medium">{mockQuotationData.deliveryLocation}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-muted-foreground">Special Requirements:</span>
-                    <p className="text-sm font-medium">{mockQuotationData.specialRequirements}</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Quotation Comparison Table */}
         <div className="px-6 mb-6">
@@ -309,7 +327,8 @@ const AdminQuotationDetail = () => {
             suppliers={transformedSuppliers}
             items={mockQuotationData?.items}
             quotes={transformedQuotes}
-            adminApproval={adminApproval?.provided_data || {}}
+            commodityType={mockQuotationData?.commodityType}
+            adminApproval={adminApproval?.[mockQuotationData?.commodityTypeRaw] || {}}
             onFinalSupplierChange={handleFinalSupplierChange}
             onFinalPriceChange={handleFinalPriceChange}
             calculateSumAmount={calculateSumAmount}

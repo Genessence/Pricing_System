@@ -1,181 +1,83 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
-import Select from '../../../components/ui/Select';
 
-const ServiceTableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRemove, onSupplierChange, onRemoveQuote }) => {
-  const fileInputRefs = useRef({});
-
-  const handleFileSelect = (e, quoteIndex) => {
-    const file = e?.target?.files?.[0];
-    if (file && file?.type === 'application/pdf') {
-      onFileUpload(quoteIndex, file);
-    }
-  };
-
-  const supplierOptions = suppliers?.map(supplier => ({
-    value: supplier?.id,
-    label: `${supplier?.vendorCode} - ${supplier?.name}`,
-    description: supplier?.location
-  }));
-
+const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote }) => {
   return (
     <thead className="bg-muted border-b border-border sticky top-0 z-20">
-      {/* Service Header Row - Clean single row */}
-      <tr className="bg-primary/10">
-        <th colSpan={6} className="p-3 text-center border-r border-border">
-          <div className="flex items-center justify-center space-x-2">
-            <Icon name="Wrench" size={18} className="text-primary" />
-            <span className="text-base font-bold text-primary">Service Quotation Comparison</span>
-          </div>
-        </th>
-        
-        {/* Supplier Headers - Clean and organized */}
-        {quotes?.map((quote, index) => (
-          <th key={index} className="p-3 text-center border-r border-border min-w-72">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-primary">
-                Supplier {index + 1}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                iconName="X"
-                onClick={() => onRemoveQuote(index)}
-                className="text-muted-foreground hover:text-destructive p-1 h-auto"
-              />
-            </div>
-          </th>
-        ))}
-        
-        <th className="p-3 text-center">
-          <div className="text-sm font-semibold text-foreground">Actions</div>
-        </th>
-      </tr>
-
-      {/* Main Column Headers - Properly aligned */}
-      <tr className="bg-card">
-        <th className="p-4 text-left bg-card sticky left-0 z-30 border-r border-border min-w-52">
+      {/* Main Data Row */}
+      <tr className="h-12">
+        {/* Fixed Left Column Headers */}
+        <th className="p-3 text-left bg-card sticky left-0 z-30 border-r border-border min-w-52">
           <div className="flex items-center space-x-2">
-            <Icon name="Briefcase" size={16} />
-            <span className="text-sm font-semibold text-foreground">Project Name</span>
-          </div>
-        </th>
-        
-        <th className="p-4 text-left bg-card sticky left-52 z-30 border-r border-border min-w-64">
-          <div className="flex items-center space-x-2">
-            <Icon name="FileText" size={16} />
+            <Icon name="FileText" size={16} className="text-primary" />
             <span className="text-sm font-semibold text-foreground">Description</span>
           </div>
         </th>
-        
-        <th className="p-4 text-left bg-card sticky left-116 z-30 border-r border-border min-w-56">
+        <th className="p-3 text-left bg-card sticky left-52 z-30 border-r border-border min-w-60">
           <div className="flex items-center space-x-2">
-            <Icon name="ClipboardList" size={16} />
+            <Icon name="Settings" size={16} className="text-primary" />
             <span className="text-sm font-semibold text-foreground">Specification</span>
           </div>
         </th>
-        
-        <th className="p-4 text-left bg-card sticky left-172 z-30 border-r border-border min-w-24">
+        <th className="p-3 text-left bg-card sticky left-112 z-30 border-r border-border min-w-36">
           <div className="flex items-center space-x-2">
-            <Icon name="Ruler" size={16} />
+            <Icon name="Package" size={16} className="text-primary" />
             <span className="text-sm font-semibold text-foreground">UOM</span>
           </div>
         </th>
-        
-        <th className="p-4 text-left bg-card sticky left-196 z-30 border-r border-border min-w-28">
+        <th className="p-3 text-left bg-card sticky left-148 z-30 border-r border-border min-w-40">
           <div className="flex items-center space-x-2">
-            <Icon name="Hash" size={16} />
+            <Icon name="Hash" size={16} className="text-primary" />
             <span className="text-sm font-semibold text-foreground">Req Qty</span>
           </div>
         </th>
-
-        <th className="p-4 text-left bg-card sticky left-224 z-30 border-r border-border min-w-48">
+        <th className="p-3 text-left bg-card sticky left-188 z-30 border-r border-border min-w-44">
           <div className="flex items-center space-x-2">
-            <Icon name="Lightbulb" size={16} />
-            <span className="text-sm font-semibold text-foreground">Suggestion</span>
+            <Icon name="DollarSign" size={16} className="text-primary" />
+            <span className="text-sm font-semibold text-foreground">Rate</span>
           </div>
         </th>
 
-        {/* Service Quote Column Headers - Clean layout */}
+        {/* Supplier Quote Headers - Matching Provided Data Table */}
         {quotes?.map((quote, index) => (
-          <th key={index} className="p-4 text-left border-r border-border min-w-72">
-            <div className="space-y-4">
-              {/* Vendor Name Selection */}
-              <div>
-                <label className="text-xs text-muted-foreground font-medium block mb-2">
-                  Supplier Selection
-                </label>
-                <Select
-                  placeholder="Choose supplier..."
-                  options={supplierOptions}
-                  value={quote?.supplierId}
-                  onChange={(supplierId) => onSupplierChange(index, supplierId)}
-                  searchable
-                  className="text-sm"
+          <th key={index} className="p-3 text-left border-r border-border min-w-64">
+            <div className="space-y-3">
+              {/* Quote Header with Remove Button */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Icon name="Quote" size={16} className="text-primary" />
+                  <span className="text-sm font-semibold text-foreground">
+                    Quote {index + 1}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconName="X"
+                  onClick={() => onRemoveQuote && onRemoveQuote(index)}
+                  className="text-muted-foreground hover:text-destructive p-1 h-auto"
                 />
               </div>
 
-              {/* Quote Details Grid - Clean 3-column layout */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <label className="text-xs text-muted-foreground font-medium block mb-1">
-                    Rate
-                  </label>
-                  <div className="text-xs text-muted-foreground">per unit</div>
-                </div>
-                <div className="text-center">
-                  <label className="text-xs text-muted-foreground font-medium block mb-1">
-                    Total Amount
-                  </label>
-                  <div className="text-xs text-muted-foreground">calculated</div>
-                </div>
-                <div className="text-center">
-                  <label className="text-xs text-muted-foreground font-medium block mb-1">
-                    Attachment
-                  </label>
-                  {attachedFiles?.[index] ? (
-                    <div className="flex items-center justify-center">
-                      <div className="flex items-center space-x-1 p-1 bg-green-50 rounded border border-green-200">
-                        <Icon name="FileCheck" size={12} className="text-green-600" />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          iconName="Trash2"
-                          onClick={() => onFileRemove(index)}
-                          className="text-red-500 hover:text-red-700 p-0.5 h-auto w-auto"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      iconName="Upload"
-                      onClick={() => {
-                        if (!fileInputRefs?.current?.[index]) {
-                          fileInputRefs.current[index] = document.createElement('input');
-                          fileInputRefs.current[index].type = 'file';
-                          fileInputRefs.current[index].accept = '.pdf';
-                          fileInputRefs.current[index].onchange = (e) => handleFileSelect(e, index);
-                        }
-                        fileInputRefs?.current?.[index]?.click();
-                      }}
-                      className="w-full h-7 text-xs bg-muted/30 hover:bg-muted border-dashed"
-                    >
-                      Upload
-                    </Button>
-                  )}
-                </div>
+              {/* Supplier Selection */}
+              <div className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded">
+                Supplier {index + 1}
               </div>
             </div>
           </th>
         ))}
 
-        {/* Actions Column Header */}
-        <th className="p-4 text-center">
+        {/* Add Quotation Button */}
+        <th className="p-3 text-center bg-muted/20 min-w-48">
           <div className="flex items-center justify-center">
-            <Icon name="Settings" size={16} className="text-muted-foreground" />
+            <button
+              onClick={onAddQuotation}
+              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Icon name="Plus" size={14} />
+              <span>Add Quotation</span>
+            </button>
           </div>
         </th>
       </tr>

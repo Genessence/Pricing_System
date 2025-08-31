@@ -268,7 +268,7 @@ const ProcurementDashboard = () => {
             />
             <MetricsCard
               title="Cost Savings"
-              value={`$${(costSavings / 1000)?.toFixed(0)}K`}
+                              value={`₹${(costSavings / 1000)?.toFixed(0)}K`}
               change="+15% from target"
               changeType="positive"
               icon="TrendingUp"

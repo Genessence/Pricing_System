@@ -1,272 +1,199 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
+import Icon from '../../../components/AppIcon';
+import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
-import Button from '../../../components/ui/Button';
-import Icon from '../../../components/AppIcon';
 
 const TransportItemRow = ({ 
   item, 
   quotes, 
-  suppliers,
-  onItemUpdate, 
+  suppliers, 
+  onItemChange, 
   onQuoteUpdate, 
-  onDeleteRow, 
-  onDuplicateRow,
-  isEditing,
-  onEditToggle
+  onRemoveItem,
+  isEditing = false 
 }) => {
-  const [showSuggestion, setShowSuggestion] = useState(false);
+  const [localItem, setLocalItem] = useState(item || {});
 
-  // Vehicle size options
-  const vehicleSizeOptions = [
-    { value: 'small', label: 'Small (Up to 1 Ton)' },
-    { value: 'medium', label: 'Medium (1-3 Tons)' },
-    { value: 'large', label: 'Large (3-7 Tons)' },
-    { value: 'extra_large', label: 'Extra Large (7+ Tons)' },
-    { value: 'container_20ft', label: 'Container 20ft' },
-    { value: 'container_40ft', label: 'Container 40ft' }
-  ];
-
-  // Mock frequency options
-  const frequencyOptions = [
-    { value: '1', label: '1 Trip/Month' },
-    { value: '2', label: '2 Trips/Month' },
-    { value: '4', label: '4 Trips/Month' },
-    { value: '8', label: '8 Trips/Month' },
-    { value: '12', label: '12 Trips/Month' },
-    { value: '20', label: '20 Trips/Month' },
-    { value: 'custom', label: 'Custom' }
-  ];
-
-  const handleInputUpdate = (field, value) => {
-    onItemUpdate(item?.id, { [field]: value });
+  const handleItemChange = (field, value) => {
+    const updatedItem = { ...localItem, [field]: value };
+    setLocalItem(updatedItem);
+    onItemChange?.(updatedItem);
   };
 
   const handleQuoteUpdate = (quoteIndex, field, value) => {
-    onQuoteUpdate(item?.id, quoteIndex, { [field]: value });
-  };
-
-  // Calculate suggestion (least quoted supplier)
-  const getLeastQuotedSupplier = () => {
-    if (!quotes?.length) return null;
-    
-    let minRate = Infinity;
-    let bestSupplier = null;
-    
-    quotes?.forEach((quote, index) => {
-      const rate = parseFloat(quote?.rate) || 0;
-      if (rate > 0 && rate < minRate) {
-        minRate = rate;
-        const supplier = suppliers?.find(s => s?.id === quote?.supplierId);
-        bestSupplier = supplier?.name || `Supplier ${index + 1}`;
-      }
-    });
-    
-    return bestSupplier ? `${bestSupplier} ($${minRate?.toFixed(2)})` : 'No quotes available';
+    onQuoteUpdate?.(quoteIndex, field, value);
   };
 
   const calculateAmount = (rate, frequency) => {
-    const numericRate = parseFloat(rate) || 0;
-    const numericFrequency = parseFloat(frequency) || 1;
-    return (numericRate * numericFrequency)?.toFixed(2);
+    const numRate = parseFloat(rate) || 0;
+    const numFreq = parseInt(frequency) || 1;
+    return (numRate * numFreq).toFixed(2);
   };
+
+  const vehicleSizeOptions = [
+    { value: 'small', label: 'Small (1-2 tons)' },
+    { value: 'medium', label: 'Medium (3-5 tons)' },
+    { value: 'large', label: 'Large (6-10 tons)' },
+    { value: 'xl', label: 'Extra Large (10+ tons)' }
+  ];
+
+  const frequencyOptions = [
+    { value: 1, label: '1 time/month' },
+    { value: 2, label: '2 times/month' },
+    { value: 3, label: '3 times/month' },
+    { value: 4, label: '4 times/month' },
+    { value: 5, label: '5 times/month' },
+    { value: 6, label: '6 times/month' },
+    { value: 8, label: '8 times/month' },
+    { value: 10, label: '10 times/month' },
+    { value: 12, label: '12 times/month' },
+    { value: 15, label: '15 times/month' },
+    { value: 20, label: '20 times/month' },
+    { value: 25, label: '25 times/month' },
+    { value: 30, label: '30 times/month' }
+  ];
 
   return (
     <tr className="border-b border-border hover:bg-muted/50 group">
-      {/* From - Editable with updated positioning */}
-      <td className="p-3 bg-card sticky left-0 z-10 border-r border-border min-w-40 w-40">
+      {/* From - Fixed positioning */}
+      <td className="p-3 bg-card sticky left-0 z-10 border-r border-border min-w-40">
         {isEditing ? (
           <Input
             type="text"
-            value={item?.from || ''}
-            onChange={(e) => handleInputUpdate('from', e?.target?.value)}
-            placeholder="Enter origin location"
+            value={localItem?.from || ''}
+            onChange={(e) => handleItemChange('from', e?.target?.value)}
+            placeholder="Enter source location..."
             className="w-full text-sm"
           />
         ) : (
-          <div className="text-sm font-medium text-foreground truncate">
-            {item?.from || 'Enter location'}
+          <div className="text-sm font-medium text-foreground">
+            {localItem?.from || 'Not specified'}
           </div>
         )}
       </td>
 
-      {/* To - Editable with updated positioning */}
-      <td className="p-3 bg-card sticky left-40 z-10 border-r border-border min-w-40 w-40">
+      {/* To - Fixed positioning */}
+      <td className="p-3 bg-card sticky left-40 z-10 border-r border-border min-w-40">
         {isEditing ? (
           <Input
             type="text"
-            value={item?.to || ''}
-            onChange={(e) => handleInputUpdate('to', e?.target?.value)}
-            placeholder="Enter destination"
+            value={localItem?.to || ''}
+            onChange={(e) => handleItemChange('to', e?.target?.value)}
+            placeholder="Enter destination..."
             className="w-full text-sm"
           />
         ) : (
-          <div className="text-sm font-medium text-foreground truncate">
-            {item?.to || 'Enter destination'}
+          <div className="text-sm font-medium text-foreground">
+            {localItem?.to || 'Not specified'}
           </div>
         )}
       </td>
 
-      {/* Vehicle Size - Editable with updated positioning */}
-      <td className="p-3 bg-card sticky left-80 z-10 border-r border-border min-w-44 w-44">
+      {/* Vehicle Size - Fixed positioning */}
+      <td className="p-3 bg-card sticky left-80 z-10 border-r border-border min-w-44">
         {isEditing ? (
           <Select
-            placeholder="Select vehicle size"
+            placeholder="Select vehicle size..."
             options={vehicleSizeOptions}
-            value={item?.vehicleSize}
-            onChange={(value) => handleInputUpdate('vehicleSize', value)}
-            className="w-full text-sm"
+            value={localItem?.vehicleSize}
+            onChange={(value) => handleItemChange('vehicleSize', value)}
+            className="text-sm"
           />
         ) : (
-          <div className="text-sm text-muted-foreground truncate">
-            {vehicleSizeOptions?.find(opt => opt?.value === item?.vehicleSize)?.label || 'Select size'}
+          <div className="text-sm font-medium text-foreground">
+            {vehicleSizeOptions?.find(opt => opt?.value === localItem?.vehicleSize)?.label || 'Not specified'}
           </div>
         )}
       </td>
 
       {/* Load with updated positioning */}
-      <td className="p-3 bg-card sticky left-[21rem] z-10 border-r border-border min-w-36 w-36">
+      <td className="p-3 bg-card sticky left-[21rem] z-10 border-r border-border min-w-36">
         {isEditing ? (
           <Input
             type="text"
-            value={item?.load || ''}
-            onChange={(e) => handleInputUpdate('load', e?.target?.value)}
-            placeholder="Enter load details"
+            value={localItem?.load || ''}
+            onChange={(e) => handleItemChange('load', e?.target?.value)}
+            placeholder="Enter load details..."
             className="w-full text-sm"
           />
         ) : (
-          <div className="text-sm text-muted-foreground truncate">
-            {item?.load || 'Enter load'}
+          <div className="text-sm font-medium text-foreground">
+            {localItem?.load || 'Not specified'}
           </div>
         )}
       </td>
 
       {/* Dimensions with updated positioning */}
-      <td className="p-3 bg-card sticky left-[30rem] z-10 border-r border-border min-w-40 w-40">
+      <td className="p-3 bg-card sticky left-[30rem] z-10 border-r border-border min-w-40">
         {isEditing ? (
           <Input
             type="text"
-            value={item?.dimensions || ''}
-            onChange={(e) => handleInputUpdate('dimensions', e?.target?.value)}
-            placeholder="L x W x H"
+            value={localItem?.dimensions || ''}
+            onChange={(e) => handleItemChange('dimensions', e?.target?.value)}
+            placeholder="L x W x H..."
             className="w-full text-sm"
           />
         ) : (
-          <div className="text-sm text-muted-foreground truncate">
-            {item?.dimensions || 'Enter dimensions'}
+          <div className="text-sm font-medium text-foreground">
+            {localItem?.dimensions || 'Not specified'}
           </div>
         )}
       </td>
 
       {/* Frequency/Month with updated positioning */}
-      <td className="p-3 bg-card sticky left-[40rem] z-10 border-r border-border min-w-44 w-44">
+      <td className="p-3 bg-card sticky left-[40rem] z-10 border-r border-border min-w-44">
         {isEditing ? (
           <Select
-            placeholder="Select frequency"
+            placeholder="Select frequency..."
             options={frequencyOptions}
-            value={item?.frequency}
-            onChange={(value) => handleInputUpdate('frequency', value)}
-            className="w-full text-sm"
+            value={localItem?.frequency}
+            onChange={(value) => handleItemChange('frequency', value)}
+            className="text-sm"
           />
         ) : (
-          <div className="text-sm text-muted-foreground truncate">
-            {frequencyOptions?.find(opt => opt?.value === item?.frequency)?.label || 'Select frequency'}
+          <div className="text-sm font-medium text-foreground">
+            {frequencyOptions?.find(opt => opt?.value === localItem?.frequency)?.label || 'Not specified'}
           </div>
         )}
       </td>
 
       {/* Suggestion (auto-fetched) with updated positioning */}
-      <td className="p-3 bg-card sticky left-[51rem] z-10 border-r border-border min-w-48 w-48">
+      <td className="p-3 bg-card sticky left-[51rem] z-30 border-r border-border min-w-48">
         <div className="flex items-center space-x-2">
           <Icon name="Award" size={14} className="text-green-600 flex-shrink-0" />
-          <div className="text-sm font-medium text-green-600 truncate">
-            {getLeastQuotedSupplier()}
+          <div className="text-sm text-foreground">
+            {localItem?.suggestion || 'Auto-generated based on route and load'}
           </div>
         </div>
       </td>
 
-      {/* Dynamic Supplier Columns with consistent width */}
-      {quotes?.map((quote, quoteIndex) => {
-        const supplier = suppliers?.find(s => s?.id === quote?.supplierId);
-        return (
-          <td key={quoteIndex} className="p-3 border-r border-border min-w-80 w-80">
-            <div className="space-y-3">
-              {/* Vendor Name */}
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground font-medium">Vendor Name</div>
-                <div className="text-sm font-medium text-foreground truncate">
-                  {supplier?.name || 'Select Supplier'}
-                </div>
-              </div>
-
-              {/* Rate */}
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground font-medium">Rate</div>
-                <Input
-                  type="number"
-                  value={quote?.rate || ''}
-                  onChange={(e) => handleQuoteUpdate(quoteIndex, 'rate', e?.target?.value)}
-                  placeholder="0.00"
-                  className="w-full text-sm"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              {/* Sum Amount */}
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground font-medium">Sum Amount</div>
-                <div className="text-sm font-bold text-primary">
-                  ${calculateAmount(quote?.rate || 0, item?.frequency || 1)}
-                </div>
-              </div>
-
-              {/* Attachment Status */}
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground font-medium">Attachment</div>
-                <div className="flex items-center space-x-1">
-                  {quote?.attachment ? (
-                    <>
-                      <Icon name="CheckCircle" size={12} className="text-green-600" />
-                      <span className="text-xs text-green-600">Attached</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="AlertCircle" size={12} className="text-orange-500" />
-                      <span className="text-xs text-orange-500">No file</span>
-                    </>
-                  )}
-                </div>
-              </div>
+      {/* Dynamic Supplier Columns - Matching Provided Data and Service Layout */}
+      {quotes?.map((quote, quoteIndex) => (
+        <td key={quoteIndex} className="p-3 border-r border-border min-w-64 bg-background relative z-0">
+          <div className="space-y-2">
+            {/* Rate Input */}
+            <Input
+              type="number"
+              value={quote?.rate || ''}
+              onChange={(e) => handleQuoteUpdate(quoteIndex, 'rate', e?.target?.value)}
+              placeholder="0.00"
+              className="w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              min="0"
+              step="0.01"
+            />
+            {/* Calculated Amount */}
+            <div className="text-sm font-medium text-primary">
+              ₹{calculateAmount(quote?.rate || 0, localItem?.frequency || 1)}
             </div>
-          </td>
-        );
-      })}
+          </div>
+        </td>
+      ))}
 
-      {/* Actions Column with consistent width */}
-      <td className="p-3 min-w-32 w-32">
-        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="sm"
-            iconName={isEditing ? "Check" : "Edit"}
-            onClick={() => onEditToggle(item?.id)}
-            className="text-muted-foreground hover:text-primary"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            iconName="Copy"
-            onClick={() => onDuplicateRow(item?.id)}
-            className="text-muted-foreground hover:text-primary"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            iconName="Trash2"
-            onClick={() => onDeleteRow(item?.id)}
-            className="text-muted-foreground hover:text-destructive"
-          />
+      {/* Empty cell for Add Quotation button alignment */}
+      <td className="p-3 bg-muted/5 min-w-48 bg-background relative z-0">
+        <div className="text-xs text-muted-foreground text-center">
+          {/* Empty for alignment */}
         </div>
       </td>
     </tr>

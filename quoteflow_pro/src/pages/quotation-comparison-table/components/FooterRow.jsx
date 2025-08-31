@@ -36,7 +36,7 @@ const FooterRow = ({
             value={currentValue}
             onChange={(e) => handleValueChange(quoteIndex, e?.target?.value)}
             placeholder="0.00"
-            className="w-full text-sm"
+            className="w-full text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             min="0"
             step="0.01"
           />

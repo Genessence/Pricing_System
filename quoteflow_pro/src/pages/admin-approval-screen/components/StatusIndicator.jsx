@@ -89,23 +89,7 @@ const StatusIndicator = ({ status, submissionTime }) => {
           </div>
         </div>
       </div>
-      {/* Pending Approval Message */}
-      {status === 'Pending Approval' && (
-        <div className="mt-4 pt-4 border-t border-border">
-          <div className="flex items-start space-x-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <Icon name="Info" size={16} className="text-blue-600 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-blue-800">
-                Awaiting Your Decision
-              </p>
-              <p className="text-sm text-blue-700 mt-1">
-                This quotation has been submitted for your review and approval. 
-                Please review all details carefully before making a decision.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

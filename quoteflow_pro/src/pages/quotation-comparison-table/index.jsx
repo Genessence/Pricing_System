@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
+import { useNavigate } from 'react-router-dom';
 import TopNavigationBar from '../../components/ui/TopNavigationBar';
 import BreadcrumbTrail from '../../components/ui/BreadcrumbTrail';
 import Button from '../../components/ui/Button';
@@ -18,6 +19,8 @@ import { getCurrencyOptions } from '../../constants/currencies';
 import Icon from '../../components/AppIcon';
 
 const QuotationComparisonTable = () => {
+  const navigate = useNavigate();
+  
   // Mock user data
   const mockUser = {
     id: 1,
@@ -241,6 +244,8 @@ const QuotationComparisonTable = () => {
     additionalFiles: []
   });
 
+  const [serviceProjectName, setServiceProjectName] = useState('');
+
   const [quotes, setQuotes] = useState([
     {
       id: 1,
@@ -251,7 +256,7 @@ const QuotationComparisonTable = () => {
         packing_charges: "extra",
         delivery_lead_time: "7-10 days",
         warranty: "12 months",
-        currency: "USD",
+        currency: "INR",
         remarks_of_quotation: "Bulk discount applied for quantities over 1000 units"
       }
     },
@@ -264,7 +269,7 @@ const QuotationComparisonTable = () => {
         packing_charges: "included",
         delivery_lead_time: "5-7 days",
         warranty: "18 months",
-        currency: "USD",
+        currency: "INR",
         remarks_of_quotation: "Express delivery available at additional cost"
       }
     }
@@ -283,7 +288,11 @@ const QuotationComparisonTable = () => {
   ]);
 
   const [attachedFiles, setAttachedFiles] = useState({});
-  const [editingItems, setEditingItems] = useState(new Set());
+  const [boqFile, setBoqFile] = useState(null);
+  const [drawingFile, setDrawingFile] = useState(null);
+  const [editingItems, setEditingItems] = useState(new Set([1])); // Initialize with service item ID 1 in editing mode
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('');
   const [isExporting, setIsExporting] = useState(false);
@@ -451,6 +460,82 @@ const QuotationComparisonTable = () => {
     setShowQuotationDetails(true);
   };
 
+  const handleSubmitQuotation = async () => {
+    setIsSubmitting(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Calculate total value based on form data
+    let totalValue = 0;
+    if (selectedCommodity === 'provided_data') {
+      totalValue = items?.reduce((total, item) => {
+        return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.lastBuyingPrice) || 0);
+      }, 0);
+    } else if (selectedCommodity === 'service') {
+      totalValue = serviceItems?.reduce((total, item) => {
+        return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.rate) || 0);
+      }, 0);
+    } else if (selectedCommodity === 'transport') {
+      totalValue = transportItems?.reduce((total, item) => {
+        const rate = quotes?.[0]?.rates?.[item?.id] || 0;
+        const frequency = parseFloat(item?.frequency) || 1;
+        return total + (rate * frequency);
+      }, 0);
+    }
+    
+    // Create quotation request data
+    const quotationRequest = {
+      id: `RFQ-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
+      title: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} Procurement Request`,
+      requestedBy: mockUser.name,
+      plant: 'Plant A - Manufacturing',
+      submittedDate: new Date().toLocaleString(),
+      status: 'Pending Approval',
+      totalValue: totalValue,
+      supplierCount: quotes?.length || 0,
+      commodityType: selectedCommodity === 'provided_data' ? 'Provided Data' : 
+                    selectedCommodity === 'service' ? 'Service' : 'Transport',
+      description: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} procurement request submitted by ${mockUser.name}`,
+      commodityTypeRaw: selectedCommodity,
+      productType: selectedProductType,
+      workType: selectedWorkType,
+      serviceProjectName: selectedCommodity === 'service' ? serviceProjectName : null,
+      submittedAt: new Date().toISOString(),
+      items: selectedCommodity === 'provided_data' ? items : 
+             selectedCommodity === 'service' ? serviceItems : 
+             transportItems,
+      quotes: quotes,
+      attachments: {
+        boqFile: boqFile,
+        drawingFile: drawingFile,
+        quoteFiles: attachedFiles
+      }
+    };
+
+    // Store in localStorage for demo purposes
+    const existingQuotations = JSON.parse(localStorage.getItem('submittedQuotations') || '[]');
+    existingQuotations.push(quotationRequest);
+    localStorage.setItem('submittedQuotations', JSON.stringify(existingQuotations));
+
+    // In a real app, this would be sent to the backend
+    console.log('Submitting quotation request:', quotationRequest);
+    
+    // Show success message
+    setShowSuccessMessage(true);
+    setIsSubmitting(false);
+    
+    // Navigate to admin screen after 3 seconds
+    setTimeout(() => {
+      navigate('/admin-approval-screen');
+    }, 3000);
+    
+    // Hide success message after 5 seconds
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+    }, 5000);
+  };
+
   const handleExportCSV = () => {
     setIsExporting(true);
     // Simulate export process
@@ -529,6 +614,12 @@ const QuotationComparisonTable = () => {
   const handleCommodityChange = (value) => {
     setSelectedCommodity(value);
     
+    // If Transport is selected and current work type is Urgent, reset to Normal
+    if (value === 'transport' && selectedWorkType === 'urgent') {
+      setSelectedWorkType('normal');
+      console.log('Work type automatically reset to Normal for Transport commodity');
+    }
+    
     // Show info message for non-implemented selections
     if (value === 'transport') {
       console.log(`${value} form will be available in future updates`);
@@ -592,11 +683,23 @@ const QuotationComparisonTable = () => {
   };
 
   // Service handlers
-  const handleServiceItemUpdate = (itemId, updates) => {
+  const handleServiceItemUpdate = (itemId, field, value) => {
+    console.log('handleServiceItemUpdate called:', { itemId, field, value });
+    console.log('Current serviceItems before update:', serviceItems);
     setServiceItems(serviceItems?.map(item => 
-      item?.id === itemId ? { ...item, ...updates } : item
+      item?.id === itemId ? { ...item, [field]: value } : item
     ));
   };
+
+  // Debug useEffect to monitor serviceItems changes
+  useEffect(() => {
+    console.log('serviceItems state updated:', serviceItems);
+  }, [serviceItems]);
+
+  // Debug useEffect to monitor quotes changes
+  useEffect(() => {
+    console.log('quotes state updated:', quotes);
+  }, [quotes]);
 
   const handleAddServiceRow = () => {
     const newServiceItem = {
@@ -649,6 +752,34 @@ const QuotationComparisonTable = () => {
             { label: 'Quotation Comparison', path: '/quotation-comparison-table', icon: 'Table', current: true }
           ]}
         />
+        
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-lg mx-4 animate-bounce">
+            <div className="bg-green-500 border-2 border-green-600 rounded-lg p-6 shadow-2xl">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Icon name="Check" size={20} className="text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white">
+                    🎉 Quotation Submitted Successfully!
+                  </h3>
+                  <p className="text-base text-green-100 mt-2">
+                    Your quotation request has been submitted and is now pending admin approval.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSuccessMessage(false)}
+                  className="text-white hover:text-green-100 p-2"
+                >
+                  <Icon name="X" size={20} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="pt-4">
         {/* Header Section */}
         <div className="px-6 mb-6">
@@ -765,7 +896,7 @@ const QuotationComparisonTable = () => {
                       {quotes?.map((quote, index) => (
                         <td key={index} className="p-3 border-r border-border">
                           <div className="text-lg font-bold text-primary">
-                            ${calculateTotalAmount(index)?.toFixed(2)}
+                                                          ₹{calculateTotalAmount(index)?.toFixed(2)}
                           </div>
                         </td>
                       ))}
@@ -888,42 +1019,205 @@ const QuotationComparisonTable = () => {
                 <Button variant="default">
                   Save Comparison
                 </Button>
+                
+                <Button 
+                  variant="default"
+                  iconName="Send"
+                  iconPosition="left"
+                  onClick={handleSubmitQuotation}
+                  disabled={isSubmitting}
+                  className="px-8 bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Quotation'}
+                </Button>
               </div>
             </div>
           </div>
         ) : showServiceForm ? (
           <div className="px-6">
+            {/* Document Upload Section */}
+            <div className="bg-card border border-border rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Mandatory Documents
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Signed BOQ Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    <Icon name="FileText" size={16} className="inline mr-2 text-orange-600" />
+                    Signed BOQ
+                    <span className="ml-2 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">Mandatory</span>
+                  </label>
+                  <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 text-center hover:border-orange-400 transition-colors">
+                    <Icon name="Upload" size={24} className="mx-auto text-orange-500 mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PDF files only, max 10MB
+                    </p>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      id="boq-file-input"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setBoqFile(file);
+                          console.log('BOQ file selected:', file);
+                        }
+                      }}
+                    />
+                    {boqFile ? (
+                      <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Icon name="FileText" size={14} className="text-green-600" />
+                            <span className="text-sm text-green-800 truncate">{boqFile.name}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            iconName="X"
+                            onClick={() => setBoqFile(null)}
+                            className="text-green-600 hover:text-green-800 p-1 h-auto"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 text-orange-600 border-orange-300 hover:bg-orange-50"
+                        onClick={() => {
+                          document.getElementById('boq-file-input').click();
+                        }}
+                      >
+                        Upload BOQ
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Signed Drawing Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    <Icon name="FileText" size={16} className="inline mr-2 text-orange-600" />
+                    Signed Drawing
+                    <span className="ml-2 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">Mandatory</span>
+                  </label>
+                  <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 text-center hover:border-orange-400 transition-colors">
+                    <Icon name="Upload" size={24} className="mx-auto text-orange-500 mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PDF files only, max 10MB
+                    </p>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      id="drawing-file-input"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setDrawingFile(file);
+                          console.log('Drawing file selected:', file);
+                        }
+                      }}
+                    />
+                    {drawingFile ? (
+                      <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Icon name="FileText" size={14} className="text-green-600" />
+                            <span className="text-sm text-green-800 truncate">{drawingFile.name}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            iconName="X"
+                            onClick={() => setDrawingFile(null)}
+                            className="text-green-600 hover:text-green-800 p-1 h-auto"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 text-orange-600 border-orange-300 hover:bg-orange-50"
+                        onClick={() => {
+                          document.getElementById('drawing-file-input').click();
+                        }}
+                      >
+                        Upload Drawing
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Project Name Section */}
+            <div className="bg-card border border-border rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Project Information
+              </h3>
+              <div className="max-w-2xl">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  <Icon name="Briefcase" size={16} className="inline mr-2 text-blue-600" />
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter project name..."
+                  className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  value={serviceProjectName || ''}
+                  onChange={(e) => setServiceProjectName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  This project name will apply to all service items below
+                </p>
+              </div>
+            </div>
+
+            {/* Service Quotation Table */}
             <div className="bg-card border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-max">
                   <ServiceTableHeader 
                     quotes={quotes} 
-                    suppliers={mockSuppliers}
-                    attachedFiles={attachedFiles}
-                    onFileUpload={handleFileUpload}
-                    onFileRemove={handleFileRemove}
-                    onSupplierChange={handleSupplierChange}
+                    onAddQuotation={showAnyForm && quotes?.length < 5 ? handleAddQuote : null}
                     onRemoveQuote={handleRemoveQuote}
                   />
                   
                   <tbody>
                     {serviceItems?.map((item) => (
                       <ServiceItemRow
-                        key={item?.id}
+                        key={`${item?.id}-${item?.requiredQuantity}`}
                         item={item}
-                        quotes={quotes?.map(quote => ({
-                          rate: quote?.rates?.[item?.id] || 0,
-                          supplierId: quote?.supplierId,
-                          attachment: quote?.attachment || false
-                        }))}
-                        suppliers={mockSuppliers}
-                        onItemUpdate={handleServiceItemUpdate}
-                        onQuoteUpdate={handleQuoteUpdate}
-                        onDeleteRow={handleDeleteServiceRow}
-                        onDuplicateRow={handleDuplicateServiceRow}
-                        serviceItems={mockServiceItems}
                         isEditing={editingItems?.has(item?.id)}
-                        onEditToggle={handleEditToggle}
+                        onItemChange={handleServiceItemUpdate}
+                        quotes={quotes?.map(quote => {
+                          const rate = quote?.rates?.[item?.id] || 0;
+                          console.log('Quote mapping:', { itemId: item?.id, quoteId: quote?.id, rate });
+                          return {
+                            rate: rate,
+                            supplierId: quote?.supplierId
+                          };
+                        })}
+                        suppliers={mockSuppliers}
+                        onSupplierChange={handleSupplierChange}
+                        onRateChange={(quoteIndex, rate) => {
+                          console.log('onRateChange called:', { quoteIndex, rate, itemId: item.id });
+                          const updatedQuotes = [...quotes];
+                          updatedQuotes[quoteIndex].rates[item.id] = parseFloat(rate) || 0;
+                          console.log('Updated quotes:', updatedQuotes);
+                          setQuotes(updatedQuotes);
+                        }}
                       />
                     ))}
 
@@ -933,16 +1227,15 @@ const QuotationComparisonTable = () => {
                         Total Amount
                       </td>
                       <td className="p-4 bg-card sticky left-52 z-10 border-r border-border"></td>
-                      <td className="p-4 bg-card sticky left-116 z-10 border-r border-border"></td>
-                      <td className="p-4 bg-card sticky left-172 z-10 border-r border-border"></td>
-                      <td className="p-4 bg-card sticky left-196 z-10 border-r border-border"></td>
-                      <td className="p-4 bg-card sticky left-224 z-10 border-r border-border"></td>
+                      <td className="p-4 bg-card sticky left-112 z-10 border-r border-border"></td>
+                      <td className="p-4 bg-card sticky left-148 z-10 border-r border-border"></td>
+                      <td className="p-4 bg-card sticky left-188 z-10 border-r border-border"></td>
                       
                       {quotes?.map((quote, index) => (
                         <td key={index} className="p-4 border-r border-border">
                           <div className="text-center">
                             <div className="text-lg font-bold text-primary">
-                              ${serviceItems?.reduce((total, item) => {
+                              ₹{serviceItems?.reduce((total, item) => {
                                 const rate = quote?.rates?.[item?.id] || 0;
                                 return total + (rate * item?.requiredQuantity);
                               }, 0)?.toFixed(2)}
@@ -985,6 +1278,17 @@ const QuotationComparisonTable = () => {
                 >
                   Save Service Comparison
                 </Button>
+                
+                <Button 
+                  variant="default"
+                  iconName="Send"
+                  iconPosition="left"
+                  onClick={handleSubmitQuotation}
+                  disabled={isSubmitting}
+                  className="px-8 bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Quotation'}
+                </Button>
               </div>
             </div>
 
@@ -1017,6 +1321,7 @@ const QuotationComparisonTable = () => {
                     onFileRemove={handleFileRemove}
                     onSupplierChange={handleSupplierChange}
                     onRemoveQuote={handleRemoveQuote}
+                    onAddQuotation={showAnyForm && quotes?.length < 5 ? handleAddQuote : null}
                   />
                   
                   <tbody>
@@ -1055,7 +1360,7 @@ const QuotationComparisonTable = () => {
                         <td key={index} className="p-4 border-r border-border">
                           <div className="text-center">
                             <div className="text-lg font-bold text-primary">
-                              ${transportItems?.reduce((total, item) => {
+                              ₹{transportItems?.reduce((total, item) => {
                                 const rate = quote?.rates?.[item?.id] || 0;
                                 const frequency = parseFloat(item?.frequency) || 1;
                                 return total + (rate * frequency);
@@ -1098,6 +1403,17 @@ const QuotationComparisonTable = () => {
                   className="px-8"
                 >
                   Save Transport Comparison
+                </Button>
+                
+                <Button 
+                  variant="default"
+                  iconName="Send"
+                  iconPosition="left"
+                  onClick={handleSubmitQuotation}
+                  disabled={isSubmitting}
+                  className="px-8 bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Quotation'}
                 </Button>
               </div>
             </div>

@@ -216,7 +216,7 @@ const AdminServiceQuotationTable = ({
                             {lowestQuote?.supplier}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            ${lowestQuote?.price?.toFixed(2)}
+                            ₹{lowestQuote?.price?.toFixed(2)}
                           </div>
                         </div>
                       ) : (
@@ -236,12 +236,12 @@ const AdminServiceQuotationTable = ({
                             <div className="grid grid-cols-3 gap-2 text-center">
                               <div>
                                 <div className="text-sm font-medium text-foreground">
-                                  ${quote?.unitPrice?.toFixed(2)}
+                                  ₹{quote?.unitPrice?.toFixed(2)}
                                 </div>
                               </div>
                               <div>
                                 <div className="text-sm font-semibold text-primary">
-                                  ${quote?.totalPrice?.toFixed(2)}
+                                  ₹{quote?.totalPrice?.toFixed(2)}
                                 </div>
                               </div>
                               <div>
@@ -313,7 +313,7 @@ const AdminServiceQuotationTable = ({
                           Sum Amount
                         </div>
                         <div className="text-sm font-semibold text-primary bg-white dark:bg-gray-800 px-2 py-1 rounded border">
-                          ${calculateSumAmount?.(item?.id, item?.requiredQuantity) || '0.00'}
+                          ₹{calculateSumAmount?.(item?.id, item?.requiredQuantity) || '0.00'}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           Qty: {item?.requiredQuantity} × Final Price
@@ -339,7 +339,7 @@ const AdminServiceQuotationTable = ({
                   <td key={supplier?.id} className="p-4 border-r border-border">
                     <div className="text-center">
                       <div className="text-lg font-bold text-primary">
-                        ${supplier?.totalQuote?.toFixed(2)}
+                        ₹{supplier?.totalQuote?.toFixed(2)}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Total Cost
@@ -352,7 +352,7 @@ const AdminServiceQuotationTable = ({
                 <td className="p-4 border-r border-border bg-orange-50/50 dark:bg-orange-950/10">
                   <div className="text-center">
                     <div className="text-lg font-bold text-orange-600">
-                      ${items?.reduce((total, item) => {
+                      ₹{items?.reduce((total, item) => {
                         const sumAmount = parseFloat(calculateSumAmount?.(item?.id, item?.requiredQuantity) || 0);
                         return total + sumAmount;
                       }, 0)?.toFixed(2)}

@@ -1,11 +1,11 @@
 import React from 'react';
 import AppIcon from '../../../components/AppIcon';
 
-
 const AdminQuotationComparisonTable = ({ 
   suppliers = [], 
   items = [], 
   quotes = [],
+  commodityType = 'Provided Data',
   adminApproval = {},
   onFinalSupplierChange,
   onFinalPriceChange,
@@ -48,308 +48,578 @@ const AdminQuotationComparisonTable = ({
     );
   }
 
+  // Render different table formats based on commodity type
+  const renderProvidedDataTable = () => (
+    <table className="w-full min-w-max">
+      {/* Table Header */}
+      <thead className="bg-muted border-b border-border sticky top-0 z-20">
+        <tr>
+                     {/* Fixed Left Column Headers - Matching user form structure */}
+           <th className="p-2 text-left bg-card sticky left-0 z-30 border-r border-border min-w-36">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="Package" size={14} />
+               <span className="text-xs font-semibold text-foreground">Item</span>
+             </div>
+           </th>
+           
+           <th className="p-2 text-left bg-card sticky left-36 z-30 border-r border-border min-w-36">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="FileText" size={14} />
+               <span className="text-xs font-semibold text-foreground">Description</span>
+             </div>
+           </th>
+          
+                     <th className="p-2 text-left bg-card sticky left-96 z-30 border-r border-border min-w-48">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="FileText" size={14} />
+               <span className="text-xs font-semibold text-foreground">Description</span>
+             </div>
+           </th>
+           
+           <th className="p-2 text-left bg-card sticky left-144 z-30 border-r border-border min-w-48">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="FileText" size={14} />
+               <span className="text-xs font-semibold text-foreground">Specs</span>
+             </div>
+           </th>
+           
+           <th className="p-2 text-left bg-card sticky left-192 z-30 border-r border-border min-w-24">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="Hash" size={14} />
+               <span className="text-xs font-semibold text-foreground">Qty</span>
+             </div>
+           </th>
+           
+           <th className="p-2 text-left bg-card sticky left-216 z-30 border-r border-border min-w-24">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="Ruler" size={14} />
+               <span className="text-xs font-semibold text-foreground">UOM</span>
+             </div>
+           </th>
+           
+           <th className="p-2 text-left bg-card sticky left-240 z-30 border-r border-border min-w-32">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="DollarSign" size={14} />
+               <span className="text-xs font-semibold text-foreground">Last Price</span>
+             </div>
+           </th>
+           
+           <th className="p-2 text-left bg-card sticky left-272 z-30 border-r border-border min-w-48">
+             <div className="flex items-center space-x-1">
+               <AppIcon name="Building2" size={14} />
+               <span className="text-xs font-semibold text-foreground">Last Vendor</span>
+             </div>
+           </th>
+
+          {/* Dynamic Quote Column Headers */}
+          {quotes?.map((quote, index) => (
+            <th key={index} className="p-2 text-left border-r border-border min-w-48">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-1">
+                  <AppIcon name="Quote" size={12} className="text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {getSupplierName(quote?.supplierId)}
+                </div>
+              </div>
+            </th>
+          ))}
+
+          {/* Admin Final Decision Column */}
+          <th className="p-2 text-left bg-muted/20 min-w-48">
+            <div className="space-y-1">
+              <div className="flex items-center space-x-1">
+                <AppIcon name="CheckCircle" size={12} className="text-green-600" />
+                <span className="text-xs font-semibold text-foreground">Final Decision</span>
+              </div>
+              <div className="text-xs text-muted-foreground">Admin Approval</div>
+            </div>
+          </th>
+        </tr>
+      </thead>
+
+      {/* Table Body */}
+      <tbody>
+        {items?.map((item, itemIndex) => (
+          <tr key={item?.id || itemIndex} className="border-b border-border hover:bg-muted/50">
+                         {/* Fixed Left Columns */}
+             <td className="p-2 bg-card sticky left-0 z-10 border-r border-border min-w-36">
+               <div className="text-xs font-medium text-foreground">{item?.item || '-'}</div>
+             </td>
+             
+             <td className="p-2 bg-card sticky left-36 z-10 border-r border-border min-w-36">
+               <div className="text-xs font-medium text-foreground">{item?.description}</div>
+             </td>
+            
+                         <td className="p-2 bg-card sticky left-96 z-10 border-r border-border min-w-48">
+               <div className="text-xs text-muted-foreground">{item?.description}</div>
+             </td>
+             
+             <td className="p-2 bg-card sticky left-144 z-10 border-r border-border min-w-48">
+               <div className="text-xs text-muted-foreground">{item?.specifications}</div>
+             </td>
+             
+             <td className="p-2 bg-card sticky left-192 z-10 border-r border-border min-w-24">
+               <div className="text-xs font-medium text-foreground">{item?.quantity}</div>
+             </td>
+             
+             <td className="p-2 bg-card sticky left-216 z-10 border-r border-border min-w-24">
+               <div className="text-xs text-muted-foreground">{item?.unitOfMeasure}</div>
+             </td>
+             
+             <td className="p-2 bg-card sticky left-240 z-10 border-r border-border min-w-32">
+                               <div className="text-xs font-medium text-foreground">₹{item?.lastBuyingPrice?.toLocaleString()}</div>
+             </td>
+             
+             <td className="p-2 bg-card sticky left-272 z-10 border-r border-border min-w-48">
+               <div className="text-xs text-muted-foreground">{item?.lastVendor}</div>
+             </td>
+
+            {/* Dynamic Quote Columns */}
+            {quotes?.map((quote, quoteIndex) => {
+              const itemQuote = quote?.items?.find(qi => qi?.itemId === item?.id);
+              return (
+                <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-primary">
+                      ₹{itemQuote?.unitPrice?.toLocaleString() || '0'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Total: ₹{itemQuote?.totalPrice?.toLocaleString() || '0'}
+                    </div>
+                  </div>
+                </td>
+              );
+            })}
+
+            {/* Admin Final Decision Column */}
+            <td className="p-2 bg-muted/5 min-w-48">
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Final Price (₹)</label>
+                  <input
+                    type="number"
+                    value={adminApproval?.[item?.id]?.finalPrice || ''}
+                    onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Supplier</label>
+                  <select
+                    value={adminApproval?.[item?.id]?.finalSupplier || ''}
+                    onChange={(e) => onFinalSupplierChange(item?.id, 'name', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">Select Supplier</option>
+                    {suppliers?.map((supplier, index) => (
+                      <option key={supplier?.id || index} value={supplier?.name}>
+                        {supplier?.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+
+      {/* Footer Row */}
+      <tfoot className="bg-muted/20 border-t border-border">
+        <tr>
+                     <td colSpan={8} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+             <div className="text-xs font-semibold text-foreground">Total Amount</div>
+           </td>
+          
+          {quotes?.map((quote, quoteIndex) => (
+            <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+              <div className="text-xs font-semibold text-primary">
+                ₹{calculateTotalAmount(quoteIndex)?.toLocaleString()}
+              </div>
+            </td>
+          ))}
+          
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs font-semibold text-green-600">
+              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.[item?.id]?.finalPrice) || 0), 0)?.toLocaleString()}
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+
+  const renderServiceTable = () => (
+    <table className="w-full min-w-max">
+      {/* Table Header */}
+      <thead className="bg-muted border-b border-border sticky top-0 z-20">
+        <tr>
+          {/* Fixed Left Column Headers - Matching user form structure */}
+          <th className="p-2 text-left bg-card sticky left-0 z-30 border-r border-border min-w-36">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="FileText" size={14} />
+              <span className="text-xs font-semibold text-foreground">Description</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-36 z-30 border-r border-border min-w-32">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="FileText" size={14} />
+              <span className="text-xs font-semibold text-foreground">Specifications</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-68 z-30 border-r border-border min-w-16">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Ruler" size={14} />
+              <span className="text-xs font-semibold text-foreground">UOM</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-84 z-30 border-r border-border min-w-16">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Hash" size={14} />
+              <span className="text-xs font-semibold text-foreground">Req Qty</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-100 z-30 border-r border-border min-w-20">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="DollarSign" size={14} />
+              <span className="text-xs font-semibold text-foreground">Rate</span>
+            </div>
+          </th>
+
+          {/* Dynamic Quote Column Headers */}
+          {quotes?.map((quote, quoteIndex) => (
+            <th key={quoteIndex} className="p-2 text-center bg-card border-r border-border min-w-48">
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-foreground">Quote {quoteIndex + 1}</div>
+                <div className="text-xs text-muted-foreground">
+                  {getSupplierName(quote?.id)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {quote?.footer?.currency || 'INR'}
+                </div>
+              </div>
+            </th>
+          ))}
+
+          {/* Admin Final Decision Column */}
+          <th className="p-2 text-center bg-muted/5 min-w-48">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-green-600">Final Decision</div>
+              <div className="text-xs text-muted-foreground">Admin Approval</div>
+            </div>
+          </th>
+        </tr>
+      </thead>
+
+      {/* Table Body */}
+      <tbody className="divide-y divide-border">
+        {items?.map((item) => (
+          <tr key={item?.id} className="hover:bg-muted/10">
+            {/* Fixed Left Columns */}
+            <td className="p-2 bg-card sticky left-0 z-10 border-r border-border min-w-36">
+              <div className="text-xs text-foreground">{item?.description || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-36 z-10 border-r border-border min-w-32">
+              <div className="text-xs text-foreground">{item?.specifications || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-68 z-10 border-r border-border min-w-16">
+              <div className="text-xs text-foreground">{item?.uom || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-84 z-10 border-r border-border min-w-16">
+              <div className="text-xs text-foreground">{item?.requiredQuantity || '0'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-100 z-10 border-r border-border min-w-20">
+              <div className="text-xs text-foreground">₹{item?.rate || '0'}</div>
+            </td>
+
+            {/* Dynamic Quote Columns */}
+            {quotes?.map((quote, quoteIndex) => {
+              const itemRate = quote?.rates?.[item?.id] || 0;
+              const amount = calculateAmount(itemRate, item?.requiredQuantity || 0);
+              return (
+                <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-primary">
+                      ₹{itemRate?.toLocaleString() || '0'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Total: ₹{amount}
+                    </div>
+                  </div>
+                </td>
+              );
+            })}
+
+            {/* Admin Final Decision Column */}
+            <td className="p-2 bg-muted/5 min-w-48">
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Final Price (₹)</label>
+                  <input
+                    type="number"
+                    value={adminApproval?.service?.[item?.id]?.finalPrice || ''}
+                    onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Supplier</label>
+                  <select
+                    value={adminApproval?.service?.[item?.id]?.finalSupplier || ''}
+                    onChange={(e) => onFinalSupplierChange(item?.id, 'name', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">Select Supplier</option>
+                    {suppliers?.map((supplier, index) => (
+                      <option key={supplier?.id || index} value={supplier?.name}>
+                        {supplier?.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+
+      {/* Footer Row */}
+      <tfoot className="bg-muted/20 border-t border-border">
+        <tr>
+          <td colSpan={5} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs font-semibold text-foreground">Total Amount</div>
+          </td>
+          
+          {quotes?.map((quote, quoteIndex) => {
+            const totalAmount = items?.reduce((total, item) => {
+              const rate = quote?.rates?.[item?.id] || 0;
+              const quantity = item?.requiredQuantity || 0;
+              return total + (rate * quantity);
+            }, 0);
+            return (
+              <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+                <div className="text-xs font-semibold text-primary">
+                  ₹{totalAmount?.toLocaleString()}
+                </div>
+              </td>
+            );
+          })}
+          
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs font-semibold text-green-600">
+              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.service?.[item?.id]?.finalPrice) || 0), 0)?.toLocaleString()}
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+
+  const renderTransportTable = () => (
+    <table className="w-full min-w-max">
+      {/* Table Header */}
+      <thead className="bg-muted border-b border-border sticky top-0 z-20">
+        <tr>
+          {/* Fixed Left Column Headers - Matching user form structure */}
+          <th className="p-2 text-left bg-card sticky left-0 z-30 border-r border-border min-w-32">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="MapPin" size={14} />
+              <span className="text-xs font-semibold text-foreground">From</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-32 z-30 border-r border-border min-w-32">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="MapPin" size={14} />
+              <span className="text-xs font-semibold text-foreground">To</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-64 z-30 border-r border-border min-w-24">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Truck" size={14} />
+              <span className="text-xs font-semibold text-foreground">Vehicle Size</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-88 z-30 border-r border-border min-w-24">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Package" size={14} />
+              <span className="text-xs font-semibold text-foreground">Load</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-112 z-30 border-r border-border min-w-28">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Ruler" size={14} />
+              <span className="text-xs font-semibold text-foreground">Dimensions</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-140 z-30 border-r border-border min-w-20">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Repeat" size={14} />
+              <span className="text-xs font-semibold text-foreground">Frequency</span>
+            </div>
+          </th>
+
+          {/* Dynamic Quote Column Headers */}
+          {quotes?.map((quote, quoteIndex) => (
+            <th key={quoteIndex} className="p-2 text-center bg-card border-r border-border min-w-48">
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-foreground">Quote {quoteIndex + 1}</div>
+                <div className="text-xs text-muted-foreground">
+                  {getSupplierName(quote?.id)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {quote?.footer?.currency || 'INR'}
+                </div>
+              </div>
+            </th>
+          ))}
+
+          {/* Admin Final Decision Column */}
+          <th className="p-2 text-center bg-muted/5 min-w-48">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-green-600">Final Decision</div>
+              <div className="text-xs text-muted-foreground">Admin Approval</div>
+            </div>
+          </th>
+        </tr>
+      </thead>
+
+      {/* Table Body */}
+      <tbody className="divide-y divide-border">
+        {items?.map((item) => (
+          <tr key={item?.id} className="hover:bg-muted/10">
+            {/* Fixed Left Columns */}
+            <td className="p-2 bg-card sticky left-0 z-10 border-r border-border min-w-32">
+              <div className="text-xs text-foreground">{item?.from || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-32 z-10 border-r border-border min-w-32">
+              <div className="text-xs text-foreground">{item?.to || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-64 z-10 border-r border-border min-w-24">
+              <div className="text-xs text-foreground">{item?.vehicleSize || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-88 z-10 border-r border-border min-w-24">
+              <div className="text-xs text-foreground">{item?.load || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-112 z-10 border-r border-border min-w-28">
+              <div className="text-xs text-foreground">{item?.dimensions || 'N/A'}</div>
+            </td>
+            
+            <td className="p-2 bg-card sticky left-140 z-10 border-r border-border min-w-20">
+              <div className="text-xs text-foreground">{item?.frequency || '0'}</div>
+            </td>
+
+            {/* Dynamic Quote Columns */}
+            {quotes?.map((quote, quoteIndex) => {
+              const itemRate = quote?.rates?.[item?.id] || 0;
+              const frequency = item?.frequency || 1;
+              const amount = calculateAmount(itemRate, frequency);
+              return (
+                <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-primary">
+                      ₹{itemRate?.toLocaleString() || '0'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Monthly: ₹{amount}
+                    </div>
+                  </div>
+                </td>
+              );
+            })}
+
+            {/* Admin Final Decision Column */}
+            <td className="p-2 bg-muted/5 min-w-48">
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Final Price (₹)</label>
+                  <input
+                    type="number"
+                    value={adminApproval?.transport?.[item?.id]?.finalPrice || ''}
+                    onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">Supplier</label>
+                  <select
+                    value={adminApproval?.transport?.[item?.id]?.finalSupplier || ''}
+                    onChange={(e) => onFinalSupplierChange(item?.id, 'name', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">Select Supplier</option>
+                    {suppliers?.map((supplier, index) => (
+                      <option key={supplier?.id || index} value={supplier?.name}>
+                        {supplier?.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+
+      {/* Footer Row */}
+      <tfoot className="bg-muted/20 border-t border-border">
+        <tr>
+          <td colSpan={6} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs font-semibold text-foreground">Total Monthly Cost</div>
+          </td>
+          
+          {quotes?.map((quote, quoteIndex) => {
+            const totalAmount = items?.reduce((total, item) => {
+              const rate = quote?.rates?.[item?.id] || 0;
+              const frequency = item?.frequency || 1;
+              return total + (rate * frequency);
+            }, 0);
+            return (
+              <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+                <div className="text-xs font-semibold text-primary">
+                  ₹{totalAmount?.toLocaleString()}
+                </div>
+              </td>
+            );
+          })}
+          
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs font-semibold text-green-600">
+              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.transport?.[item?.id]?.finalPrice) || 0), 0)?.toLocaleString()}
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-max">
-          {/* Table Header */}
-          <thead className="bg-muted border-b border-border sticky top-0 z-20">
-            <tr>
-              {/* Fixed Left Column Headers - Matching user form structure */}
-                             <th className="p-2 text-left bg-card sticky left-0 z-30 border-r border-border min-w-36">
-                 <div className="flex items-center space-x-1">
-                   <AppIcon name="Package" size={14} />
-                   <span className="text-xs font-semibold text-foreground">Description</span>
-                 </div>
-               </th>
-               
-               <th className="p-2 text-left bg-card sticky left-36 z-30 border-r border-border min-w-32">
-                 <div className="flex items-center space-x-1">
-                   <AppIcon name="FileText" size={14} />
-                   <span className="text-xs font-semibold text-foreground">Specs</span>
-                 </div>
-               </th>
-               
-               <th className="p-2 text-left bg-card sticky left-68 z-30 border-r border-border min-w-16">
-                 <div className="flex items-center space-x-1">
-                   <AppIcon name="Hash" size={14} />
-                   <span className="text-xs font-semibold text-foreground">Qty</span>
-                 </div>
-               </th>
-               
-               <th className="p-2 text-left bg-card sticky left-84 z-30 border-r border-border min-w-16">
-                 <div className="flex items-center space-x-1">
-                   <AppIcon name="Ruler" size={14} />
-                   <span className="text-xs font-semibold text-foreground">UOM</span>
-                 </div>
-               </th>
-               
-               <th className="p-2 text-left bg-card sticky left-100 z-30 border-r border-border min-w-24">
-                 <div className="flex items-center space-x-1">
-                   <AppIcon name="DollarSign" size={14} />
-                   <span className="text-xs font-semibold text-foreground">Last Price</span>
-                 </div>
-               </th>
-               
-               <th className="p-2 text-left bg-card sticky left-124 z-30 border-r border-border min-w-28">
-                 <div className="flex items-center space-x-1">
-                   <AppIcon name="Building2" size={14} />
-                   <span className="text-xs font-semibold text-foreground">Last Vendor</span>
-                 </div>
-               </th>
-
-                                                           {/* Dynamic Supplier Quote Headers */}
-               {suppliers?.map((supplier, index) => (
-                 <th key={supplier?.id} className="p-2 text-left border-r border-border min-w-48">
-                   <div className="space-y-1">
-                     <div className="flex items-center space-x-1">
-                       <AppIcon name="Building2" size={14} className="text-primary" />
-                       <div>
-                         <div className="text-xs font-semibold text-foreground">
-                           {supplier?.name}
-                         </div>
-                         <div className="text-xs text-muted-foreground">
-                           {supplier?.rating}/5.0
-                         </div>
-                       </div>
-                     </div>
-                     <div className="text-xs text-muted-foreground truncate">
-                       {supplier?.contact}
-                     </div>
-                   </div>
-                 </th>
-               ))}
-
-               {/* Admin Approval Column Header */}
-               <th className="p-2 text-left border-r border-border min-w-64 bg-orange-50 dark:bg-orange-950/20">
-                 <div className="flex items-center space-x-2">
-                   <AppIcon name="UserCheck" size={16} className="text-orange-600" />
-                   <div>
-                     <div className="text-sm font-semibold text-orange-800 dark:text-orange-200">
-                       Admin Approval
-                     </div>
-                     <div className="text-xs text-orange-600 dark:text-orange-400">
-                       Final supplier selection & pricing
-                     </div>
-                   </div>
-                 </div>
-               </th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            {/* Item Rows */}
-            {items?.map((item) => (
-              <tr key={item?.id} className="border-b border-border hover:bg-muted/50">
-                {/* Fixed Left Columns - Matching user form structure */}
-                                 <td className="p-2 bg-card sticky left-0 z-10 border-r border-border">
-                   <div className="text-xs font-medium text-foreground">
-                     {item?.description}
-                   </div>
-                 </td>
-                 <td className="p-2 bg-card sticky left-36 z-10 border-r border-border">
-                   <div className="text-xs text-muted-foreground max-w-32 truncate">
-                     {item?.specifications || '-'}
-                   </div>
-                 </td>
-                 <td className="p-2 bg-card sticky left-68 z-10 border-r border-border">
-                   <div className="text-xs font-medium text-foreground">
-                     {item?.quantity}
-                   </div>
-                 </td>
-                 <td className="p-2 bg-card sticky left-84 z-10 border-r border-border">
-                   <div className="text-xs text-muted-foreground">
-                     {item?.unitOfMeasure || '-'}
-                   </div>
-                 </td>
-                 <td className="p-2 bg-card sticky left-100 z-10 border-r border-border">
-                   <div className="text-xs font-medium text-foreground">
-                     ${item?.lastBuyingPrice?.toFixed(2) || '0.00'}
-                   </div>
-                 </td>
-                 <td className="p-2 bg-card sticky left-124 z-10 border-r border-border">
-                   <div className="text-xs text-muted-foreground">
-                     {item?.lastVendor || '-'}
-                   </div>
-                 </td>
-
-                                                                 {/* Dynamic Quote Columns */}
-                {suppliers?.map((supplier) => {
-                  const supplierQuote = quotes?.find(q => q?.id === supplier?.id);
-                  const itemQuote = supplierQuote?.items?.find(qi => qi?.itemId === item?.id);
-                  
-                  return (
-                    <td key={supplier?.id} className="p-2 border-r border-border">
-                      {itemQuote ? (
-                        <div className="space-y-1">
-                          <div className="space-y-1">
-                            <div className="text-xs font-medium text-foreground">
-                              ${itemQuote?.unitPrice?.toFixed(2)}
-                            </div>
-                            <div className="text-xs font-semibold text-primary">
-                              Total: ${itemQuote?.totalPrice?.toFixed(2)}
-                            </div>
-                          </div>
-                          <div className="space-y-0.5 text-xs text-muted-foreground">
-                            <div>Del: {itemQuote?.deliveryTime}</div>
-                            <div>Warr: {itemQuote?.warranty}</div>
-                            {itemQuote?.notes && (
-                              <div className="text-xs italic bg-muted p-0.5 rounded">
-                                {itemQuote?.notes}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-muted-foreground text-center">
-                          No quote
-                        </div>
-                      )}
-                    </td>
-                  );
-                })}
-
-                {/* Admin Approval Column */}
-                <td className="p-2 border-r border-border bg-orange-50/50 dark:bg-orange-950/10">
-                                     <div className="space-y-2">
-                     {/* Final Supplier Section */}
-                     <div className="space-y-1">
-                       <div className="text-xs font-medium text-orange-800 dark:text-orange-200">
-                         Final Supplier
-                       </div>
-                       <div className="grid grid-cols-2 gap-1">
-                         <input
-                           type="text"
-                           placeholder="Code"
-                           value={adminApproval?.[item?.id]?.finalSupplier?.vendorCode || ''}
-                           onChange={(e) => onFinalSupplierChange?.(item?.id, 'vendorCode', e?.target?.value)}
-                           className="w-full px-1 py-0.5 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                         />
-                         <input
-                           type="text"
-                           placeholder="Name"
-                           value={adminApproval?.[item?.id]?.finalSupplier?.vendorName || ''}
-                           onChange={(e) => onFinalSupplierChange?.(item?.id, 'vendorName', e?.target?.value)}
-                           className="w-full px-1 py-0.5 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                         />
-                       </div>
-                     </div>
-
-                     {/* Final Price Section */}
-                     <div className="space-y-1">
-                       <div className="text-xs font-medium text-orange-800 dark:text-orange-200">
-                         Final Price
-                       </div>
-                       <input
-                         type="number"
-                         step="0.01"
-                         placeholder="Price"
-                         value={adminApproval?.[item?.id]?.finalPrice || ''}
-                         onChange={(e) => onFinalPriceChange?.(item?.id, e?.target?.value)}
-                         className="w-full px-1 py-0.5 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                       />
-                     </div>
-
-                     {/* Sum Amount Section */}
-                     <div className="space-y-1">
-                       <div className="text-xs font-medium text-orange-800 dark:text-orange-200">
-                         Sum Amount
-                       </div>
-                       <div className="text-xs font-semibold text-primary bg-white dark:bg-gray-800 px-1 py-0.5 rounded border">
-                         ${calculateSumAmount?.(item?.id, item?.quantity) || '0.00'}
-                       </div>
-                       <div className="text-xs text-muted-foreground">
-                         Qty: {item?.quantity} × Price
-                       </div>
-                     </div>
-                   </div>
-                </td>
-              </tr>
-            ))}
-
-                                                 {/* Total Row */}
-            <tr className="border-b border-border bg-primary/5 font-semibold">
-              <td className="p-2 bg-card sticky left-0 z-10 border-r border-border text-primary">
-                Total Amount
-              </td>
-              <td className="p-2 bg-card sticky left-36 z-10 border-r border-border"></td>
-              <td className="p-2 bg-card sticky left-68 z-10 border-r border-border"></td>
-              <td className="p-2 bg-card sticky left-84 z-10 border-r border-border"></td>
-              <td className="p-2 bg-card sticky left-100 z-10 border-r border-border"></td>
-              <td className="p-2 bg-card sticky left-124 z-10 border-r border-border"></td>
-              
-                             {suppliers?.map((supplier) => {
-                 const supplierQuote = quotes?.find(q => q?.id === supplier?.id);
-                 return (
-                   <td key={supplier?.id} className="p-2 border-r border-border">
-                     <div className="text-sm font-bold text-primary">
-                       ${supplierQuote?.totalQuote?.toFixed(2) || '0.00'}
-                     </div>
-                   </td>
-                 );
-               })}
-
-               {/* Admin Total Column */}
-               <td className="p-2 border-r border-border bg-orange-50/50 dark:bg-orange-950/10">
-                                 <div className="text-center">
-                   <div className="text-sm font-bold text-orange-600">
-                     ${items?.reduce((total, item) => {
-                       const sumAmount = parseFloat(calculateSumAmount?.(item?.id, item?.quantity) || 0);
-                       return total + sumAmount;
-                     }, 0)?.toFixed(2)}
-                   </div>
-                   <div className="text-xs text-orange-600 mt-0.5">
-                     Admin Total
-                   </div>
-                 </div>
-              </td>
-            </tr>
-
-                                                 {/* Footer Rows */}
-            {footerRows?.map((footerRow, index) => (
-              <tr key={index} className="border-b border-border bg-muted/30">
-                <td className="p-2 bg-card sticky left-0 z-10 border-r border-border font-medium text-xs text-foreground">
-                  {footerRow?.label}
-                </td>
-                <td className="p-2 bg-card sticky left-36 z-10 border-r border-border"></td>
-                <td className="p-2 bg-card sticky left-68 z-10 border-r border-border"></td>
-                <td className="p-2 bg-card sticky left-84 z-10 border-r border-border"></td>
-                <td className="p-2 bg-card sticky left-100 z-10 border-r border-border"></td>
-                <td className="p-2 bg-card sticky left-124 z-10 border-r border-border"></td>
-                
-                                 {suppliers?.map((supplier) => {
-                   const supplierQuote = quotes?.find(q => q?.id === supplier?.id);
-                   const value = supplierQuote?.footer?.[footerRow?.key] || '-';
-                   
-                   return (
-                     <td key={supplier?.id} className="p-2 border-r border-border">
-                       <div className="text-xs text-foreground">
-                         {footerRow?.key === "remarks_of_quotation" ? (
-                           <div className="max-w-32 text-xs leading-relaxed">
-                             {value}
-                           </div>
-                         ) : (
-                           value
-                         )}
-                       </div>
-                     </td>
-                   );
-                 })}
-
-                 {/* Admin Footer Column */}
-                 <td className="p-2 border-r border-border bg-orange-50/30 dark:bg-orange-950/10">
-                  {index === 0 ? (
-                    <div className="text-xs text-orange-600 dark:text-orange-400">
-                      Final decision pending
-                    </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground">-</div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {commodityType === 'Provided Data' && renderProvidedDataTable()}
+        {commodityType === 'Service' && renderServiceTable()}
+        {commodityType === 'Transport' && renderTransportTable()}
       </div>
     </div>
   );

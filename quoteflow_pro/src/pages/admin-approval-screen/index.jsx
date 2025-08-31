@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopNavigationBar from '../../components/ui/TopNavigationBar';
 import BreadcrumbTrail from '../../components/ui/BreadcrumbTrail';
@@ -10,6 +10,7 @@ const AdminApprovalScreen = () => {
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Mock user data
   const currentUser = {
@@ -104,6 +105,24 @@ const AdminApprovalScreen = () => {
     }
   ];
 
+  // Get submitted quotations from localStorage
+  const submittedQuotations = JSON.parse(localStorage.getItem('submittedQuotations') || '[]');
+  console.log('Submitted quotations from localStorage:', submittedQuotations);
+  
+  // Combine mock data with submitted quotations
+  const allQuotationRequests = [...mockQuotationRequests, ...submittedQuotations];
+  console.log('All quotation requests:', allQuotationRequests);
+
+  // Force re-render when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const handleLogout = () => {
     navigate('/login-screen');
   };
@@ -119,6 +138,10 @@ const AdminApprovalScreen = () => {
 
   const handleStatusFilter = (status) => {
     setStatusFilter(status);
+  };
+
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   const getStatusColor = (status) => {
@@ -148,7 +171,7 @@ const AdminApprovalScreen = () => {
   };
 
   // Filter quotations based on search and status
-  const filteredQuotations = mockQuotationRequests.filter(quotation => {
+  const filteredQuotations = allQuotationRequests.filter(quotation => {
     const matchesSearch = !searchTerm || 
       quotation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       quotation.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -160,9 +183,9 @@ const AdminApprovalScreen = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const pendingCount = mockQuotationRequests.filter(q => q.status === 'Pending Approval').length;
-  const approvedCount = mockQuotationRequests.filter(q => q.status === 'Approved').length;
-  const rejectedCount = mockQuotationRequests.filter(q => q.status === 'Rejected').length;
+  const pendingCount = allQuotationRequests.filter(q => q.status === 'Pending Approval').length;
+  const approvedCount = allQuotationRequests.filter(q => q.status === 'Approved').length;
+  const rejectedCount = allQuotationRequests.filter(q => q.status === 'Rejected').length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,15 +207,23 @@ const AdminApprovalScreen = () => {
                 Review and approve quotation requests submitted by plant members
               </p>
             </div>
-            <div className="flex items-center space-x-3 mt-4 lg:mt-0">
-              <Button
-                variant="outline"
-                iconName="ArrowLeft"
-                onClick={() => navigate('/procurement-dashboard')}
-              >
-                Back to Dashboard
-              </Button>
-            </div>
+                         <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+               <Button
+                 variant="outline"
+                 iconName="RefreshCw"
+                 onClick={handleRefresh}
+                 className="mr-2"
+               >
+                 Refresh
+               </Button>
+               <Button
+                 variant="outline"
+                 iconName="ArrowLeft"
+                 onClick={() => navigate('/procurement-dashboard')}
+               >
+                 Back to Dashboard
+               </Button>
+             </div>
           </div>
 
                      {/* Statistics Cards */}
@@ -201,7 +232,7 @@ const AdminApprovalScreen = () => {
                <div className="flex items-center justify-between">
                  <div className="flex-1">
                    <p className="text-sm font-medium text-muted-foreground mb-1">Total Requests</p>
-                   <p className="text-2xl font-semibold text-foreground">{mockQuotationRequests.length}</p>
+                   <p className="text-2xl font-semibold text-foreground">{allQuotationRequests.length}</p>
                  </div>
                                    <div className="p-3 rounded-lg bg-blue-100 text-blue-800 border border-blue-200">
                     <Icon name="FileText" size={24} strokeWidth={2} />
@@ -268,7 +299,7 @@ const AdminApprovalScreen = () => {
                      onClick={() => handleStatusFilter('all')}
                      className="px-4 py-2 text-sm font-medium"
                    >
-                     All ({mockQuotationRequests.length})
+                     All ({allQuotationRequests.length})
                    </Button>
                    <Button
                      variant={statusFilter === 'Pending Approval' ? 'default' : 'outline'}
@@ -336,6 +367,13 @@ const AdminApprovalScreen = () => {
                              <span className="text-sm font-bold text-foreground bg-muted px-3 py-1 rounded-lg">{quotation.id}</span>
                            </div>
                            <h3 className="text-sm font-semibold text-foreground mb-2 leading-tight">{quotation.title}</h3>
+                           {quotation.commodityType === 'Service' && quotation.serviceProjectName && (
+                             <div className="mb-2">
+                               <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                 Project: {quotation.serviceProjectName}
+                               </span>
+                             </div>
+                           )}
                            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{quotation.description}</p>
                          </div>
                        </td>
@@ -362,7 +400,7 @@ const AdminApprovalScreen = () => {
                         </td>
                        <td className="px-6 py-5">
                          <div className="space-y-1">
-                           <p className="text-sm font-bold text-foreground">${quotation.totalValue.toLocaleString()}</p>
+                           <p className="text-sm font-bold text-foreground">₹{quotation.totalValue.toLocaleString()}</p>
                            <p className="text-xs text-muted-foreground">{quotation.supplierCount} supplier{quotation.supplierCount !== 1 ? 's' : ''}</p>
                          </div>
                        </td>

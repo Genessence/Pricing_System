@@ -52,42 +52,49 @@ const TableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRem
     <thead className="bg-muted border-b border-border sticky top-0 z-20">
       <tr>
         {/* Fixed Left Column Headers */}
-        <th className="p-3 text-left bg-card sticky left-0 z-30 border-r border-border">
+        <th className="p-3 text-left bg-card sticky left-0 z-30 border-r border-border min-w-48">
           <div className="flex items-center space-x-2">
             <Icon name="Package" size={16} />
+            <span className="text-sm font-semibold text-foreground">Item</span>
+          </div>
+        </th>
+        
+        <th className="p-3 text-left bg-card sticky left-48 z-30 border-r border-border min-w-48">
+          <div className="flex items-center space-x-2">
+            <Icon name="FileText" size={16} />
             <span className="text-sm font-semibold text-foreground">Description</span>
           </div>
         </th>
         
-        <th className="p-3 text-left bg-card sticky left-48 z-30 border-r border-border">
+        <th className="p-3 text-left bg-card sticky left-96 z-30 border-r border-border min-w-48">
           <div className="flex items-center space-x-2">
             <Icon name="FileText" size={16} />
             <span className="text-sm font-semibold text-foreground">Specifications</span>
           </div>
         </th>
         
-        <th className="p-3 text-left bg-card sticky left-96 z-30 border-r border-border">
+        <th className="p-3 text-left bg-card sticky left-144 z-30 border-r border-border min-w-24">
           <div className="flex items-center space-x-2">
             <Icon name="Hash" size={16} />
             <span className="text-sm font-semibold text-foreground">Req Qty</span>
           </div>
         </th>
         
-        <th className="p-3 text-left bg-card sticky left-120 z-30 border-r border-border">
+        <th className="p-3 text-left bg-card sticky left-168 z-30 border-r border-border min-w-24">
           <div className="flex items-center space-x-2">
             <Icon name="Ruler" size={16} />
             <span className="text-sm font-semibold text-foreground">UOM</span>
           </div>
         </th>
         
-        <th className="p-3 text-left bg-card sticky left-144 z-30 border-r border-border">
+        <th className="p-3 text-left bg-card sticky left-192 z-30 border-r border-border min-w-32">
           <div className="flex items-center space-x-2">
             <Icon name="DollarSign" size={16} />
             <span className="text-sm font-semibold text-foreground">Last Price</span>
           </div>
         </th>
         
-        <th className="p-3 text-left bg-card sticky left-168 z-30 border-r border-border">
+        <th className="p-3 text-left bg-card sticky left-224 z-30 border-r border-border min-w-48">
           <div className="flex items-center space-x-2">
             <Icon name="Building2" size={16} />
             <span className="text-sm font-semibold text-foreground">Last Vendor</span>

@@ -226,7 +226,7 @@ const ItemSelectionStep = ({ selectedItems, onItemsChange, errors }) => {
                     <p className="text-sm text-muted-foreground mb-2">{item?.specifications}</p>
                     <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                       <span>UOM: {item?.uom}</span>
-                      <span>Last Price: ${item?.lastBuyingPrice}</span>
+                      <span>Last Price: ₹{item?.lastBuyingPrice}</span>
                       <span>Last Vendor: {item?.lastVendor}</span>
                     </div>
                   </div>
@@ -303,7 +303,7 @@ const ItemSelectionStep = ({ selectedItems, onItemsChange, errors }) => {
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-foreground">Last Buying Price</label>
                     <div className="text-sm text-muted-foreground">
-                      ${item?.lastBuyingPrice} ({item?.lastVendor})
+                      ₹{item?.lastBuyingPrice} ({item?.lastVendor})
                     </div>
                   </div>
                 </div>

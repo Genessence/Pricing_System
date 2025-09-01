@@ -33,7 +33,14 @@ const QuoteColumnHeader = ({
     const files = e?.dataTransfer?.files;
     if (files?.length > 0) {
       const file = files?.[0];
-      if (file?.type === 'application/pdf') {
+      const allowedTypes = [
+        'application/pdf',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/png',
+        'image/jpeg'
+      ];
+      if (allowedTypes.includes(file?.type)) {
         onFileUpload(quoteIndex, file);
       }
     }
@@ -41,7 +48,14 @@ const QuoteColumnHeader = ({
 
   const handleFileSelect = (e) => {
     const file = e?.target?.files?.[0];
-    if (file && file?.type === 'application/pdf') {
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/png',
+      'image/jpeg'
+    ];
+    if (file && allowedTypes.includes(file?.type)) {
       onFileUpload(quoteIndex, file);
     }
   };
@@ -138,7 +152,7 @@ const QuoteColumnHeader = ({
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf"
+              accept=".pdf,.xlsx,.xls,.png,.jpeg,.jpg"
               onChange={handleFileSelect}
               className="hidden"
             />

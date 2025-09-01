@@ -181,16 +181,14 @@ const AdminQuotationDetail = () => {
   // Add handlers for admin approval fields
   const handleFinalSupplierChange = (itemId, field, value) => {
     const commodityType = mockQuotationData?.commodityTypeRaw || 'provided_data';
+    console.log('handleFinalSupplierChange called:', { itemId, field, value, commodityType });
     setAdminApproval(prev => ({
       ...prev,
       [commodityType]: {
         ...prev?.[commodityType],
         [itemId]: {
           ...prev?.[commodityType]?.[itemId],
-          finalSupplier: {
-            ...prev?.[commodityType]?.[itemId]?.finalSupplier,
-            [field]: value
-          }
+          finalSupplier: value
         }
       }
     }));
@@ -198,16 +196,22 @@ const AdminQuotationDetail = () => {
 
   const handleFinalPriceChange = (itemId, value) => {
     const commodityType = mockQuotationData?.commodityTypeRaw || 'provided_data';
-    setAdminApproval(prev => ({
-      ...prev,
-      [commodityType]: {
-        ...prev?.[commodityType],
-        [itemId]: {
-          ...prev?.[commodityType]?.[itemId],
-          finalPrice: value
+    console.log('handleFinalPriceChange called:', { itemId, value, commodityType });
+    console.log('Current adminApproval state:', adminApproval);
+    setAdminApproval(prev => {
+      const newState = {
+        ...prev,
+        [commodityType]: {
+          ...prev?.[commodityType],
+          [itemId]: {
+            ...prev?.[commodityType]?.[itemId],
+            finalPrice: value
+          }
         }
-      }
-    }));
+      };
+      console.log('New adminApproval state:', newState);
+      return newState;
+    });
   };
 
   // Calculate sum amount based on quantity and final price
@@ -328,7 +332,7 @@ const AdminQuotationDetail = () => {
             items={mockQuotationData?.items}
             quotes={transformedQuotes}
             commodityType={mockQuotationData?.commodityType}
-            adminApproval={adminApproval?.[mockQuotationData?.commodityTypeRaw] || {}}
+            adminApproval={adminApproval}
             onFinalSupplierChange={handleFinalSupplierChange}
             onFinalPriceChange={handleFinalPriceChange}
             calculateSumAmount={calculateSumAmount}

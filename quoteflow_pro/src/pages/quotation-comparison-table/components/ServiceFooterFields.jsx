@@ -11,12 +11,19 @@ const ServiceFooterFields = ({ onFileUpload, signedBOOFile, signedDrawingFile, o
   };
 
   const handleFileSelect = (type, file) => {
-    if (file && (file?.type === 'application/pdf' || file?.type?.startsWith('image/'))) {
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/png',
+      'image/jpeg'
+    ];
+    if (file && (allowedTypes.includes(file?.type) || file?.type?.startsWith('image/'))) {
       onFileUpload(type, file);
     }
   };
 
-  const createFileInput = (type, accept = '.pdf,.jpg,.jpeg,.png') => {
+  const createFileInput = (type, accept = '.pdf,.xlsx,.xls,.jpg,.jpeg,.png') => {
     if (!fileInputRefs?.[type]?.current) {
       const input = document.createElement('input');
       input.type = 'file';
@@ -119,7 +126,7 @@ const ServiceFooterFields = ({ onFileUpload, signedBOOFile, signedDrawingFile, o
             variant="outline"
             iconName="Plus"
             iconPosition="left"
-            onClick={() => createFileInput('fileUpload', '*')?.click()}
+            onClick={() => createFileInput('fileUpload', '.pdf,.xlsx,.xls,.jpg,.jpeg,.png,*')?.click()}
             className="w-full h-8 text-xs bg-muted/50 hover:bg-muted border-dashed"
           >
             Upload Additional Files

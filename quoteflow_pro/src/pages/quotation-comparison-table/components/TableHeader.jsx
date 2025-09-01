@@ -29,7 +29,14 @@ const TableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRem
     const files = e?.dataTransfer?.files;
     if (files?.length > 0) {
       const file = files?.[0];
-      if (file?.type === 'application/pdf') {
+      const allowedTypes = [
+        'application/pdf',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/png',
+        'image/jpeg'
+      ];
+      if (allowedTypes.includes(file?.type)) {
         onFileUpload(quoteIndex, file);
       }
     }
@@ -37,7 +44,14 @@ const TableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRem
 
   const handleFileSelect = (e, quoteIndex) => {
     const file = e?.target?.files?.[0];
-    if (file && file?.type === 'application/pdf') {
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/png',
+      'image/jpeg'
+    ];
+    if (file && allowedTypes.includes(file?.type)) {
       onFileUpload(quoteIndex, file);
     }
   };
@@ -178,7 +192,7 @@ const TableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRem
                       if (!fileInputRefs?.current?.[index]) {
                         fileInputRefs.current[index] = document.createElement('input');
                         fileInputRefs.current[index].type = 'file';
-                        fileInputRefs.current[index].accept = '.pdf';
+                        fileInputRefs.current[index].accept = '.pdf,.xlsx,.xls,.png,.jpeg,.jpg';
                         fileInputRefs.current[index].onchange = (e) => handleFileSelect(e, index);
                       }
                       fileInputRefs?.current?.[index]?.click();

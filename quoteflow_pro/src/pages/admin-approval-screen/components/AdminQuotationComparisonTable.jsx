@@ -200,16 +200,18 @@ const AdminQuotationComparisonTable = ({
                   <label className="text-xs text-muted-foreground block mb-1">Final Price (₹)</label>
                   <input
                     type="number"
-                    value={adminApproval?.[item?.id]?.finalPrice || ''}
+                    value={adminApproval?.provided_data?.[item?.id]?.finalPrice || ''}
                     onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">Supplier</label>
                   <select
-                    value={adminApproval?.[item?.id]?.finalSupplier || ''}
+                    value={adminApproval?.provided_data?.[item?.id]?.finalSupplier || ''}
                     onChange={(e) => onFinalSupplierChange(item?.id, 'name', e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
@@ -370,8 +372,10 @@ const AdminQuotationComparisonTable = ({
                     type="number"
                     value={adminApproval?.service?.[item?.id]?.finalPrice || ''}
                     onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div>
@@ -557,8 +561,10 @@ const AdminQuotationComparisonTable = ({
                     type="number"
                     value={adminApproval?.transport?.[item?.id]?.finalPrice || ''}
                     onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div>

@@ -54,9 +54,9 @@ const PerformanceCharts = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="flex flex-col items-center justify-center space-y-6">
       {/* Cost Savings Chart */}
-      <div className="bg-card border border-border rounded-lg p-6">
+      <div className="bg-card border border-border rounded-lg p-6 w-full max-w-4xl">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-foreground">Cost Savings Trend</h3>
@@ -126,7 +126,7 @@ const PerformanceCharts = () => {
       </div> */}
 
       {/* RFQ Trends */}
-      <div className="bg-card border border-border rounded-lg p-6 lg:col-span-2">
+      <div className="bg-card border border-border rounded-lg p-6 w-full max-w-4xl">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-foreground">RFQ Activity Trends</h3>

@@ -89,7 +89,7 @@ const PerformanceCharts = () => {
       </div>
 
       {/* Average TAT Analytics */}
-      <div className="bg-card border border-border rounded-lg p-6">
+      {/* <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-foreground">Average TAT Analytics</h3>
@@ -123,7 +123,7 @@ const PerformanceCharts = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </div> */}
 
       {/* RFQ Trends */}
       <div className="bg-card border border-border rounded-lg p-6 lg:col-span-2">

@@ -92,6 +92,11 @@ const FooterRow = ({
           {/* Empty space for alignment */}
         </div>
       </td>
+      <td className="p-4 bg-card sticky left-48 z-10 border-r border-border min-w-48 max-w-48">
+        <div className="text-xs text-muted-foreground">
+          {/* Empty space for alignment */}
+        </div>
+      </td>
       
       {/* Required Quantity Column */}
       <td className="p-4 bg-card sticky left-96 z-10 border-r border-border min-w-24 max-w-24">

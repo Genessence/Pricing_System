@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import TopNavigationBar from '../../components/ui/TopNavigationBar';
 import BreadcrumbTrail from '../../components/ui/BreadcrumbTrail';
 import Button from '../../components/ui/Button';
@@ -21,14 +22,10 @@ import Icon from '../../components/AppIcon';
 const QuotationComparisonTable = () => {
   const navigate = useNavigate();
   
-  // Mock user data
-  const mockUser = {
-    id: 1,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@company.com",
-    role: "Procurement Manager",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
-  };
+  const { user } = useAuth();
+  
+  // Use authenticated user data
+  const mockUser = user;
 
   // Mock notifications
   const mockNotifications = [
@@ -491,11 +488,10 @@ const QuotationComparisonTable = () => {
       requestedBy: mockUser.name,
       plant: 'Plant A - Manufacturing',
       submittedDate: new Date().toLocaleString(),
-      status: 'Pending Approval',
+      status: 'pending', // Changed to lowercase to match user dashboard expectations
       totalValue: totalValue,
       supplierCount: quotes?.length || 0,
-      commodityType: selectedCommodity === 'provided_data' ? 'Provided Data' : 
-                    selectedCommodity === 'service' ? 'Service' : 'Transport',
+      commodityType: selectedCommodity, // Keep as 'provided_data', 'service', 'transport'
       description: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} procurement request submitted by ${mockUser.name}`,
       commodityTypeRaw: selectedCommodity,
       productType: selectedProductType,
@@ -514,9 +510,9 @@ const QuotationComparisonTable = () => {
     };
 
     // Store in localStorage for demo purposes
-    const existingQuotations = JSON.parse(localStorage.getItem('submittedQuotations') || '[]');
+    const existingQuotations = JSON.parse(localStorage.getItem('quotationRequests') || '[]');
     existingQuotations.push(quotationRequest);
-    localStorage.setItem('submittedQuotations', JSON.stringify(existingQuotations));
+    localStorage.setItem('quotationRequests', JSON.stringify(existingQuotations));
 
     // In a real app, this would be sent to the backend
     console.log('Submitting quotation request:', quotationRequest);
@@ -525,9 +521,9 @@ const QuotationComparisonTable = () => {
     setShowSuccessMessage(true);
     setIsSubmitting(false);
     
-    // Navigate to admin screen after 3 seconds
+    // Navigate to user dashboard after 3 seconds so user can see their submission
     setTimeout(() => {
-      navigate('/admin-approval-screen');
+      navigate('/user-dashboard');
     }, 3000);
     
     // Hide success message after 5 seconds
@@ -891,6 +887,7 @@ const QuotationComparisonTable = () => {
                       <td className="p-3 bg-card sticky left-96 z-10 border-r border-border"></td>
                       <td className="p-3 bg-card sticky left-120 z-10 border-r border-border"></td>
                       <td className="p-3 bg-card sticky left-144 z-10 border-r border-border"></td>
+                      <td className="p-3 bg-card sticky left-168 z-10 border-r border-border"></td>
                       <td className="p-3 bg-card sticky left-168 z-10 border-r border-border"></td>
                       
                       {quotes?.map((quote, index) => (

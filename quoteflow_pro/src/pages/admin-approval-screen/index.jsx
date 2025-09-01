@@ -41,7 +41,27 @@ const AdminApprovalScreen = () => {
     }
   ];
 
-  // Mock quotation requests data
+  // Get quotation requests from localStorage
+  const [quotationRequests, setQuotationRequests] = useState([]);
+
+  useEffect(() => {
+    const loadQuotationRequests = () => {
+      const storedQuotations = localStorage.getItem('quotationRequests');
+      if (storedQuotations) {
+        const allQuotations = JSON.parse(storedQuotations);
+        setQuotationRequests(allQuotations);
+      }
+    };
+
+    loadQuotationRequests();
+    
+    // Refresh data every 5 seconds to catch new submissions
+    const interval = setInterval(loadQuotationRequests, 5000);
+    
+    return () => clearInterval(interval);
+  }, [refreshKey]);
+
+  // Mock quotation requests data (fallback if no real data)
   const mockQuotationRequests = [
     {
       id: 'RFQ-2024-007',
@@ -105,12 +125,8 @@ const AdminApprovalScreen = () => {
     }
   ];
 
-  // Get submitted quotations from localStorage
-  const submittedQuotations = JSON.parse(localStorage.getItem('submittedQuotations') || '[]');
-  console.log('Submitted quotations from localStorage:', submittedQuotations);
-  
-  // Combine mock data with submitted quotations
-  const allQuotationRequests = [...mockQuotationRequests, ...submittedQuotations];
+  // Use the quotationRequests state that's loaded from localStorage
+  const allQuotationRequests = quotationRequests.length > 0 ? quotationRequests : mockQuotationRequests;
   console.log('All quotation requests:', allQuotationRequests);
 
   // Force re-render when localStorage changes
@@ -144,13 +160,23 @@ const AdminApprovalScreen = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handleClearData = () => {
+    if (window.confirm('Are you sure you want to clear all quotation data? This is for testing purposes only.')) {
+      localStorage.removeItem('quotationRequests');
+      setQuotationRequests([]);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending Approval':
+      case 'pending':
         return 'bg-orange-50 text-orange-700 border border-orange-200';
       case 'Approved':
+      case 'approved':
         return 'bg-green-50 text-green-700 border border-green-200';
       case 'Rejected':
+      case 'rejected':
         return 'bg-red-50 text-red-700 border border-red-200';
       default:
         return 'bg-gray-50 text-gray-700 border border-gray-200';
@@ -160,10 +186,13 @@ const AdminApprovalScreen = () => {
   const getCommodityTypeColor = (commodityType) => {
     switch (commodityType) {
       case 'Provided Data':
+      case 'provided_data':
         return 'bg-blue-50 text-blue-700 border border-blue-200';
       case 'Service':
+      case 'service':
         return 'bg-green-50 text-green-700 border border-green-200';
       case 'Transport':
+      case 'transport':
         return 'bg-purple-50 text-purple-700 border border-purple-200';
       default:
         return 'bg-gray-50 text-gray-700 border border-gray-200';
@@ -173,19 +202,23 @@ const AdminApprovalScreen = () => {
   // Filter quotations based on search and status
   const filteredQuotations = allQuotationRequests.filter(quotation => {
     const matchesSearch = !searchTerm || 
-      quotation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.requestedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.commodityType.toLowerCase().includes(searchTerm.toLowerCase());
+      quotation.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.requestedBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.commodityType?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || quotation.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || 
+      quotation.status === statusFilter ||
+      (statusFilter === 'Pending Approval' && quotation.status === 'pending') ||
+      (statusFilter === 'Approved' && quotation.status === 'approved') ||
+      (statusFilter === 'Rejected' && quotation.status === 'rejected');
     
     return matchesSearch && matchesStatus;
   });
 
-  const pendingCount = allQuotationRequests.filter(q => q.status === 'Pending Approval').length;
-  const approvedCount = allQuotationRequests.filter(q => q.status === 'Approved').length;
-  const rejectedCount = allQuotationRequests.filter(q => q.status === 'Rejected').length;
+  const pendingCount = allQuotationRequests.filter(q => q.status === 'Pending Approval' || q.status === 'pending').length;
+  const approvedCount = allQuotationRequests.filter(q => q.status === 'Approved' || q.status === 'approved').length;
+  const rejectedCount = allQuotationRequests.filter(q => q.status === 'Rejected' || q.status === 'rejected').length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -215,6 +248,14 @@ const AdminApprovalScreen = () => {
                  className="mr-2"
                >
                  Refresh
+               </Button>
+               <Button
+                 variant="outline"
+                 iconName="Trash2"
+                 onClick={handleClearData}
+                 className="mr-2 text-red-600 border-red-300 hover:bg-red-50"
+               >
+                 Clear Data
                </Button>
                <Button
                  variant="outline"
@@ -367,7 +408,7 @@ const AdminApprovalScreen = () => {
                              <span className="text-sm font-bold text-foreground bg-muted px-3 py-1 rounded-lg">{quotation.id}</span>
                            </div>
                            <h3 className="text-sm font-semibold text-foreground mb-2 leading-tight">{quotation.title}</h3>
-                           {quotation.commodityType === 'Service' && quotation.serviceProjectName && (
+                           {(quotation.commodityType === 'Service' || quotation.commodityType === 'service') && quotation.serviceProjectName && (
                              <div className="mb-2">
                                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
                                  Project: {quotation.serviceProjectName}
@@ -381,7 +422,7 @@ const AdminApprovalScreen = () => {
                          <div className="space-y-1">
                            <p className="text-sm font-semibold text-foreground">{quotation.requestedBy}</p>
                            <p className="text-xs text-muted-foreground">{quotation.plant}</p>
-                           <p className="text-xs text-muted-foreground">{new Date(quotation.submittedDate).toLocaleDateString('en-US', { 
+                           <p className="text-xs text-muted-foreground">{new Date(quotation.submittedAt || quotation.submittedDate).toLocaleDateString('en-US', { 
                              year: 'numeric', 
                              month: 'short', 
                              day: 'numeric' 
@@ -390,23 +431,27 @@ const AdminApprovalScreen = () => {
                        </td>
                                                <td className="px-6 py-5">
                           <span className={`px-3 py-2 text-xs font-semibold rounded-full whitespace-nowrap ${getStatusColor(quotation.status)}`}>
-                            {quotation.status}
+                            {quotation.status === 'pending' ? 'Pending Review' :
+                             quotation.status === 'approved' ? 'Approved' :
+                             quotation.status === 'rejected' ? 'Rejected' : quotation.status}
                           </span>
                         </td>
                                                <td className="px-6 py-5">
                           <span className={`px-3 py-2 text-xs font-semibold rounded-full whitespace-nowrap ${getCommodityTypeColor(quotation.commodityType)}`}>
-                            {quotation.commodityType}
+                            {quotation.commodityType === 'provided_data' ? 'Provided Data' :
+                             quotation.commodityType === 'service' ? 'Service' :
+                             quotation.commodityType === 'transport' ? 'Transport' : quotation.commodityType}
                           </span>
                         </td>
                        <td className="px-6 py-5">
                          <div className="space-y-1">
-                           <p className="text-sm font-bold text-foreground">₹{quotation.totalValue.toLocaleString()}</p>
+                           <p className="text-sm font-bold text-foreground">₹{(quotation.totalValue || 0).toLocaleString()}</p>
                            <p className="text-xs text-muted-foreground">{quotation.supplierCount} supplier{quotation.supplierCount !== 1 ? 's' : ''}</p>
                          </div>
                        </td>
                        <td className="px-6 py-5">
                          <div className="flex items-center space-x-2">
-                           {quotation.status === 'Pending Approval' && (
+                           {(quotation.status === 'Pending Approval' || quotation.status === 'pending') && (
                              <Button
                                variant="default"
                                size="sm"
@@ -416,7 +461,7 @@ const AdminApprovalScreen = () => {
                                Review & Approve
                              </Button>
                            )}
-                           {(quotation.status === 'Approved' || quotation.status === 'Rejected') && (
+                           {(quotation.status === 'Approved' || quotation.status === 'approved' || quotation.status === 'Rejected' || quotation.status === 'rejected') && (
                              <Button
                                variant="outline"
                                size="sm"

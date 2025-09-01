@@ -50,7 +50,7 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
   return (
     <div className="space-y-6">
       {/* Quick Actions */}
-      <div className="bg-card border border-border rounded-lg p-6">
+    {/* <div className="bg-card border border-border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {quickActionItems?.map((item, index) => (
@@ -78,7 +78,7 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
       {/* Notifications & Alerts */}
       <div className="bg-card border border-border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">Notifications & Alerts</h3>

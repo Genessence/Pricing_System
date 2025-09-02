@@ -10,6 +10,17 @@ export default defineConfig({
   build: {
     outDir: "build",
     chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          charts: ['recharts'],
+          ui: ['lucide-react', 'framer-motion']
+        }
+      }
+    },
+    sourcemap: true
   },
   plugins: [tsconfigPaths(), react(), tagger()],
   server: {
@@ -17,5 +28,9 @@ export default defineConfig({
     host: "0.0.0.0",
     strictPort: true,
     allowedHosts: ['.amazonaws.com', '.builtwithrocket.new']
+  },
+  preview: {
+    port: 4028,
+    host: true
   }
 });

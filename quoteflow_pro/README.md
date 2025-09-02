@@ -1,107 +1,163 @@
-# React
+# QuoteFlow Pro
 
-A modern React-based project utilizing the latest frontend technologies and tools for building responsive web applications.
+A modern procurement management system built with React, Tailwind CSS, and Vite.
 
 ## 🚀 Features
 
-- **React 18** - React version with improved rendering and concurrent features
-- **Vite** - Lightning-fast build tool and development server
-- **Redux Toolkit** - State management with simplified Redux setup
-- **TailwindCSS** - Utility-first CSS framework with extensive customization
-- **React Router v6** - Declarative routing for React applications
-- **Data Visualization** - Integrated D3.js and Recharts for powerful data visualization
-- **Form Management** - React Hook Form for efficient form handling
-- **Animation** - Framer Motion for smooth UI animations
-- **Testing** - Jest and React Testing Library setup
+- **User Authentication**: Role-based access control (User/Admin)
+- **Procurement Dashboard**: Comprehensive admin interface with performance metrics
+- **RFQ Management**: Create and manage Request for Quotations
+- **Quotation Comparison**: Compare supplier quotes with interactive tables
+- **Admin Approval Workflow**: Streamlined approval process
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Performance Analytics**: Interactive charts and metrics
 
-## 📋 Prerequisites
+## 🛠️ Tech Stack
 
-- Node.js (v14.x or higher)
-- npm or yarn
+- **Frontend**: React 18, React Router DOM
+- **Styling**: Tailwind CSS, CSS Variables
+- **Build Tool**: Vite
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Forms**: React Hook Form
+- **State Management**: React Context API
 
-## 🛠️ Installation
+## 📦 Installation
 
-1. Install dependencies:
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd quoteflow_pro
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
-   # or
-   yarn install
    ```
-   
-2. Start the development server:
+
+3. **Start development server**
    ```bash
    npm start
-   # or
-   yarn start
    ```
 
-## 📁 Project Structure
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
 
+## 🌐 Deployment
+
+### Vercel Deployment
+
+This project is configured for easy deployment on Vercel:
+
+1. **Connect to Vercel**
+   - Push your code to GitHub/GitLab
+   - Connect your repository to Vercel
+   - Vercel will automatically detect the React configuration
+
+2. **Automatic Deployment**
+   - Every push to main branch triggers a new deployment
+   - Vercel automatically runs `npm run build`
+   - Static assets are served with optimal caching
+
+3. **Custom Domain**
+   - Add your custom domain in Vercel dashboard
+   - SSL certificates are automatically provisioned
+
+### Manual Deployment
+
+1. **Build the project**
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy build folder**
+   - Upload the `build/` folder to your hosting provider
+   - Ensure all routes redirect to `index.html` for SPA routing
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+REACT_APP_API_URL=your_api_endpoint
+REACT_APP_ENVIRONMENT=production
 ```
-react_app/
-├── public/             # Static assets
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Page components
-│   ├── styles/         # Global styles and Tailwind configuration
-│   ├── App.jsx         # Main application component
-│   ├── Routes.jsx      # Application routes
-│   └── index.jsx       # Application entry point
-├── .env                # Environment variables
-├── index.html          # HTML template
-├── package.json        # Project dependencies and scripts
-├── tailwind.config.js  # Tailwind CSS configuration
-└── vite.config.js      # Vite configuration
-```
 
-## 🧩 Adding Routes
+### Build Configuration
 
-To add new routes to the application, update the `Routes.jsx` file:
+The project uses Vite for building. Key configurations:
 
-```jsx
-import { useRoutes } from "react-router-dom";
-import HomePage from "pages/HomePage";
-import AboutPage from "pages/AboutPage";
+- **Output Directory**: `build/` (configured in `vite.config.mjs`)
+- **Source Maps**: Enabled for production builds
+- **Chunk Size**: Warning limit set to 2000KB
 
-const ProjectRoutes = () => {
-  let element = useRoutes([
-    { path: "/", element: <HomePage /> },
-    { path: "/about", element: <AboutPage /> },
-    // Add more routes as needed
-  ]);
+## 📱 Available Routes
 
-  return element;
-};
-```
+- `/login` - Authentication page
+- `/user-dashboard` - User dashboard (protected)
+- `/procurement-dashboard` - Admin dashboard (protected)
+- `/quotation-comparison-table` - Quote comparison (protected)
+- `/admin-approval-screen` - Admin approval workflow (protected)
+
+## 🔐 Authentication
+
+### Demo Credentials
+
+**Admin User:**
+- Username: `admin`
+- Password: `admin123`
+
+**Regular User:**
+- Username: `user`
+- Password: `user123`
 
 ## 🎨 Styling
 
-This project uses Tailwind CSS for styling. The configuration includes:
+The project uses Tailwind CSS with custom CSS variables for theming:
 
-- Forms plugin for form styling
-- Typography plugin for text styling
-- Aspect ratio plugin for responsive elements
-- Container queries for component-specific responsive design
-- Fluid typography for responsive text
-- Animation utilities
+- **Color Scheme**: Light/Dark mode support
+- **Responsive**: Mobile-first design approach
+- **Components**: Reusable UI components with consistent styling
+- **Animations**: Smooth transitions and micro-interactions
 
-## 📱 Responsive Design
+## 📊 Performance
 
-The app is built with responsive design using Tailwind CSS breakpoints.
+- **Code Splitting**: Route-based lazy loading
+- **Bundle Optimization**: Vite optimizations enabled
+- **Asset Caching**: Static assets cached for 1 year
+- **Lighthouse Score**: Optimized for Core Web Vitals
 
-
-## 📦 Deployment
-
-Build the application for production:
+## 🧪 Testing
 
 ```bash
-npm run build
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
 ```
 
-## 🙏 Acknowledgments
+## 📚 Documentation
 
-- Built with [Rocket.new](https://rocket.new)
-- Powered by React and Vite
-- Styled with Tailwind CSS
+- **Component API**: JSDoc comments for all components
+- **Development Rules**: See `DEVELOPMENT_RULES.md`
+- **Code Standards**: ESLint configuration included
 
-Built with ❤️ on Rocket.new
+## 🤝 Contributing
+
+1. Follow the development rules in `DEVELOPMENT_RULES.md`
+2. Use conventional commit messages
+3. Ensure all tests pass
+4. Update documentation as needed
+
+## 📄 License
+
+This project is proprietary software. All rights reserved.
+
+---
+
+**QuoteFlow Pro** - Streamlining procurement processes with modern technology.

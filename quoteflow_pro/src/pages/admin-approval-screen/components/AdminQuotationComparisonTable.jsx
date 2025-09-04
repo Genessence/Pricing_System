@@ -54,62 +54,55 @@ const AdminQuotationComparisonTable = ({
       {/* Table Header */}
       <thead className="bg-muted border-b border-border sticky top-0 z-20">
         <tr>
-                     {/* Fixed Left Column Headers - Matching user form structure */}
-           <th className="p-2 text-left bg-card sticky left-0 z-30 border-r border-border min-w-36">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="Package" size={14} />
-               <span className="text-xs font-semibold text-foreground">Item</span>
-             </div>
-           </th>
-           
-           <th className="p-2 text-left bg-card sticky left-36 z-30 border-r border-border min-w-36">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="FileText" size={14} />
-               <span className="text-xs font-semibold text-foreground">Description</span>
-             </div>
-           </th>
+          {/* Fixed Left Column Headers - Matching user form structure */}
+          <th className="p-2 text-left bg-card sticky left-0 z-30 border-r border-border min-w-32">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Package" size={14} />
+              <span className="text-xs font-semibold text-foreground">Item</span>
+            </div>
+          </th>
           
-                     <th className="p-2 text-left bg-card sticky left-96 z-30 border-r border-border min-w-48">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="FileText" size={14} />
-               <span className="text-xs font-semibold text-foreground">Description</span>
-             </div>
-           </th>
-           
-           <th className="p-2 text-left bg-card sticky left-144 z-30 border-r border-border min-w-48">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="FileText" size={14} />
-               <span className="text-xs font-semibold text-foreground">Specs</span>
-             </div>
-           </th>
-           
-           <th className="p-2 text-left bg-card sticky left-192 z-30 border-r border-border min-w-24">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="Hash" size={14} />
-               <span className="text-xs font-semibold text-foreground">Qty</span>
-             </div>
-           </th>
-           
-           <th className="p-2 text-left bg-card sticky left-216 z-30 border-r border-border min-w-24">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="Ruler" size={14} />
-               <span className="text-xs font-semibold text-foreground">UOM</span>
-             </div>
-           </th>
-           
-           <th className="p-2 text-left bg-card sticky left-240 z-30 border-r border-border min-w-32">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="DollarSign" size={14} />
-               <span className="text-xs font-semibold text-foreground">Last Price</span>
-             </div>
-           </th>
-           
-           <th className="p-2 text-left bg-card sticky left-272 z-30 border-r border-border min-w-48">
-             <div className="flex items-center space-x-1">
-               <AppIcon name="Building2" size={14} />
-               <span className="text-xs font-semibold text-foreground">Last Vendor</span>
-             </div>
-           </th>
+          <th className="p-2 text-left bg-card sticky left-32 z-30 border-r border-border min-w-48">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="FileText" size={14} />
+              <span className="text-xs font-semibold text-foreground">Description</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-80 z-30 border-r border-border min-w-48">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="FileText" size={14} />
+              <span className="text-xs font-semibold text-foreground">Specs</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-128 z-30 border-r border-border min-w-20">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Hash" size={14} />
+              <span className="text-xs font-semibold text-foreground">Qty</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-148 z-30 border-r border-border min-w-20">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Ruler" size={14} />
+              <span className="text-xs font-semibold text-foreground">UOM</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-168 z-30 border-r border-border min-w-32">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="DollarSign" size={14} />
+              <span className="text-xs font-semibold text-foreground">Last Price</span>
+            </div>
+          </th>
+          
+          <th className="p-2 text-left bg-card sticky left-200 z-30 border-r border-border min-w-40">
+            <div className="flex items-center space-x-1">
+              <AppIcon name="Building2" size={14} />
+              <span className="text-xs font-semibold text-foreground">Last Vendor</span>
+            </div>
+          </th>
 
           {/* Dynamic Quote Column Headers */}
           {quotes?.map((quote, index) => (
@@ -179,15 +172,27 @@ const AdminQuotationComparisonTable = ({
             {/* Dynamic Quote Columns */}
             {quotes?.map((quote, quoteIndex) => {
               const itemQuote = quote?.items?.find(qi => qi?.itemId === item?.id);
+              const rate = itemQuote?.unitPrice || quote?.rates?.[item?.id] || 0;
+              const totalPrice = rate * item?.quantity;
               return (
                 <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
                   <div className="space-y-1">
                     <div className="text-xs font-medium text-primary">
-                      ₹{itemQuote?.unitPrice?.toLocaleString() || '0'}
+                      ₹{rate?.toLocaleString() || '0'}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Total: ₹{itemQuote?.totalPrice?.toLocaleString() || '0'}
+                      Total: ₹{totalPrice?.toLocaleString() || '0'}
                     </div>
+                    {itemQuote?.deliveryTime && (
+                      <div className="text-xs text-muted-foreground">
+                        Delivery: {itemQuote.deliveryTime}
+                      </div>
+                    )}
+                    {itemQuote?.warranty && (
+                      <div className="text-xs text-muted-foreground">
+                        Warranty: {itemQuote.warranty}
+                      </div>
+                    )}
                   </div>
                 </td>
               );
@@ -223,6 +228,9 @@ const AdminQuotationComparisonTable = ({
                     ))}
                   </select>
                 </div>
+                <div className="text-xs text-muted-foreground">
+                  Total: ₹{calculateSumAmount ? calculateSumAmount(item?.id, item?.quantity) : '0'}
+                </div>
               </div>
             </td>
           </tr>
@@ -236,17 +244,28 @@ const AdminQuotationComparisonTable = ({
              <div className="text-xs font-semibold text-foreground">Total Amount</div>
            </td>
           
-          {quotes?.map((quote, quoteIndex) => (
-            <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
-              <div className="text-xs font-semibold text-primary">
-                ₹{calculateTotalAmount(quoteIndex)?.toLocaleString()}
-              </div>
-            </td>
-          ))}
+          {quotes?.map((quote, quoteIndex) => {
+            const totalAmount = items?.reduce((total, item) => {
+              const itemQuote = quote?.items?.find(qi => qi?.itemId === item?.id);
+              const rate = itemQuote?.unitPrice || quote?.rates?.[item?.id] || 0;
+              return total + (rate * item?.quantity);
+            }, 0);
+            return (
+              <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+                <div className="text-xs font-semibold text-primary">
+                  ₹{totalAmount?.toLocaleString()}
+                </div>
+              </td>
+            );
+          })}
           
           <td className="p-2 bg-muted/5 min-w-48">
             <div className="text-xs font-semibold text-green-600">
-              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.[item?.id]?.finalPrice) || 0), 0)?.toLocaleString()}
+              ₹{items?.reduce((total, item) => {
+                const typeKey = commodityType?.toLowerCase() === 'provided data' ? 'provided_data' : commodityType?.toLowerCase();
+                const finalPrice = adminApproval?.[typeKey]?.[item?.id]?.finalPrice || 0;
+                return total + (parseFloat(finalPrice) * item?.quantity || 0);
+              }, 0)?.toLocaleString()}
             </div>
           </td>
         </tr>
@@ -623,9 +642,9 @@ const AdminQuotationComparisonTable = ({
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
-        {commodityType === 'Provided Data' && renderProvidedDataTable()}
-        {commodityType === 'Service' && renderServiceTable()}
-        {commodityType === 'Transport' && renderTransportTable()}
+        {(commodityType === 'Provided Data' || commodityType === 'provided_data') && renderProvidedDataTable()}
+        {(commodityType === 'Service' || commodityType === 'service') && renderServiceTable()}
+        {(commodityType === 'Transport' || commodityType === 'transport') && renderTransportTable()}
       </div>
     </div>
   );

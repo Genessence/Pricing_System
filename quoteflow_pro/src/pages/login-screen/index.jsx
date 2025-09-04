@@ -105,7 +105,9 @@ const LoginScreen = () => {
         ? { username: 'admin', password: 'admin123' }
         : { username: 'user', password: 'user123' };
       
+      console.log('🚀 Demo login attempt:', { type, credentials });
       const result = await login(credentials.username, credentials.password, type);
+      console.log('🚀 Demo login result:', result);
       
       if (result.success) {
         if (type === 'admin') {
@@ -117,10 +119,28 @@ const LoginScreen = () => {
         setLoginError(result.error);
       }
     } catch (error) {
+      console.error('Demo login failed:', error);
       setLoginError('Demo login failed. Please try again.');
     } finally {
       setIsLoggingIn(false);
     }
+  };
+
+  const testAuth = () => {
+    console.log('🧪 Testing authentication...');
+    console.log('Form data:', formData);
+    console.log('Form errors:', errors);
+    console.log('User type options:', userTypeOptions);
+    
+    // Test the exact credentials
+    console.log('🧪 Testing admin credentials: admin/admin123');
+    console.log('🧪 Testing user credentials: user/user123');
+    
+    // Test localStorage
+    console.log('🧪 localStorage test:');
+    console.log('user:', localStorage.getItem('user'));
+    console.log('userType:', localStorage.getItem('userType'));
+    console.log('isAuthenticated:', localStorage.getItem('isAuthenticated'));
   };
 
   return (
@@ -258,6 +278,15 @@ const LoginScreen = () => {
                     className="text-sm"
                   >
                     Demo Admin
+                  </Button>
+                </div>
+                <div className="mt-3">
+                  <Button
+                    variant="outline"
+                    onClick={testAuth}
+                    className="w-full text-sm text-blue-600 border-blue-300 hover:bg-blue-50"
+                  >
+                    🧪 Test Authentication
                   </Button>
                 </div>
               </div>

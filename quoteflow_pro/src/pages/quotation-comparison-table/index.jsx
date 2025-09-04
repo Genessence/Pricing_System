@@ -18,220 +18,114 @@ import SearchAndFilters from './components/SearchAndFilters';
 import QuotationFormDropdowns from './components/QuotationFormDropdowns';
 import { getCurrencyOptions } from '../../constants/currencies';
 import Icon from '../../components/AppIcon';
+import apiService from '../../services/api';
 
 const QuotationComparisonTable = () => {
   const navigate = useNavigate();
   
   const { user } = useAuth();
   
-  // Use authenticated user data
-  const mockUser = user;
+  // Use authenticated user data from backend
+  const currentUser = user;
 
-  // Mock notifications
-  const mockNotifications = [
-    {
-      id: 1,
-      type: 'info',
-      title: 'New Quote Received',
-      message: 'TechSupply Corp has submitted a quote for RFQ-2024-001',
-      timestamp: new Date(Date.now() - 300000),
-      read: false
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'Quote Deadline Approaching',
-      message: 'RFQ-2024-003 deadline is in 2 days',
-      timestamp: new Date(Date.now() - 1800000),
-      read: false
-    }
-  ];
+  // Real notifications from backend (will be implemented when notification system is added)
+  const [notifications, setNotifications] = useState([]);
 
-  // Mock ERP Items
-  const mockERPItems = [
-    {
-      id: "ERP001",
-      description: "Industrial Grade Steel Bolts",
-      specifications: "M12x50mm, Grade 8.8, Zinc Plated",
-      uom: "PCS",
-      commodity: "Fasteners",
-      lastBuyingPrice: 2.45,
-      lastVendor: "MetalWorks Inc"
-    },
-    {
-      id: "ERP002",
-      description: "Hydraulic Pump Assembly",
-      specifications: "Flow Rate: 25 GPM, Pressure: 3000 PSI",
-      uom: "UNIT",
-      commodity: "Hydraulics",
-      lastBuyingPrice: 1250.00,
-      lastVendor: "HydroTech Solutions"
-    },
-    {
-      id: "ERP003",
-      description: "Electronic Control Module",
-      specifications: "24V DC, IP65 Rating, CAN Bus Interface",
-      uom: "UNIT",
-      commodity: "Electronics",
-      lastBuyingPrice: 485.75,
-      lastVendor: "ElectroSys Ltd"
-    },
-    {
-      id: "ERP004",
-      description: "Safety Valve Assembly",
-      specifications: "1/2 inch NPT, Set Pressure: 150 PSI",
-      uom: "UNIT",
-      commodity: "Safety Equipment",
-      lastBuyingPrice: 89.50,
-      lastVendor: "SafeGuard Industries"
-    },
-    {
-      id: "ERP005",
-      description: "Bearing Set - Deep Groove",
-      specifications: "6205-2RS, Sealed, ABEC-3 Rating",
-      uom: "SET",
-      commodity: "Bearings",
-      lastBuyingPrice: 15.25,
-      lastVendor: "Precision Bearings Co"
-    }
-  ];
+  // Real ERP Items from backend
+  const [erpItems, setErpItems] = useState([]);
+  const [erpItemsLoading, setErpItemsLoading] = useState(true);
 
-  // Mock Suppliers
-  const mockSuppliers = [
-    {
-      id: "SUP001",
-      name: "TechSupply Corp",
-      location: "Dallas, TX",
-      email: "quotes@techsupply.com",
-      phone: "+1-555-0123",
-      rating: 4.8,
-      vendorCode: "TS001"
-    },
-    {
-      id: "SUP002",
-      name: "Industrial Solutions Ltd",
-      location: "Chicago, IL",
-      email: "procurement@indsol.com",
-      phone: "+1-555-0234",
-      rating: 4.6,
-      vendorCode: "IS002"
-    },
-    {
-      id: "SUP003",
-      name: "Global Manufacturing Inc",
-      location: "Houston, TX",
-      email: "sales@globalmfg.com",
-      phone: "+1-555-0345",
-      rating: 4.7,
-      vendorCode: "GM003"
-    },
-    {
-      id: "SUP004",
-      name: "Precision Parts Co",
-      location: "Detroit, MI",
-      email: "quotes@precisionparts.com",
-      phone: "+1-555-0456",
-      rating: 4.9,
-      vendorCode: "PP004"
-    },
-    {
-      id: "SUP005",
-      name: "Quality Components LLC",
-      location: "Phoenix, AZ",
-      email: "orders@qualitycomp.com",
-      phone: "+1-555-0567",
-      rating: 4.5,
-      vendorCode: "QC005"
-    }
-  ];
+  // Load ERP items from backend
+  useEffect(() => {
+    const loadERPItems = async () => {
+      try {
+        const items = await apiService.getERPItems();
+        setErpItems(items);
+      } catch (error) {
+        console.error('Error loading ERP items:', error);
+        setErpItems([]);
+      } finally {
+        setErpItemsLoading(false);
+      }
+    };
 
-  // Add mock service items
-  const mockServiceItems = [
-    {
-      id: "SRV001",
-      projectName: "Plant Maintenance Service",
-      description: "Comprehensive maintenance service for manufacturing equipment",
-      specifications: "Monthly preventive maintenance, emergency repairs, 24/7 support",
-      uom: "PROJECT",
-      requiredQuantity: 1
-    },
-    {
-      id: "SRV002", 
-      projectName: "Software Development",
-      description: "Custom ERP module development and integration",
-      specifications: "Full-stack development, testing, deployment, 6-month support",
-      uom: "HOURS",
-      requiredQuantity: 480
-    },
-    {
-      id: "SRV003",
-      projectName: "Training & Certification",
-      description: "Employee training program for new safety protocols",
-      specifications: "On-site training, certification, materials, follow-up assessments",
-      uom: "DAYS",
-      requiredQuantity: 5
-    }
-  ];
+    loadERPItems();
+  }, []);
 
-  // Add mock transport items
-  const mockTransportItems = [
-    {
-      id: "TRP001",
-      from: "Mumbai Port",
-      to: "Delhi Warehouse",
-      vehicleSize: "container_40ft",
-      load: "Electronic Components",
-      dimensions: "12m x 2.4m x 2.6m",
-      frequency: "4"
-    },
-    {
-      id: "TRP002",
-      from: "Chennai Factory",
-      to: "Bangalore Distribution Center",
-      vehicleSize: "large",
-      load: "Manufacturing Equipment",
-      dimensions: "8m x 2m x 2m",
-      frequency: "2"
-    }
-  ];
+  // Transform backend ERP items to match frontend format
+  const mockERPItems = erpItems.map(item => ({
+    id: item.item_code,
+    description: item.description,
+    specifications: item.specifications || 'N/A',
+    uom: item.unit_of_measure,
+    commodity: item.category || 'General',
+    lastBuyingPrice: 0, // Will be updated when we have historical data
+    lastVendor: 'N/A' // Will be updated when we have historical data
+  }));
+
+  // Real Suppliers from backend (will be implemented when supplier management is added)
+  const [suppliers, setSuppliers] = useState([]);
+  const [suppliersLoading, setSuppliersLoading] = useState(true);
+
+  // Load suppliers from backend
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      try {
+        // TODO: Implement supplier API endpoint
+        // const supplierData = await apiService.getSuppliers();
+        // setSuppliers(supplierData);
+        setSuppliers([]); // Empty for now until supplier management is implemented
+      } catch (error) {
+        console.error('Error loading suppliers:', error);
+        setSuppliers([]);
+      } finally {
+        setSuppliersLoading(false);
+      }
+    };
+
+    loadSuppliers();
+  }, []);
+
+  // Transform backend suppliers to match frontend format
+  const mockSuppliers = suppliers.map(supplier => ({
+    id: supplier.id,
+    name: supplier.name,
+    location: supplier.location || 'N/A',
+    email: supplier.email || 'N/A',
+    phone: supplier.phone || 'N/A',
+    rating: supplier.rating || 0,
+    vendorCode: supplier.vendor_code || 'N/A'
+  }));
+
+  // Service and Transport items will be managed dynamically
+  // No mock data - all data comes from backend or user input
 
   // State management
   const [selectedCommodity, setSelectedCommodity] = useState('');
   const [selectedProductType, setSelectedProductType] = useState('standard');
   const [selectedWorkType, setSelectedWorkType] = useState('normal');
+  
+  // Initialize with one default empty row for user to start with
   const [items, setItems] = useState([
     {
       id: 1,
-      description: "Industrial Grade Steel Bolts",
-      vendorCode: "TS001",
-      specifications: "M12x50mm, Grade 8.8, Zinc Plated",
-      requiredQuantity: 500,
-      uom: "PCS",
-      commodity: "Fasteners",
-      lastBuyingPrice: 2.45,
-      lastVendor: "MetalWorks Inc"
-    },
-    {
-      id: 2,
-      description: "Hydraulic Pump Assembly",
-      vendorCode: "IS002",
-      specifications: "Flow Rate: 25 GPM, Pressure: 3000 PSI",
-      requiredQuantity: 2,
-      uom: "UNIT",
-      commodity: "Hydraulics",
-      lastBuyingPrice: 1250.00,
-      lastVendor: "HydroTech Solutions"
+      itemCode: "",
+      description: "",
+      specifications: "",
+      requiredQuantity: 1,
+      uom: "",
+      erpItemId: null
     }
   ]);
-
   const [serviceItems, setServiceItems] = useState([
     {
       id: 1,
-      projectName: "Plant Maintenance Service",
-      description: "Comprehensive maintenance service for manufacturing equipment",
-      specifications: "Monthly preventive maintenance, emergency repairs, 24/7 support",
-      uom: "PROJECT",
-      requiredQuantity: 1
+      projectName: "",
+      description: "",
+      specifications: "",
+      uom: "Nos",
+      requiredQuantity: 1,
+      rate: 0
     }
   ]);
 
@@ -243,44 +137,17 @@ const QuotationComparisonTable = () => {
 
   const [serviceProjectName, setServiceProjectName] = useState('');
 
-  const [quotes, setQuotes] = useState([
-    {
-      id: 1,
-      supplierId: "SUP001",
-      rates: { 1: 2.25, 2: 1180.00 },
-      footer: {
-        transportation_freight: "included",
-        packing_charges: "extra",
-        delivery_lead_time: "7-10 days",
-        warranty: "12 months",
-        currency: "INR",
-        remarks_of_quotation: "Bulk discount applied for quantities over 1000 units"
-      }
-    },
-    {
-      id: 2,
-      supplierId: "SUP002",
-      rates: { 1: 2.35, 2: 1225.00 },
-      footer: {
-        transportation_freight: "extra",
-        packing_charges: "included",
-        delivery_lead_time: "5-7 days",
-        warranty: "18 months",
-        currency: "INR",
-        remarks_of_quotation: "Express delivery available at additional cost"
-      }
-    }
-  ]);
+  const [quotes, setQuotes] = useState([]);
 
   const [transportItems, setTransportItems] = useState([
     {
       id: 1,
-      from: "Mumbai Port",
-      to: "Delhi Warehouse",
-      vehicleSize: "container_40ft",
-      load: "Electronic Components",
-      dimensions: "12m x 2.4m x 2.6m",
-      frequency: "4"
+      from: "",
+      to: "",
+      vehicleSize: "",
+      load: "",
+      dimensions: "",
+      frequency: "1"
     }
   ]);
 
@@ -365,14 +232,12 @@ const QuotationComparisonTable = () => {
   const handleAddRow = () => {
     const newItem = {
       id: Date.now(),
+      itemCode: '',
       description: '',
-      vendorCode: '',
       specifications: '',
-      requiredQuantity: 0,
+      requiredQuantity: 1,
       uom: '',
-      commodity: '',
-      lastBuyingPrice: 0,
-      lastVendor: ''
+      erpItemId: null
     };
     setItems([...items, newItem]);
     setEditingItems(new Set([...editingItems, newItem.id]));
@@ -460,76 +325,73 @@ const QuotationComparisonTable = () => {
   const handleSubmitQuotation = async () => {
     setIsSubmitting(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Calculate total value based on form data
-    let totalValue = 0;
-    if (selectedCommodity === 'provided_data') {
-      totalValue = items?.reduce((total, item) => {
-        return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.lastBuyingPrice) || 0);
-      }, 0);
-    } else if (selectedCommodity === 'service') {
-      totalValue = serviceItems?.reduce((total, item) => {
-        return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.rate) || 0);
-      }, 0);
-    } else if (selectedCommodity === 'transport') {
-      totalValue = transportItems?.reduce((total, item) => {
-        const rate = quotes?.[0]?.rates?.[item?.id] || 0;
-        const frequency = parseFloat(item?.frequency) || 1;
-        return total + (rate * frequency);
-      }, 0);
-    }
-    
-    // Create quotation request data
-    const quotationRequest = {
-      id: `RFQ-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
-      title: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} Procurement Request`,
-      requestedBy: mockUser.name,
-      plant: 'Plant A - Manufacturing',
-      submittedDate: new Date().toLocaleString(),
-      status: 'pending', // Changed to lowercase to match user dashboard expectations
-      totalValue: totalValue,
-      supplierCount: quotes?.length || 0,
-      commodityType: selectedCommodity, // Keep as 'provided_data', 'service', 'transport'
-      description: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} procurement request submitted by ${mockUser.name}`,
-      commodityTypeRaw: selectedCommodity,
-      productType: selectedProductType,
-      workType: selectedWorkType,
-      serviceProjectName: selectedCommodity === 'service' ? serviceProjectName : null,
-      submittedAt: new Date().toISOString(),
-      items: selectedCommodity === 'provided_data' ? items : 
-             selectedCommodity === 'service' ? serviceItems : 
-             transportItems,
-      quotes: quotes,
-      attachments: {
-        boqFile: boqFile,
-        drawingFile: drawingFile,
-        quoteFiles: attachedFiles
+    try {
+      // Calculate total value based on form data
+      let totalValue = 0;
+      if (selectedCommodity === 'provided_data') {
+        totalValue = items?.reduce((total, item) => {
+          return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.lastBuyingPrice) || 0);
+        }, 0);
+      } else if (selectedCommodity === 'service') {
+        totalValue = serviceItems?.reduce((total, item) => {
+          return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.rate) || 0);
+        }, 0);
+      } else if (selectedCommodity === 'transport') {
+        totalValue = transportItems?.reduce((total, item) => {
+          const rate = quotes?.[0]?.rates?.[item?.id] || 0;
+          const frequency = parseFloat(item?.frequency) || 1;
+          return total + (rate * frequency);
+        }, 0);
       }
-    };
+      
+      // Transform items to match backend format
+      const rfqItems = (selectedCommodity === 'provided_data' ? items : 
+                       selectedCommodity === 'service' ? serviceItems : 
+                       transportItems).map(item => ({
+        item_code: item.id || item.itemCode || 'CUSTOM',
+        description: item.description || item.itemDescription || 'Custom Item',
+        specifications: item.specifications || item.specs || 'N/A',
+        unit_of_measure: item.uom || item.unitOfMeasure || 'Nos',
+        required_quantity: parseFloat(item.requiredQuantity || item.quantity || 1),
+        last_buying_price: parseFloat(item.lastBuyingPrice || item.rate || 0),
+        last_vendor: item.lastVendor || 'N/A',
+        erp_item_id: item.erpItemId || null
+      }));
+      
+      // Create RFQ data for backend
+      const rfqData = {
+        title: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} Procurement Request`,
+        description: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} procurement request`,
+        commodity_type: selectedCommodity,
+        total_value: totalValue,
+        currency: 'INR',
+        items: rfqItems
+      };
 
-    // Store in localStorage for demo purposes
-    const existingQuotations = JSON.parse(localStorage.getItem('quotationRequests') || '[]');
-    existingQuotations.push(quotationRequest);
-    localStorage.setItem('quotationRequests', JSON.stringify(existingQuotations));
-
-    // In a real app, this would be sent to the backend
-    console.log('Submitting quotation request:', quotationRequest);
-    
-    // Show success message
-    setShowSuccessMessage(true);
-    setIsSubmitting(false);
-    
-    // Navigate to user dashboard after 3 seconds so user can see their submission
-    setTimeout(() => {
-      navigate('/user-dashboard');
-    }, 3000);
-    
-    // Hide success message after 5 seconds
-    setTimeout(() => {
-      setShowSuccessMessage(false);
-    }, 5000);
+      // Submit to backend
+      const createdRFQ = await apiService.createRFQ(rfqData);
+      console.log('RFQ created successfully:', createdRFQ);
+      
+      // Show success message
+      setShowSuccessMessage(true);
+      setIsSubmitting(false);
+      
+      // Navigate to user dashboard after 3 seconds so user can see their submission
+      setTimeout(() => {
+        navigate('/user-dashboard');
+      }, 3000);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Error creating RFQ:', error);
+      setIsSubmitting(false);
+      // Show error message to user
+      alert('Failed to create RFQ. Please try again.');
+    }
   };
 
   const handleExportCSV = () => {
@@ -733,8 +595,8 @@ const QuotationComparisonTable = () => {
         <meta name="description" content="Compare supplier quotations side-by-side with advanced spreadsheet functionality" />
       </Helmet>
       <TopNavigationBar 
-        user={mockUser} 
-        notifications={mockNotifications}
+        user={currentUser} 
+        notifications={notifications}
         onLogout={() => console.log('Logout')}
         onNotificationRead={() => console.log('Notification read')}
         onNotificationClear={() => console.log('Notification cleared')}
@@ -867,12 +729,12 @@ const QuotationComparisonTable = () => {
                           supplierId: quote?.supplierId,
                           attachment: quote?.attachment || false
                         }))}
-                        suppliers={mockSuppliers}
+                        suppliers={suppliers}
                         onItemUpdate={handleItemUpdate}
                         onQuoteUpdate={handleQuoteUpdate}
                         onDeleteRow={handleDeleteRow}
                         onDuplicateRow={handleDuplicateRow}
-                        erpItems={mockERPItems}
+                        erpItems={erpItems}
                         isEditing={editingItems?.has(item?.id)}
                         onEditToggle={handleEditToggle}
                       />
@@ -913,6 +775,19 @@ const QuotationComparisonTable = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              
+              {/* Add Item Button */}
+              <div className="mt-4 flex justify-center">
+                <Button
+                  onClick={handleAddRow}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <Icon name="Plus" size={16} />
+                  <span>Add Item</span>
+                </Button>
               </div>
             </div>
 

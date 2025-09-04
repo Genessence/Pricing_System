@@ -6,6 +6,8 @@ import BreadcrumbTrail from '../../components/ui/BreadcrumbTrail';
 import Icon from '../../components/AppIcon';
 import { cn } from '../../utils/cn';
 import Button from '../../components/ui/Button';
+import { getCurrencySymbol } from '../../constants/currencies';
+import apiService from '../../services/api';
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -14,16 +16,18 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Mock data for user quotations
-  const loadUserQuotations = () => {
-    const storedQuotations = localStorage.getItem('quotationRequests');
-    if (storedQuotations) {
-      const allQuotations = JSON.parse(storedQuotations);
-      // Filter quotations for current user (in real app, this would be by user ID)
-      setUserQuotations(allQuotations);
+  // Load user quotations from backend
+  const loadUserQuotations = async () => {
+    try {
+      const rfqs = await apiService.getRFQs();
+      setUserQuotations(rfqs);
+    } catch (error) {
+      console.error('Error loading RFQs:', error);
+      setUserQuotations([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
-    setRefreshing(false);
   };
 
   const handleRefresh = () => {
@@ -33,9 +37,14 @@ const UserDashboard = () => {
 
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all quotation data? This is for testing purposes only.')) {
-      localStorage.removeItem('quotationRequests');
+      // Note: In production, this would require admin privileges
       setUserQuotations([]);
     }
+  };
+
+  const debugLocalStorage = () => {
+    console.log('Current Quotation Requests in localStorage:');
+    console.log(JSON.parse(localStorage.getItem('quotationRequests') || '[]'));
   };
 
   useEffect(() => {
@@ -74,11 +83,11 @@ const UserDashboard = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2
-    }).format(amount || 0);
+    const rupeeSymbol = getCurrencySymbol('INR');
+    return `${rupeeSymbol}${(amount || 0).toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   };
 
   const calculateTotalAmount = (quotation) => {
@@ -186,9 +195,10 @@ const UserDashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Value</p>
                   <p className="text-2xl font-bold text-foreground">{formatCurrency(statistics.totalValue)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">in Indian Rupees</p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-lg">
-                  <Icon name="DollarSign" size={24} className="text-purple-600" />
+                  <Icon name="Currency" size={24} className="text-purple-600" />
                 </div>
               </div>
             </div>
@@ -213,6 +223,15 @@ const UserDashboard = () => {
                     disabled={refreshing}
                   >
                     {refreshing ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    iconName="Bug"
+                    onClick={debugLocalStorage}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  >
+                    Debug
                   </Button>
                   <Button
                     variant="outline"

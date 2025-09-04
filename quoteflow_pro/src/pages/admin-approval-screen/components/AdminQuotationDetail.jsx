@@ -61,6 +61,8 @@ const AdminQuotationDetail = () => {
     submissionTime: '2024-08-22 14:30:00',
     commodityType: quotationData?.commodityTypeRaw || (quotationId?.includes('RFQ-2024-008') ? 'Service' : 
                    quotationId?.includes('RFQ-2024-009') ? 'Transport' : 'Provided Data'),
+    commodityTypeRaw: quotationData?.commodityTypeRaw || (quotationId?.includes('RFQ-2024-008') ? 'service' : 
+                   quotationId?.includes('RFQ-2024-009') ? 'transport' : 'provided_data'),
          items: [
        {
          id: 1,
@@ -158,21 +160,25 @@ const AdminQuotationDetail = () => {
   const averageQuote = totalEstimatedValue / (mockQuotationData?.suppliers?.length || 1);
 
   // Transform quotation data for the comparison table format
-  const transformedSuppliers = mockQuotationData?.quotes?.map((quote, index) => ({
-    id: quote?.supplierId || `supplier-${index}`,
-    name: quote?.supplierId || `Supplier ${index + 1}`,
-    contact: `contact@supplier${index + 1}.com`,
-    rating: 4.5
+  const transformedSuppliers = mockQuotationData?.suppliers?.map((supplier, index) => ({
+    id: supplier?.id || `supplier-${index}`,
+    name: supplier?.name || `Supplier ${index + 1}`,
+    contact: supplier?.contact || `contact@supplier${index + 1}.com`,
+    rating: supplier?.rating || 4.5
   })) || [];
 
-  const transformedQuotes = mockQuotationData?.quotes?.map(quote => ({
-    id: quote?.supplierId,
-    rates: quote?.rates || {},
-    footer: quote?.footer || {
+  const transformedQuotes = mockQuotationData?.suppliers?.map(supplier => ({
+    id: supplier?.id,
+    items: supplier?.items || [],
+    rates: supplier?.items?.reduce((acc, item) => {
+      acc[item?.itemId] = item?.unitPrice || 0;
+      return acc;
+    }, {}) || {},
+    footer: {
       transportation_freight: "Included in quote",
       packing_charges: "Extra as applicable", 
-      delivery_lead_time: "As per agreement",
-      warranty: "Standard warranty",
+      delivery_lead_time: supplier?.items?.[0]?.deliveryTime || "As per agreement",
+      warranty: supplier?.items?.[0]?.warranty || "Standard warranty",
       currency: "INR",
       remarks_of_quotation: "All terms as per RFQ"
     }

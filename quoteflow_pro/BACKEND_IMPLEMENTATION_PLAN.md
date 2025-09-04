@@ -80,7 +80,8 @@ quoteflow-pro-backend/
 
 #### **Core Tables**
 - **users** - User authentication and profiles
-- **rfqs** - Request for quotations
+- **sites** - Site locations with unique codes (A001, A002, A003, etc.)
+- **rfqs** - Request for quotations with GP prefix and site code numbering (GP-A001-001, GP-A002-001, etc.)
 - **erp_items** - Master item catalog (ERP integration)
 - **rfq_items** - Individual items in RFQs (linked to erp_items)
 - **suppliers** - Vendor information
@@ -93,6 +94,7 @@ quoteflow-pro-backend/
 #### **Relationship Diagram**
 ```
 users (1) ←→ (many) rfqs
+sites (1) ←→ (many) rfqs
 rfqs (1) ←→ (many) rfq_items
 erp_items (1) ←→ (many) rfq_items
 rfqs (1) ←→ (many) quotations
@@ -103,6 +105,33 @@ rfqs (1) ←→ (many) attachments
 ```
 
 ### **2. SQLAlchemy Models**
+
+#### **Site Model**
+```python
+# app/models/site.py
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from app.models.base import Base
+
+class Site(Base):
+    __tablename__ = "sites"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    site_code = Column(String(10), unique=True, index=True, nullable=False)  # A001, A002, etc.
+    site_name = Column(String(200), nullable=False)
+    location = Column(String(500))
+    address = Column(String(1000))
+    contact_person = Column(String(200))
+    contact_email = Column(String(200))
+    contact_phone = Column(String(50))
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    rfqs = relationship("RFQ", back_populates="site")
+```
 
 #### **User Model**
 ```python
@@ -186,6 +215,7 @@ class RFQ(Base):
     __tablename__ = "rfqs"
     
     id = Column(Integer, primary_key=True, index=True)
+    rfq_number = Column(String(20), unique=True, index=True, nullable=False)  # GP-A001-001, GP-A002-001, etc.
     title = Column(String(200), nullable=False)
     description = Column(Text)
     commodity_type = Column(Enum(CommodityType), nullable=False)
@@ -193,11 +223,13 @@ class RFQ(Base):
     total_value = Column(Float, default=0.0)
     currency = Column(String(3), default="INR")
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    site_id = Column(Integer, ForeignKey("sites.id"), nullable=False)
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
     user = relationship("User", back_populates="rfqs")
+    site = relationship("Site", back_populates="rfqs")
     items = relationship("RFQItem", back_populates="rfq", cascade="all, delete-orphan")
     quotations = relationship("Quotation", back_populates="rfq", cascade="all, delete-orphan")
     approvals = relationship("Approval", back_populates="rfq", cascade="all, delete-orphan")
@@ -640,7 +672,76 @@ async def delete_erp_item(
     return {"message": "ERP item deleted successfully"}
 ```
 
-### **4. RFQ Management Endpoints**
+### **4. Site Management Endpoints**
+
+#### **Site CRUD Operations**
+```python
+# app/api/v1/sites.py
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from app.database import get_db
+from app.dependencies import get_current_active_user, get_admin_user
+from app.models.user import User
+from app.schemas.site import SiteCreate, SiteUpdate, SiteResponse, SiteList
+from app.services.site_service import SiteService
+
+router = APIRouter()
+
+@router.get("/", response_model=List[SiteList])
+async def get_sites(
+    skip: int = 0,
+    limit: int = 100,
+    is_active: bool = True,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get sites with filtering and pagination"""
+    return SiteService.get_sites(db, skip, limit, is_active)
+
+@router.get("/{site_id}", response_model=SiteResponse)
+async def get_site(
+    site_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get specific site by ID"""
+    site = SiteService.get_site(db, site_id)
+    if not site:
+        raise HTTPException(status_code=404, detail="Site not found")
+    return site
+
+@router.post("/", response_model=SiteResponse)
+async def create_site(
+    site_data: SiteCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    """Create new site (Admin only)"""
+    return SiteService.create_site(db, site_data, current_user.id)
+
+@router.put("/{site_id}", response_model=SiteResponse)
+async def update_site(
+    site_id: int,
+    site_data: SiteUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    """Update site (Admin only)"""
+    return SiteService.update_site(db, site_id, site_data, current_user)
+
+@router.delete("/{site_id}")
+async def delete_site(
+    site_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    """Delete site (Admin only)"""
+    SiteService.delete_site(db, site_id, current_user)
+    return {"message": "Site deleted successfully"}
+```
+
+### **5. RFQ Management Endpoints**
 
 #### **CRUD Operations**
 ```python
@@ -662,7 +763,7 @@ async def create_rfq(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    """Create new RFQ"""
+    """Create new RFQ with GP numbering and site selection"""
     return RFQService.create_rfq(db, rfq_data, current_user.id)
 
 @router.get("/", response_model=List[RFQList])
@@ -855,7 +956,115 @@ class ERPItemService:
         return True
 ```
 
-### **2. RFQ Service**
+### **2. Site Service**
+
+#### **Site Management Logic**
+```python
+# app/services/site_service.py
+from typing import List, Optional
+from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_
+from app.models.site import Site
+from app.models.user import User
+from app.schemas.site import SiteCreate, SiteUpdate
+from app.core.exceptions import ValidationError, ResourceNotFound
+
+class SiteService:
+    @staticmethod
+    def get_sites(
+        db: Session,
+        skip: int = 0,
+        limit: int = 100,
+        is_active: bool = True
+    ) -> List[Site]:
+        """Get sites with filtering and pagination"""
+        query = db.query(Site)
+        
+        if is_active is not None:
+            query = query.filter(Site.is_active == is_active)
+        
+        return query.offset(skip).limit(limit).all()
+    
+    @staticmethod
+    def get_site(db: Session, site_id: int) -> Optional[Site]:
+        """Get specific site by ID"""
+        return db.query(Site).filter(Site.id == site_id).first()
+    
+    @staticmethod
+    def create_site(db: Session, site_data: SiteCreate, user_id: int) -> Site:
+        """Create new site with validation"""
+        # Check if site code already exists
+        existing_site = db.query(Site).filter(
+            Site.site_code == site_data.site_code
+        ).first()
+        
+        if existing_site:
+            raise ValidationError("Site code already exists")
+        
+        # Create new site
+        db_site = Site(
+            site_code=site_data.site_code,
+            site_name=site_data.site_name,
+            location=site_data.location,
+            address=site_data.address,
+            contact_person=site_data.contact_person,
+            contact_email=site_data.contact_email,
+            contact_phone=site_data.contact_phone,
+            is_active=True
+        )
+        db.add(db_site)
+        db.commit()
+        db.refresh(db_site)
+        return db_site
+    
+    @staticmethod
+    def update_site(
+        db: Session,
+        site_id: int,
+        site_data: SiteUpdate,
+        current_user: User
+    ) -> Site:
+        """Update site with validation"""
+        site = SiteService.get_site(db, site_id)
+        
+        if not site:
+            raise ResourceNotFound("Site not found")
+        
+        # Check if site code is being changed and if it already exists
+        if site_data.site_code and site_data.site_code != site.site_code:
+            existing_site = db.query(Site).filter(
+                and_(
+                    Site.site_code == site_data.site_code,
+                    Site.id != site_id
+                )
+            ).first()
+            
+            if existing_site:
+                raise ValidationError("Site code already exists")
+        
+        # Update fields
+        for field, value in site_data.dict(exclude_unset=True).items():
+            setattr(site, field, value)
+        
+        db.commit()
+        db.refresh(site)
+        return site
+    
+    @staticmethod
+    def delete_site(db: Session, site_id: int, current_user: User) -> bool:
+        """Soft delete site (Admin only)"""
+        site = SiteService.get_site(db, site_id)
+        
+        if not site:
+            raise ResourceNotFound("Site not found")
+        
+        # Soft delete by setting is_active to False
+        site.is_active = False
+        db.commit()
+        return True
+```
+
+### **3. RFQ Service**
 
 #### **Core Business Logic**
 ```python
@@ -870,19 +1079,75 @@ from app.core.exceptions import PermissionDenied, ResourceNotFound
 
 class RFQService:
     @staticmethod
+    def generate_rfq_number(db: Session, site_code: str) -> str:
+        """Generate unique RFQ number with GP prefix and site code"""
+        # Get the highest existing RFQ number for this site
+        last_rfq = db.query(RFQ).join(Site).filter(
+            Site.site_code == site_code
+        ).order_by(RFQ.id.desc()).first()
+        
+        if last_rfq and last_rfq.rfq_number:
+            # Extract number from existing RFQ number (e.g., GP-A001-001 -> 1)
+            try:
+                parts = last_rfq.rfq_number.split('-')
+                if len(parts) == 3 and parts[0] == 'GP' and parts[1] == site_code:
+                    last_number = int(parts[2])
+                    next_number = last_number + 1
+                else:
+                    next_number = 1
+            except (IndexError, ValueError):
+                next_number = 1
+        else:
+            next_number = 1
+        
+        return f"GP-{site_code}-{next_number:03d}"
+    
+    @staticmethod
     def create_rfq(db: Session, rfq_data: RFQCreate, user_id: int) -> RFQ:
-        """Create new RFQ with validation"""
+        """Create new RFQ with validation and GP numbering"""
         # Validate business rules
         if rfq_data.total_value <= 0:
             raise ValueError("Total value must be greater than 0")
         
+        # Get site code for RFQ numbering
+        site = db.query(Site).filter(Site.id == rfq_data.site_id).first()
+        if not site:
+            raise ValueError("Invalid site ID")
+        
+        # Generate unique RFQ number with site code
+        rfq_number = RFQService.generate_rfq_number(db, site.site_code)
+        
         # Create RFQ
         db_rfq = RFQ(
-            **rfq_data.dict(),
+            rfq_number=rfq_number,
+            title=rfq_data.title,
+            description=rfq_data.description,
+            commodity_type=rfq_data.commodity_type,
+            total_value=rfq_data.total_value,
+            currency=rfq_data.currency,
+            site_id=rfq_data.site_id,
             user_id=user_id,
             status=RFQStatus.DRAFT
         )
         db.add(db_rfq)
+        db.commit()
+        db.refresh(db_rfq)
+        
+        # Create RFQ items
+        for item_data in rfq_data.items:
+            rfq_item = RFQItem(
+                rfq_id=db_rfq.id,
+                erp_item_id=item_data.erp_item_id,
+                item_code=item_data.item_code,
+                description=item_data.description,
+                specifications=item_data.specifications,
+                unit_of_measure=item_data.unit_of_measure,
+                required_quantity=item_data.required_quantity,
+                last_buying_price=item_data.last_buying_price,
+                last_vendor=item_data.last_vendor
+            )
+            db.add(rfq_item)
+        
         db.commit()
         db.refresh(db_rfq)
         return db_rfq

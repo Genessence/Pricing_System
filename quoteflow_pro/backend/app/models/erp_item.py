@@ -14,8 +14,8 @@ class ERPItem(Base):
     subcategory = Column(String(100))
     is_active = Column(Boolean, default=True)
     
-    # Relationships - commented out to avoid circular imports
-    # rfq_items = relationship("RFQItem", back_populates="erp_item", lazy="dynamic")
+    # Relationships
+    rfq_items = relationship("RFQItem", back_populates="erp_item", lazy="select")
     
     def __repr__(self):
         return f"<ERPItem(id={self.id}, item_code='{self.item_code}', description='{self.description}')>"

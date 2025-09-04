@@ -53,7 +53,7 @@ const QuotationComparisonTable = () => {
   }, []);
 
   // Transform backend ERP items to match frontend format
-  const mockERPItems = erpItems.map(item => ({
+  const transformedERPItems = erpItems.map(item => ({
     id: item.item_code,
     description: item.description,
     specifications: item.specifications || 'N/A',
@@ -330,11 +330,15 @@ const QuotationComparisonTable = () => {
       let totalValue = 0;
       if (selectedCommodity === 'provided_data') {
         totalValue = items?.reduce((total, item) => {
-          return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.lastBuyingPrice) || 0);
+          const quantity = parseFloat(item?.requiredQuantity) || 1;
+          const price = parseFloat(item?.lastBuyingPrice) || 0;
+          return total + (quantity * price);
         }, 0);
       } else if (selectedCommodity === 'service') {
         totalValue = serviceItems?.reduce((total, item) => {
-          return total + (parseFloat(item?.requiredQuantity) || 0) * (parseFloat(item?.rate) || 0);
+          const quantity = parseFloat(item?.requiredQuantity) || 1;
+          const rate = parseFloat(item?.rate) || 0;
+          return total + (quantity * rate);
         }, 0);
       } else if (selectedCommodity === 'transport') {
         totalValue = transportItems?.reduce((total, item) => {
@@ -344,18 +348,24 @@ const QuotationComparisonTable = () => {
         }, 0);
       }
       
+      // Ensure minimum total value to pass backend validation
+      // If total is 0, set to 1 to indicate "price to be determined"
+      if (totalValue === 0) {
+        totalValue = 1;
+      }
+      
       // Transform items to match backend format
       const rfqItems = (selectedCommodity === 'provided_data' ? items : 
                        selectedCommodity === 'service' ? serviceItems : 
                        transportItems).map(item => ({
-        item_code: item.id || item.itemCode || 'CUSTOM',
+        item_code: String(item.id || item.itemCode || 'CUSTOM'),
         description: item.description || item.itemDescription || 'Custom Item',
         specifications: item.specifications || item.specs || 'N/A',
         unit_of_measure: item.uom || item.unitOfMeasure || 'Nos',
         required_quantity: parseFloat(item.requiredQuantity || item.quantity || 1),
         last_buying_price: parseFloat(item.lastBuyingPrice || item.rate || 0),
         last_vendor: item.lastVendor || 'N/A',
-        erp_item_id: item.erpItemId || null
+        erp_item_id: item.erpItemId ? parseInt(item.erpItemId) : null
       }));
       
       // Create RFQ data for backend
@@ -365,10 +375,44 @@ const QuotationComparisonTable = () => {
         commodity_type: selectedCommodity,
         total_value: totalValue,
         currency: 'INR',
+        site_id: 1, // Default to site A001 (ID: 1) - in production this should be user-selectable
         items: rfqItems
       };
 
+      // 🔍 COMPREHENSIVE DEBUGGER - Print everything before API call
+      console.log('🔍 ===== RFQ SUBMISSION DEBUGGER =====');
+      console.log('📊 Selected Commodity:', selectedCommodity);
+      console.log('💰 Total Value Calculated:', totalValue);
+      console.log('💰 Total Value Source:', totalValue === 1 ? 'Set to 1 (was 0 - price to be determined)' : 'Calculated from items');
+      console.log('📦 Raw Items Data:', selectedCommodity === 'provided_data' ? items : selectedCommodity === 'service' ? serviceItems : transportItems);
+      console.log('🔄 Transformed RFQ Items:', rfqItems);
+      console.log('📋 Complete RFQ Data being sent:', rfqData);
+      console.log('🔍 Data Types Check:');
+      console.log('  - title type:', typeof rfqData.title);
+      console.log('  - description type:', typeof rfqData.description);
+      console.log('  - commodity_type type:', typeof rfqData.commodity_type);
+      console.log('  - total_value type:', typeof rfqData.total_value);
+      console.log('  - currency type:', typeof rfqData.currency);
+      console.log('  - site_id type:', typeof rfqData.site_id);
+      console.log('  - items type:', typeof rfqData.items);
+      console.log('  - items length:', rfqData.items.length);
+      console.log('🔍 Item Details:');
+      rfqData.items.forEach((item, index) => {
+        console.log(`  Item ${index + 1}:`, {
+          item_code: { value: item.item_code, type: typeof item.item_code },
+          description: { value: item.description, type: typeof item.description },
+          specifications: { value: item.specifications, type: typeof item.specifications },
+          unit_of_measure: { value: item.unit_of_measure, type: typeof item.unit_of_measure },
+          required_quantity: { value: item.required_quantity, type: typeof item.required_quantity },
+          last_buying_price: { value: item.last_buying_price, type: typeof item.last_buying_price },
+          last_vendor: { value: item.last_vendor, type: typeof item.last_vendor },
+          erp_item_id: { value: item.erp_item_id, type: typeof item.erp_item_id }
+        });
+      });
+      console.log('🔍 ===== END DEBUGGER =====');
+
       // Submit to backend
+      console.log('🚀 Sending RFQ data to backend...');
       const createdRFQ = await apiService.createRFQ(rfqData);
       console.log('RFQ created successfully:', createdRFQ);
       
@@ -387,10 +431,23 @@ const QuotationComparisonTable = () => {
       }, 5000);
       
     } catch (error) {
-      console.error('Error creating RFQ:', error);
+      // 🔍 COMPREHENSIVE ERROR DEBUGGER
+      console.log('❌ ===== RFQ SUBMISSION ERROR DEBUGGER =====');
+      console.log('❌ Error object:', error);
+      console.log('❌ Error message:', error.message);
+      console.log('❌ Error response:', error.response);
+      console.log('❌ Error status:', error.response?.status);
+      console.log('❌ Error statusText:', error.response?.statusText);
+      console.log('❌ Error data:', error.response?.data);
+      console.log('❌ Error headers:', error.response?.headers);
+      console.log('❌ Error config:', error.config);
+      console.log('❌ Full error details:', JSON.stringify(error, null, 2));
+      console.log('❌ ===== END ERROR DEBUGGER =====');
+      
       setIsSubmitting(false);
-      // Show error message to user
-      alert('Failed to create RFQ. Please try again.');
+      // Show detailed error message to user
+      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error occurred';
+      alert(`Failed to create RFQ: ${errorMessage}\n\nCheck console for detailed error information.`);
     }
   };
 

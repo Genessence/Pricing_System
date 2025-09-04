@@ -11,7 +11,7 @@ from app.core.exceptions import PermissionDenied
 
 security = HTTPBearer(auto_error=True)
 
-async def get_current_user(
+def get_current_user(
     db: Session = Depends(get_db),
     credentials: HTTPAuthorizationCredentials = Security(security)
 ) -> User:
@@ -48,7 +48,7 @@ async def get_current_user(
         
     return user
 
-async def get_current_active_user(
+def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """Get current active user."""
@@ -56,7 +56,7 @@ async def get_current_active_user(
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-async def get_admin_user(
+def get_admin_user(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
     """Get current admin user."""

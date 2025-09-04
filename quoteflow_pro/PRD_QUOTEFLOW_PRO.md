@@ -120,6 +120,8 @@ So that I can reduce procurement cycle times
 
 Acceptance Criteria:
 - Use a step-by-step wizard for RFQ creation
+- Select site location from unique site codes (A001, A002, A003, etc.)
+- Generate unique RFQ numbers with GP prefix and site code (GP-A001-001, GP-A002-001, etc.)
 - Select items from existing ERP database with auto-fill functionality
 - Add new items to ERP database when not found in existing catalog
 - Add multiple items with specifications and quantities
@@ -158,7 +160,21 @@ Acceptance Criteria:
 - Track item usage across RFQs
 ```
 
-**Story 4: Quotation Tracking**
+**Story 4: Site Management**
+```
+As a Procurement Specialist,
+I want to manage site locations and their unique identifiers
+So that I can properly categorize and track RFQs by location
+
+Acceptance Criteria:
+- View all available sites with their unique codes (A001, A002, etc.)
+- Select site location when creating RFQs
+- Track RFQ distribution across different sites
+- Generate site-specific procurement reports
+- Maintain site master data with location details
+```
+
+**Story 5: Quotation Tracking**
 ```
 As a Procurement Specialist,
 I want to track supplier quotations and responses
@@ -409,7 +425,8 @@ Acceptance Criteria:
 
 ### **1. Data Models**
 - **Users**: Authentication and profile information
-- **RFQs**: Request for quotation data
+- **Sites**: Site locations with unique codes (A001, A002, A003, etc.)
+- **RFQs**: Request for quotation data with GP prefix and site code numbering (GP-A001-001, GP-A002-001, etc.)
 - **ERP_Items**: Master item catalog with descriptions, specifications, and UOM
 - **RFQ_Items**: RFQ-specific item instances linked to ERP items
 - **Suppliers**: Vendor information and performance
@@ -419,11 +436,11 @@ Acceptance Criteria:
 - **Notifications**: System and user notifications
 
 ### **2. Data Relationships**
-- **One-to-Many**: User to RFQs, RFQ to RFQ_Items, ERP_Items to RFQ_Items
+- **One-to-Many**: User to RFQs, Site to RFQs, RFQ to RFQ_Items, ERP_Items to RFQ_Items
 - **Many-to-Many**: RFQs to Suppliers, Users to Roles
 - **Hierarchical**: Approval workflow hierarchy
 - **Temporal**: Historical data and audit trails
-- **Master-Transaction**: ERP_Items (master) to RFQ_Items (transaction)
+- **Master-Transaction**: ERP_Items (master) to RFQ_Items (transaction), Sites (master) to RFQs (transaction)
 
 ### **3. Data Quality Requirements**
 - **Accuracy**: 99.9% data accuracy

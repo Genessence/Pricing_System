@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from datetime import datetime
 from app.models.rfq import CommodityType, RFQStatus
+from app.schemas.user import UserResponse
+from app.schemas.site import SiteResponse
 
 class RFQItemBase(BaseModel):
     item_code: str = Field(..., min_length=1, max_length=50)
@@ -39,6 +41,7 @@ class RFQBase(BaseModel):
         return v
 
 class RFQCreate(RFQBase):
+    site_id: int = Field(..., description="Site ID for GP numbering")
     items: List[RFQItemCreate] = Field(..., min_items=1)
 
 class RFQUpdate(BaseModel):
@@ -51,24 +54,32 @@ class RFQUpdate(BaseModel):
 
 class RFQResponse(RFQBase):
     id: int
+    rfq_number: str
     status: RFQStatus
     user_id: int
+    site_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     items: List[RFQItemResponse] = []
+    user: Optional[UserResponse] = None
+    site: Optional[SiteResponse] = None
     
     class Config:
         from_attributes = True
 
 class RFQList(BaseModel):
     id: int
+    rfq_number: str
     title: str
     commodity_type: CommodityType
     status: RFQStatus
     total_value: float
     currency: str
     user_id: int
+    site_id: int
     created_at: datetime
+    user: Optional[dict] = None
+    site: Optional[dict] = None
     
     class Config:
         from_attributes = True

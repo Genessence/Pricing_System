@@ -8,13 +8,37 @@ from app.models.rfq import RFQ, RFQStatus
 from app.models.rfq_item import RFQItem
 from app.models.erp_item import ERPItem
 from app.models.user import User, UserRole
+from app.models.site import Site
 from app.core.exceptions import PermissionDenied, ResourceNotFound, ValidationError
 from sqlalchemy import and_
 
 router = APIRouter()
 
+def generate_rfq_number(db: Session, site_code: str) -> str:
+    """Generate unique RFQ number with GP prefix and site code"""
+    # Get the highest existing RFQ number for this site
+    last_rfq = db.query(RFQ).join(Site).filter(
+        Site.site_code == site_code
+    ).order_by(RFQ.id.desc()).first()
+    
+    if last_rfq and last_rfq.rfq_number:
+        # Extract number from existing RFQ number (e.g., GP-A001-001 -> 1)
+        try:
+            parts = last_rfq.rfq_number.split('-')
+            if len(parts) == 3 and parts[0] == 'GP' and parts[1] == site_code:
+                last_number = int(parts[2])
+                next_number = last_number + 1
+            else:
+                next_number = 1
+        except (IndexError, ValueError):
+            next_number = 1
+    else:
+        next_number = 1
+    
+    return f"GP-{site_code}-{next_number:03d}"
+
 @router.post("/", response_model=RFQResponse)
-async def create_rfq(
+def create_rfq(
     rfq_data: RFQCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
@@ -22,16 +46,32 @@ async def create_rfq(
     """Create new RFQ."""
     # Validate business rules
     if rfq_data.total_value <= 0:
-        raise ValidationError("Total value must be greater than 0")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Total value must be greater than 0"
+        )
+    
+    # Validate site exists
+    site = db.query(Site).filter(Site.id == rfq_data.site_id).first()
+    if not site:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid site ID"
+        )
+    
+    # Generate RFQ number
+    rfq_number = generate_rfq_number(db, site.site_code)
     
     # Create RFQ
     db_rfq = RFQ(
+        rfq_number=rfq_number,
         title=rfq_data.title,
         description=rfq_data.description,
         commodity_type=rfq_data.commodity_type,
         total_value=rfq_data.total_value,
         currency=rfq_data.currency,
         user_id=current_user.id,
+        site_id=rfq_data.site_id,
         status=RFQStatus.DRAFT
     )
     
@@ -57,7 +97,10 @@ async def create_rfq(
                     last_vendor=item_data.last_vendor
                 )
             else:
-                raise ValidationError(f"ERP item with ID {item_data.erp_item_id} not found")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"ERP item with ID {item_data.erp_item_id} not found"
+                )
         else:
             # Use provided item details
             db_item = RFQItem(
@@ -76,10 +119,14 @@ async def create_rfq(
     db.commit()
     db.refresh(db_rfq)
     
+    # Load relationships for proper serialization
+    db_rfq.user = current_user
+    db_rfq.site = site
+    
     return db_rfq
 
 @router.get("/", response_model=List[RFQList])
-async def get_rfqs(
+def get_rfqs(
     skip: int = 0,
     limit: int = 100,
     status: Optional[str] = None,
@@ -104,7 +151,7 @@ async def get_rfqs(
     return rfqs
 
 @router.get("/{rfq_id}", response_model=RFQResponse)
-async def get_rfq(
+def get_rfq(
     rfq_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
@@ -123,7 +170,7 @@ async def get_rfq(
     return rfq
 
 @router.put("/{rfq_id}", response_model=RFQResponse)
-async def update_rfq(
+def update_rfq(
     rfq_id: int,
     rfq_data: RFQUpdate,
     db: Session = Depends(get_db),
@@ -154,7 +201,7 @@ async def update_rfq(
     return rfq
 
 @router.delete("/{rfq_id}")
-async def delete_rfq(
+def delete_rfq(
     rfq_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
@@ -180,7 +227,7 @@ async def delete_rfq(
     return {"message": "RFQ deleted successfully"}
 
 @router.post("/{rfq_id}/approve")
-async def approve_rfq(
+def approve_rfq(
     rfq_id: int,
     comments: str,
     db: Session = Depends(get_db),

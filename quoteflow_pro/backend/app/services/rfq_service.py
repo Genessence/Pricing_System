@@ -4,13 +4,38 @@ from sqlalchemy import and_, or_
 from app.models.rfq import RFQ, RFQStatus
 from app.models.rfq_item import RFQItem
 from app.models.user import User, UserRole
+from app.models.site import Site
 from app.schemas.rfq import RFQCreate, RFQUpdate
 from fastapi import HTTPException, status
 
 class RFQService:
     @staticmethod
+    def generate_rfq_number(db: Session, site_code: str) -> str:
+        """Generate unique RFQ number with GP prefix and site code"""
+        # Get the highest existing RFQ number for this site
+        last_rfq = db.query(RFQ).join(Site).filter(
+            Site.site_code == site_code
+        ).order_by(RFQ.id.desc()).first()
+        
+        if last_rfq and last_rfq.rfq_number:
+            # Extract number from existing RFQ number (e.g., GP-A001-001 -> 1)
+            try:
+                parts = last_rfq.rfq_number.split('-')
+                if len(parts) == 3 and parts[0] == 'GP' and parts[1] == site_code:
+                    last_number = int(parts[2])
+                    next_number = last_number + 1
+                else:
+                    next_number = 1
+            except (IndexError, ValueError):
+                next_number = 1
+        else:
+            next_number = 1
+        
+        return f"GP-{site_code}-{next_number:03d}"
+    
+    @staticmethod
     def create_rfq(db: Session, rfq_data: RFQCreate, user_id: int) -> RFQ:
-        """Create new RFQ with validation"""
+        """Create new RFQ with validation and GP numbering"""
         # Validate business rules
         if rfq_data.total_value <= 0:
             raise HTTPException(
@@ -18,14 +43,27 @@ class RFQService:
                 detail="Total value must be greater than 0"
             )
         
+        # Get site for RFQ numbering
+        site = db.query(Site).filter(Site.id == rfq_data.site_id).first()
+        if not site:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid site ID"
+            )
+        
+        # Generate unique RFQ number with site code
+        rfq_number = RFQService.generate_rfq_number(db, site.site_code)
+        
         # Create RFQ
         db_rfq = RFQ(
+            rfq_number=rfq_number,
             title=rfq_data.title,
             description=rfq_data.description,
             commodity_type=rfq_data.commodity_type,
             total_value=rfq_data.total_value,
             currency=rfq_data.currency,
             user_id=user_id,
+            site_id=rfq_data.site_id,
             status=RFQStatus.DRAFT
         )
         db.add(db_rfq)

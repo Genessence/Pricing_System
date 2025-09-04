@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.core.config import settings
 from app.core.exceptions import QuoteFlowException, ResourceNotFound, PermissionDenied, ValidationError, BusinessRuleViolation
-from app.api.v1 import auth, users, erp_items, rfqs
+from app.api.v1 import auth, users, erp_items, rfqs, sites, suppliers, quotations
 from datetime import datetime
 
 def create_application() -> FastAPI:
@@ -29,6 +29,9 @@ def create_application() -> FastAPI:
     app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
     app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
     app.include_router(erp_items.router, prefix="/api/v1/erp-items", tags=["ERP Items"])
+    app.include_router(sites.router, prefix="/api/v1/sites", tags=["Sites"])
+    app.include_router(suppliers.router, prefix="/api/v1/suppliers", tags=["Suppliers"])
+    app.include_router(quotations.router, prefix="/api/v1/quotations", tags=["Quotations"])
     app.include_router(rfqs.router, prefix="/api/v1/rfqs", tags=["RFQs"])
     
     # Global exception handlers

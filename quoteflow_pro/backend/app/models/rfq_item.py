@@ -16,9 +16,9 @@ class RFQItem(Base):
     last_buying_price = Column(Float, default=0.0)
     last_vendor = Column(String(200))
     
-    # Relationships - commented out to avoid circular imports
-    # rfq = relationship("RFQ", back_populates="items", lazy="select")
-    # erp_item = relationship("ERPItem", back_populates="rfq_items", lazy="select")
+    # Relationships
+    rfq = relationship("RFQ", back_populates="items", lazy="select")
+    erp_item = relationship("ERPItem", back_populates="rfq_items", lazy="select")
     
     def __repr__(self):
         return f"<RFQItem(id={self.id}, item_code='{self.item_code}', quantity={self.required_quantity})>"

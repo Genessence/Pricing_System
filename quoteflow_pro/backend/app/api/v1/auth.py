@@ -69,6 +69,22 @@ async def login(
         user=user
     )
 
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    refresh_token: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Refresh access token using refresh token.
+    """
+    # Implementation for token refresh
+    # This would validate the refresh token and create new access token
+    # For now, return a placeholder response
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Token refresh not yet implemented"
+    )
+
 @router.post("/logout")
 async def logout():
     """

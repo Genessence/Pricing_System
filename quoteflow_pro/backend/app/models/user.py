@@ -18,8 +18,9 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     
-    # Relationships - commented out to avoid circular imports
-    # rfqs = relationship("RFQ", back_populates="user", lazy="dynamic")
+    # Relationships
+    rfqs = relationship("RFQ", back_populates="user", lazy="select")
+    approvals = relationship("Approval", back_populates="approver", lazy="select")
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role}')>"

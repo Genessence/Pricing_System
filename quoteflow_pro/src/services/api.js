@@ -38,8 +38,24 @@ class ApiService {
       ...options,
     };
 
+    // 🔍 HTTP REQUEST DEBUGGER
+    console.log('🔍 ===== HTTP REQUEST DEBUGGER =====');
+    console.log('🌐 URL:', url);
+    console.log('📋 Method:', config.method || 'GET');
+    console.log('📋 Headers:', config.headers);
+    console.log('📋 Body:', config.body);
+    console.log('🔍 ===== END HTTP REQUEST DEBUGGER =====');
+
     try {
       const response = await fetch(url, config);
+      
+      // 🔍 HTTP RESPONSE DEBUGGER
+      console.log('🔍 ===== HTTP RESPONSE DEBUGGER =====');
+      console.log('📥 Status:', response.status);
+      console.log('📥 Status Text:', response.statusText);
+      console.log('📥 Headers:', Object.fromEntries(response.headers.entries()));
+      console.log('📥 OK:', response.ok);
+      console.log('🔍 ===== END HTTP RESPONSE DEBUGGER =====');
       
       // Handle 401 Unauthorized
       if (response.status === 401) {
@@ -52,12 +68,22 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        console.log('❌ Error Response Data:', errorData);
+        console.log('❌ Error Detail Array:', errorData.detail);
+        if (Array.isArray(errorData.detail)) {
+          console.log('❌ Validation Errors:');
+          errorData.detail.forEach((error, index) => {
+            console.log(`  Error ${index + 1}:`, error);
+          });
+        }
+        throw new Error(JSON.stringify(errorData.detail) || `HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const responseData = await response.json();
+      console.log('✅ Success Response Data:', responseData);
+      return responseData;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('❌ API request failed:', error);
       throw error;
     }
   }
@@ -143,6 +169,14 @@ class ApiService {
   }
 
   async createRFQ(rfqData) {
+    // 🔍 API SERVICE DEBUGGER
+    console.log('🔍 ===== API SERVICE DEBUGGER =====');
+    console.log('📤 RFQ Data being sent to API:', rfqData);
+    console.log('📤 JSON Stringified:', JSON.stringify(rfqData, null, 2));
+    console.log('📤 Content-Type will be: application/json');
+    console.log('📤 Endpoint: POST /api/v1/rfqs/');
+    console.log('🔍 ===== END API SERVICE DEBUGGER =====');
+    
     return await this.request('/rfqs/', {
       method: 'POST',
       body: JSON.stringify(rfqData),

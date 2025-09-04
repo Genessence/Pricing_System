@@ -202,6 +202,13 @@ class ApiService {
       body: JSON.stringify({ comments }),
     });
   }
+
+  // Clear test data (Admin only)
+  async clearTestData() {
+    return await this.request('/rfqs/clear-test-data', {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Create and export a singleton instance

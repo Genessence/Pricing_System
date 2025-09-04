@@ -78,8 +78,8 @@ class RFQList(BaseModel):
     user_id: int
     site_id: int
     created_at: datetime
-    user: Optional[dict] = None
-    site: Optional[dict] = None
+    user: Optional[UserResponse] = None
+    site: Optional[SiteResponse] = None
     
     class Config:
         from_attributes = True

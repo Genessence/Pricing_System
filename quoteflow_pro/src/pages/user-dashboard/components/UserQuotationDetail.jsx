@@ -5,6 +5,7 @@ import TopNavigationBar from '../../../components/ui/TopNavigationBar';
 import BreadcrumbTrail from '../../../components/ui/BreadcrumbTrail';
 import Icon from '../../../components/AppIcon';
 import { cn } from '../../../utils/cn';
+import apiService from '../../../services/api';
 
 const UserQuotationDetail = () => {
   const { quotationId } = useParams();
@@ -14,19 +15,18 @@ const UserQuotationDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadQuotation = () => {
-      const storedQuotations = localStorage.getItem('quotationRequests');
-      if (storedQuotations) {
-        const allQuotations = JSON.parse(storedQuotations);
-        const foundQuotation = allQuotations.find(q => q.id === quotationId);
-        if (foundQuotation) {
-          console.log('Found quotation data:', foundQuotation);
-          setQuotation(foundQuotation);
-        } else {
-          console.log('Quotation not found. Available quotations:', allQuotations);
-        }
+    const loadQuotation = async () => {
+      try {
+        console.log('Loading quotation with ID:', quotationId);
+        const quotationData = await apiService.getRFQ(quotationId);
+        console.log('Found quotation data:', quotationData);
+        setQuotation(quotationData);
+      } catch (error) {
+        console.error('Error loading quotation:', error);
+        // Quotation not found or error occurred
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadQuotation();
@@ -168,14 +168,23 @@ const UserQuotationDetail = () => {
             </th>
             
             {/* Quote Columns */}
-            {quotation.quotes?.map((quote, index) => (
-              <th key={index} className="p-2 text-center bg-muted border-r border-border min-w-32">
+            {quotation.quotes && quotation.quotes.length > 0 ? (
+              quotation.quotes.map((quote, index) => (
+                <th key={index} className="p-2 text-center bg-muted border-r border-border min-w-32">
+                  <div className="flex flex-col items-center space-y-1">
+                    <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
+                    <span className="text-xs text-muted-foreground">{quote.supplierId || `Supplier ${index + 1}`}</span>
+                  </div>
+                </th>
+              ))
+            ) : (
+              <th className="p-2 text-center bg-muted border-r border-border min-w-32">
                 <div className="flex flex-col items-center space-y-1">
-                  <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
-                  <span className="text-xs text-muted-foreground">{quote.supplierId || `Supplier ${index + 1}`}</span>
+                  <span className="text-xs font-semibold text-foreground">No Quotes</span>
+                  <span className="text-xs text-muted-foreground">Awaiting Suppliers</span>
                 </div>
               </th>
-            ))}
+            )}
           </tr>
         </thead>
         
@@ -185,7 +194,7 @@ const UserQuotationDetail = () => {
             <tr key={itemIndex} className="hover:bg-muted/30">
               {/* Fixed Left Columns */}
               <td className="p-2 bg-card sticky left-0 z-20 border-r border-border">
-                <span className="text-sm text-foreground">{item.vendorCode || '-'}</span>
+                <span className="text-sm text-foreground">{item.item_code || item.vendorCode || '-'}</span>
               </td>
               
               <td className="p-2 bg-card sticky left-36 z-20 border-r border-border">
@@ -197,29 +206,35 @@ const UserQuotationDetail = () => {
               </td>
               
               <td className="p-2 bg-card sticky left-144 z-20 border-r border-border">
-                <span className="text-sm text-foreground">{item.requiredQuantity || '-'}</span>
+                <span className="text-sm text-foreground">{item.required_quantity || item.requiredQuantity || '-'}</span>
               </td>
               
               <td className="p-2 bg-card sticky left-168 z-20 border-r border-border">
-                <span className="text-sm text-foreground">{item.uom || '-'}</span>
+                <span className="text-sm text-foreground">{item.unit_of_measure || item.uom || '-'}</span>
               </td>
               
               <td className="p-2 bg-card sticky left-192 z-20 border-r border-border">
-                <span className="text-sm text-foreground">{item.lastBuyingPrice ? formatCurrency(item.lastBuyingPrice) : '-'}</span>
+                <span className="text-sm text-foreground">{(item.last_buying_price || item.lastBuyingPrice) ? formatCurrency(item.last_buying_price || item.lastBuyingPrice) : '-'}</span>
               </td>
               
               <td className="p-2 bg-card sticky left-224 z-20 border-r border-border">
-                <span className="text-sm text-foreground">{item.lastVendor || '-'}</span>
+                <span className="text-sm text-foreground">{item.last_vendor || item.lastVendor || '-'}</span>
               </td>
               
               {/* Quote Columns */}
-              {quotation.quotes?.map((quote, quoteIndex) => (
-                <td key={quoteIndex} className="p-2 text-center border-r border-border">
-                  <span className="text-sm text-foreground">
-                    {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
-                  </span>
+              {quotation.quotes && quotation.quotes.length > 0 ? (
+                quotation.quotes.map((quote, quoteIndex) => (
+                  <td key={quoteIndex} className="p-2 text-center border-r border-border">
+                    <span className="text-sm text-foreground">
+                      {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
+                    </span>
+                  </td>
+                ))
+              ) : (
+                <td className="p-2 text-center border-r border-border">
+                  <span className="text-sm text-foreground">-</span>
                 </td>
-              ))}
+              )}
             </tr>
           ))}
           
@@ -228,77 +243,119 @@ const UserQuotationDetail = () => {
              <td colSpan={7} className="p-2 text-sm text-foreground border-r border-border">
                Transportation/Freight
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quote.footer?.transportation_freight || '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{quote.footer?.transportation_freight || '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">-</span>
                </td>
-             ))}
+             )}
            </tr>
            
            <tr className="bg-muted/20 font-medium">
              <td colSpan={7} className="p-2 text-sm text-foreground border-r border-border">
                Packing Charges
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quote.footer?.packing_charges || '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{quote.footer?.packing_charges || '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">-</span>
                </td>
-             ))}
+             )}
            </tr>
            
            <tr className="bg-muted/30 font-medium">
              <td colSpan={7} className="p-2 text-sm text-foreground border-r border-border">
                Delivery Lead Time
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quote.footer?.delivery_lead_time || '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{quote.footer?.delivery_lead_time || '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">-</span>
                </td>
-             ))}
+             )}
            </tr>
            
            <tr className="bg-muted/20 font-medium">
              <td colSpan={7} className="p-2 text-sm text-foreground border-r border-border">
                Warranty
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quote.footer?.warranty || '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{quote.footer?.warranty || '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">-</span>
                </td>
-             ))}
+             )}
            </tr>
            
            <tr className="bg-muted/30 font-medium">
              <td colSpan={7} className="p-2 text-sm text-foreground border-r border-border">
                Currency
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quote.footer?.currency || '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{quote.footer?.currency || '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">-</span>
                </td>
-             ))}
+             )}
            </tr>
            
            <tr className="bg-muted/20 font-medium">
              <td colSpan={7} className="p-2 text-sm text-foreground border-r border-border">
                Remarks of Quotation
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quote.footer?.remarks_of_quotation || '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{quote.footer?.remarks_of_quotation || '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">-</span>
                </td>
-             ))}
+             )}
            </tr>
            
            <tr className="bg-primary/5 font-bold">
              <td colSpan={7} className="p-2 text-sm text-foreground border-r border-border">
                Total Amount
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quotation.totalValue ? formatCurrency(quotation.totalValue) : '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{(quotation.total_value || quotation.totalValue) ? formatCurrency(quotation.total_value || quotation.totalValue) : '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">{(quotation.total_value || quotation.totalValue) ? formatCurrency(quotation.total_value || quotation.totalValue) : '-'}</span>
                </td>
-             ))}
+             )}
            </tr>
         </tbody>
       </table>
@@ -341,14 +398,23 @@ const UserQuotationDetail = () => {
             </th>
             
             {/* Quote Columns */}
-            {quotation.quotes?.map((quote, index) => (
-              <th key={index} className="p-2 text-center bg-muted border-r border-border min-w-32">
+            {quotation.quotes && quotation.quotes.length > 0 ? (
+              quotation.quotes.map((quote, index) => (
+                <th key={index} className="p-2 text-center bg-muted border-r border-border min-w-32">
+                  <div className="flex flex-col items-center space-y-1">
+                    <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
+                    <span className="text-xs text-muted-foreground">{quote.supplierId || `Supplier ${index + 1}`}</span>
+                  </div>
+                </th>
+              ))
+            ) : (
+              <th className="p-2 text-center bg-muted border-r border-border min-w-32">
                 <div className="flex flex-col items-center space-y-1">
-                  <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
-                  <span className="text-xs text-muted-foreground">{quote.supplierId || `Supplier ${index + 1}`}</span>
+                  <span className="text-xs font-semibold text-foreground">No Quotes</span>
+                  <span className="text-xs text-muted-foreground">Awaiting Suppliers</span>
                 </div>
               </th>
-            ))}
+            )}
           </tr>
         </thead>
         
@@ -366,21 +432,27 @@ const UserQuotationDetail = () => {
               </td>
               
               <td className="p-2 bg-card sticky left-96 z-20 border-r border-border">
-                <span className="text-sm text-foreground">{item.uom || '-'}</span>
+                <span className="text-sm text-foreground">{item.unit_of_measure || item.uom || '-'}</span>
               </td>
               
               <td className="p-2 bg-card sticky left-120 z-20 border-r border-border">
-                <span className="text-sm text-foreground">{item.requiredQuantity || '-'}</span>
+                <span className="text-sm text-foreground">{item.required_quantity || item.requiredQuantity || '-'}</span>
               </td>
               
               {/* Quote Columns */}
-              {quotation.quotes?.map((quote, quoteIndex) => (
-                <td key={quoteIndex} className="p-2 text-center border-r border-border">
-                  <span className="text-sm text-foreground">
-                    {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
-                  </span>
+              {quotation.quotes && quotation.quotes.length > 0 ? (
+                quotation.quotes.map((quote, quoteIndex) => (
+                  <td key={quoteIndex} className="p-2 text-center border-r border-border">
+                    <span className="text-sm text-foreground">
+                      {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
+                    </span>
+                  </td>
+                ))
+              ) : (
+                <td className="p-2 text-center border-r border-border">
+                  <span className="text-sm text-foreground">-</span>
                 </td>
-              ))}
+              )}
             </tr>
           ))}
           
@@ -389,11 +461,17 @@ const UserQuotationDetail = () => {
              <td colSpan={4} className="p-2 text-sm text-foreground border-r border-border">
                Total Amount
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quotation.totalValue ? formatCurrency(quotation.totalValue) : '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{(quotation.total_value || quotation.totalValue) ? formatCurrency(quotation.total_value || quotation.totalValue) : '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">{(quotation.total_value || quotation.totalValue) ? formatCurrency(quotation.total_value || quotation.totalValue) : '-'}</span>
                </td>
-             ))}
+             )}
            </tr>
         </tbody>
       </table>
@@ -443,14 +521,23 @@ const UserQuotationDetail = () => {
             </th>
             
             {/* Quote Columns */}
-            {quotation.quotes?.map((quote, index) => (
-              <th key={index} className="p-2 text-center bg-muted border-r border-border min-w-32">
+            {quotation.quotes && quotation.quotes.length > 0 ? (
+              quotation.quotes.map((quote, index) => (
+                <th key={index} className="p-2 text-center bg-muted border-r border-border min-w-32">
+                  <div className="flex flex-col items-center space-y-1">
+                    <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
+                    <span className="text-xs text-muted-foreground">{quote.supplierId || `Supplier ${index + 1}`}</span>
+                  </div>
+                </th>
+              ))
+            ) : (
+              <th className="p-2 text-center bg-muted border-r border-border min-w-32">
                 <div className="flex flex-col items-center space-y-1">
-                  <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
-                  <span className="text-xs text-muted-foreground">{quote.supplierId || `Supplier ${index + 1}`}</span>
+                  <span className="text-xs font-semibold text-foreground">No Quotes</span>
+                  <span className="text-xs text-muted-foreground">Awaiting Suppliers</span>
                 </div>
               </th>
-            ))}
+            )}
           </tr>
         </thead>
         
@@ -480,13 +567,19 @@ const UserQuotationDetail = () => {
               </td>
               
               {/* Quote Columns */}
-              {quotation.quotes?.map((quote, quoteIndex) => (
-                <td key={quoteIndex} className="p-2 text-center border-r border-border">
-                  <span className="text-sm text-foreground">
-                    {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
-                  </span>
+              {quotation.quotes && quotation.quotes.length > 0 ? (
+                quotation.quotes.map((quote, quoteIndex) => (
+                  <td key={quoteIndex} className="p-2 text-center border-r border-border">
+                    <span className="text-sm text-foreground">
+                      {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
+                    </span>
+                  </td>
+                ))
+              ) : (
+                <td className="p-2 text-center border-r border-border">
+                  <span className="text-sm text-foreground">-</span>
                 </td>
-              ))}
+              )}
             </tr>
           ))}
           
@@ -495,11 +588,17 @@ const UserQuotationDetail = () => {
              <td colSpan={5} className="p-2 text-sm text-foreground border-r border-border">
                Total Amount
              </td>
-             {quotation.quotes?.map((quote, index) => (
-               <td key={index} className="p-2 text-center border-r border-border">
-                 <span className="text-sm text-foreground">{quotation.totalValue ? formatCurrency(quotation.totalValue) : '-'}</span>
+             {quotation.quotes && quotation.quotes.length > 0 ? (
+               quotation.quotes.map((quote, index) => (
+                 <td key={index} className="p-2 text-center border-r border-border">
+                   <span className="text-sm text-foreground">{(quotation.total_value || quotation.totalValue) ? formatCurrency(quotation.total_value || quotation.totalValue) : '-'}</span>
+                 </td>
+               ))
+             ) : (
+               <td className="p-2 text-center border-r border-border">
+                 <span className="text-sm text-foreground">{(quotation.total_value || quotation.totalValue) ? formatCurrency(quotation.total_value || quotation.totalValue) : '-'}</span>
                </td>
-             ))}
+             )}
            </tr>
         </tbody>
       </table>
@@ -542,7 +641,7 @@ const UserQuotationDetail = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Request ID</p>
-                  <p className="text-lg font-semibold text-foreground">{quotation.id}</p>
+                  <p className="text-lg font-semibold text-foreground">{quotation.rfq_number || quotation.id}</p>
                 </div>
               </div>
             </div>
@@ -556,11 +655,11 @@ const UserQuotationDetail = () => {
                   <p className="text-sm font-medium text-muted-foreground">Commodity Type</p>
                   <span className={cn(
                     "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1",
-                    getCommodityTypeColor(quotation.commodityType)
+                    getCommodityTypeColor(quotation.commodity_type || quotation.commodityType)
                   )}>
-                    {quotation.commodityType === 'provided_data' ? 'Provided Data' :
-                     quotation.commodityType === 'service' ? 'Service' :
-                     quotation.commodityType === 'transport' ? 'Transport' : quotation.commodityType}
+                    {(quotation.commodity_type || quotation.commodityType) === 'provided_data' ? 'Provided Data' :
+                     (quotation.commodity_type || quotation.commodityType) === 'service' ? 'Service' :
+                     (quotation.commodity_type || quotation.commodityType) === 'transport' ? 'Transport' : (quotation.commodity_type || quotation.commodityType)}
                   </span>
                 </div>
               </div>
@@ -587,7 +686,7 @@ const UserQuotationDetail = () => {
           </div>
 
                      {/* Form Configuration Section */}
-           <div className="bg-card border border-border rounded-lg p-6 shadow-sm mb-8">
+           {/* <div className="bg-card border border-border rounded-lg p-6 shadow-sm mb-8">
              <h2 className="text-xl font-semibold text-foreground mb-4">Form Configuration</h2>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                <div>
@@ -623,7 +722,7 @@ const UserQuotationDetail = () => {
                <div className="md:col-span-2 lg:col-span-3">
                  <p className="text-sm font-medium text-muted-foreground mb-1">Submitted Date</p>
                  <p className="text-foreground">
-                   {new Date(quotation.submittedAt || Date.now()).toLocaleDateString('en-US', {
+                   {new Date(quotation.created_at || quotation.submittedAt || Date.now()).toLocaleDateString('en-US', {
                      year: 'numeric',
                      month: 'long',
                      day: 'numeric',
@@ -633,7 +732,7 @@ const UserQuotationDetail = () => {
                  </p>
                </div>
              </div>
-           </div>
+           </div> */}
 
           {/* Attached Documents */}
           {(quotation.attachments?.boqFile || quotation.attachments?.drawingFile || quotation.attachments?.quoteFiles) && (
@@ -680,9 +779,9 @@ const UserQuotationDetail = () => {
                </p>
              </div>
              <div className="p-6">
-               {quotation.commodityType === 'provided_data' && renderProvidedDataTable()}
-               {quotation.commodityType === 'service' && renderServiceTable()}
-               {quotation.commodityType === 'transport' && renderTransportTable()}
+               {(quotation.commodity_type || quotation.commodityType) === 'provided_data' && renderProvidedDataTable()}
+               {(quotation.commodity_type || quotation.commodityType) === 'service' && renderServiceTable()}
+               {(quotation.commodity_type || quotation.commodityType) === 'transport' && renderTransportTable()}
              </div>
            </div>
         </div>

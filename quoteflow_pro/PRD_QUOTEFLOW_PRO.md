@@ -121,7 +121,7 @@ So that I can reduce procurement cycle times
 Acceptance Criteria:
 - Use a step-by-step wizard for RFQ creation
 - Select site location from unique site codes (A001, A002, A003, etc.)
-- Generate unique RFQ numbers with GP prefix and site code (GP-A001-001, GP-A002-001, etc.)
+- Generate unique RFQ numbers with GP prefix and global sequence (GP-A001-001, GP-A002-002, GP-A001-003, etc.)
 - Select items from existing ERP database with auto-fill functionality
 - Add new items to ERP database when not found in existing catalog
 - Add multiple items with specifications and quantities
@@ -421,12 +421,42 @@ Acceptance Criteria:
 
 ---
 
+## 🔢 **RFQ Numbering System**
+
+### **Format Specification**
+**Pattern**: `GP-{SITE_CODE}-{GLOBAL_SEQUENCE}`
+
+### **Components**
+- **GP**: General Purchase prefix (fixed)
+- **SITE_CODE**: Plant/Site identifier (A001, A002, A003, etc.)
+- **GLOBAL_SEQUENCE**: Sequential number that increments globally across ALL sites
+
+### **Examples**
+- `GP-A001-001` - First RFQ globally (from Plant A)
+- `GP-A002-002` - Second RFQ globally (from Plant B)
+- `GP-A001-003` - Third RFQ globally (from Plant A)
+- `GP-A003-004` - Fourth RFQ globally (from Plant C)
+
+### **Key Principles**
+1. **Global Sequence**: The last 3 digits increment globally across ALL plants, not per plant
+2. **Site Identification**: The middle part identifies which plant/site the RFQ originates from
+3. **Uniqueness**: Each RFQ number is unique across the entire system
+4. **Scalability**: As new plants are added, the sequence continues globally
+
+### **Business Logic**
+- When Plant A creates the first RFQ: `GP-A001-001`
+- When Plant B creates the next RFQ: `GP-A002-002` (not `GP-A002-001`)
+- When Plant A creates another RFQ: `GP-A001-003`
+- This ensures global tracking and prevents numbering conflicts across plants
+
+---
+
 ## 📊 **Data Requirements**
 
 ### **1. Data Models**
 - **Users**: Authentication and profile information
 - **Sites**: Site locations with unique codes (A001, A002, A003, etc.)
-- **RFQs**: Request for quotation data with GP prefix and site code numbering (GP-A001-001, GP-A002-001, etc.)
+- **RFQs**: Request for quotation data with GP prefix and global sequence numbering (GP-A001-001, GP-A002-002, GP-A001-003, etc.)
 - **ERP_Items**: Master item catalog with descriptions, specifications, and UOM
 - **RFQ_Items**: RFQ-specific item instances linked to ERP items
 - **Suppliers**: Vendor information and performance

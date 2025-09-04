@@ -15,27 +15,25 @@ from sqlalchemy import and_
 router = APIRouter()
 
 def generate_rfq_number(db: Session, site_code: str) -> str:
-    """Generate unique RFQ number with GP prefix and site code"""
-    # Get the highest existing RFQ number for this site
-    last_rfq = db.query(RFQ).join(Site).filter(
-        Site.site_code == site_code
-    ).order_by(RFQ.id.desc()).first()
+    """Generate unique RFQ number with GP prefix and site code using global sequence"""
+    # Get the highest existing RFQ number across ALL sites (global sequence)
+    last_rfq = db.query(RFQ).order_by(RFQ.id.desc()).first()
     
     if last_rfq and last_rfq.rfq_number:
-        # Extract number from existing RFQ number (e.g., GP-A001-001 -> 1)
+        # Extract global sequence number from any existing RFQ
         try:
             parts = last_rfq.rfq_number.split('-')
-            if len(parts) == 3 and parts[0] == 'GP' and parts[1] == site_code:
-                last_number = int(parts[2])
-                next_number = last_number + 1
+            if len(parts) == 3 and parts[0] == 'GP':
+                last_sequence = int(parts[2])
+                next_sequence = last_sequence + 1
             else:
-                next_number = 1
+                next_sequence = 1
         except (IndexError, ValueError):
-            next_number = 1
+            next_sequence = 1
     else:
-        next_number = 1
+        next_sequence = 1
     
-    return f"GP-{site_code}-{next_number:03d}"
+    return f"GP-{site_code}-{next_sequence:03d}"
 
 @router.post("/", response_model=RFQResponse)
 def create_rfq(
@@ -135,7 +133,12 @@ def get_rfqs(
     current_user: User = Depends(get_current_active_user)
 ):
     """Get RFQs with filtering and pagination."""
-    query = db.query(RFQ)
+    from sqlalchemy.orm import joinedload
+    
+    query = db.query(RFQ).options(
+        joinedload(RFQ.user),
+        joinedload(RFQ.site)
+    )
     
     # Apply role-based filtering
     if current_user.role == UserRole.USER:
@@ -199,6 +202,14 @@ def update_rfq(
     db.refresh(rfq)
     
     return rfq
+
+@router.delete("/clear-test-data")
+def clear_test_data(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    """Clear all test RFQ data (Admin only, for testing purposes)."""
+    return RFQService.clear_test_data(db, current_user)
 
 @router.delete("/{rfq_id}")
 def delete_rfq(

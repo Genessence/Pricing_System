@@ -35,10 +35,40 @@ const UserDashboard = () => {
     loadUserQuotations();
   };
 
-  const handleClearData = () => {
+  const handleClearData = async () => {
     if (window.confirm('Are you sure you want to clear all quotation data? This is for testing purposes only.')) {
       // Note: In production, this would require admin privileges
-      setUserQuotations([]);
+      try {
+        setLoading(true);
+        
+        // Clear localStorage data (if any exists)
+        localStorage.removeItem('quotationRequests');
+        localStorage.removeItem('rfqs');
+        localStorage.removeItem('quotations');
+        
+        // Clear data from backend (Admin only)
+        try {
+          const result = await apiService.clearTestData();
+          console.log('✅ Backend test data cleared:', result);
+        } catch (backendError) {
+          console.warn('⚠️ Backend clear failed (may not be admin):', backendError);
+          // Continue with local clearing
+        }
+        
+        // Clear local state
+        setUserQuotations([]);
+        
+        // Refresh data from backend to get current state
+        await loadUserQuotations();
+        
+        console.log('✅ Test data cleared successfully');
+      } catch (error) {
+        console.error('❌ Error clearing test data:', error);
+        // Still refresh from backend
+        await loadUserQuotations();
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -91,12 +121,17 @@ const UserDashboard = () => {
   };
 
   const calculateTotalAmount = (quotation) => {
-    // Use the totalValue from the quotation data if available
+    // Use the total_value from the backend API
+    if (quotation.total_value !== undefined) {
+      return quotation.total_value;
+    }
+    
+    // Fallback to totalValue (camelCase) for backward compatibility
     if (quotation.totalValue !== undefined) {
       return quotation.totalValue;
     }
     
-    // Fallback to calculating from quotes if totalValue is not available
+    // Fallback to calculating from quotes if total_value is not available
     if (!quotation.quotes || quotation.quotes.length === 0) return 0;
     
     return quotation.quotes.reduce((total, quote) => {
@@ -292,16 +327,16 @@ const UserDashboard = () => {
                     {userQuotations.map((quotation, index) => (
                       <tr key={index} className="hover:bg-muted/30 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                          {quotation.id || `RFQ-${String(index + 1).padStart(3, '0')}`}
+                          {quotation.rfq_number || quotation.id || `RFQ-${String(index + 1).padStart(3, '0')}`}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={cn(
                             "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            getCommodityTypeColor(quotation.commodityType)
+                            getCommodityTypeColor(quotation.commodity_type || quotation.commodityType)
                           )}>
-                            {quotation.commodityType === 'provided_data' ? 'Provided Data' :
-                             quotation.commodityType === 'service' ? 'Service' :
-                             quotation.commodityType === 'transport' ? 'Transport' : quotation.commodityType}
+                            {(quotation.commodity_type || quotation.commodityType) === 'provided_data' ? 'Provided Data' :
+                             (quotation.commodity_type || quotation.commodityType) === 'service' ? 'Service' :
+                             (quotation.commodity_type || quotation.commodityType) === 'transport' ? 'Transport' : (quotation.commodity_type || quotation.commodityType)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
@@ -318,7 +353,7 @@ const UserDashboard = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {new Date(quotation.submittedAt || Date.now()).toLocaleDateString()}
+                          {new Date(quotation.created_at || quotation.submittedAt || Date.now()).toLocaleDateString()}
                         </td>
                                                  <td className="px-6 py-4 whitespace-nowrap text-sm">
                            <button 

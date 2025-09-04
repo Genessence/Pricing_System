@@ -11,27 +11,25 @@ from fastapi import HTTPException, status
 class RFQService:
     @staticmethod
     def generate_rfq_number(db: Session, site_code: str) -> str:
-        """Generate unique RFQ number with GP prefix and site code"""
-        # Get the highest existing RFQ number for this site
-        last_rfq = db.query(RFQ).join(Site).filter(
-            Site.site_code == site_code
-        ).order_by(RFQ.id.desc()).first()
+        """Generate unique RFQ number with GP prefix and site code using global sequence"""
+        # Get the highest existing RFQ number across ALL sites (global sequence)
+        last_rfq = db.query(RFQ).order_by(RFQ.id.desc()).first()
         
         if last_rfq and last_rfq.rfq_number:
-            # Extract number from existing RFQ number (e.g., GP-A001-001 -> 1)
+            # Extract global sequence number from any existing RFQ
             try:
                 parts = last_rfq.rfq_number.split('-')
-                if len(parts) == 3 and parts[0] == 'GP' and parts[1] == site_code:
-                    last_number = int(parts[2])
-                    next_number = last_number + 1
+                if len(parts) == 3 and parts[0] == 'GP':
+                    last_sequence = int(parts[2])
+                    next_sequence = last_sequence + 1
                 else:
-                    next_number = 1
+                    next_sequence = 1
             except (IndexError, ValueError):
-                next_number = 1
+                next_sequence = 1
         else:
-            next_number = 1
+            next_sequence = 1
         
-        return f"GP-{site_code}-{next_number:03d}"
+        return f"GP-{site_code}-{next_sequence:03d}"
     
     @staticmethod
     def create_rfq(db: Session, rfq_data: RFQCreate, user_id: int) -> RFQ:
@@ -183,6 +181,29 @@ class RFQService:
         db.delete(rfq)
         db.commit()
         return True
+    
+    @staticmethod
+    def clear_test_data(db: Session, current_user: User) -> dict:
+        """Clear all test RFQ data (for testing purposes only)"""
+        # Only allow admin users to clear test data
+        if current_user.role != "admin":
+            raise PermissionDenied("Only admin users can clear test data")
+        
+        try:
+            # Count RFQs before deletion
+            rfq_count = db.query(RFQ).count()
+            
+            # Delete all RFQs (cascade will handle related data)
+            db.query(RFQ).delete()
+            db.commit()
+            
+            return {
+                "message": f"Successfully cleared {rfq_count} test RFQs",
+                "deleted_count": rfq_count
+            }
+        except Exception as e:
+            db.rollback()
+            raise ValidationError(f"Error clearing test data: {str(e)}")
     
     @staticmethod
     def approve_rfq(

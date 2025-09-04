@@ -81,7 +81,7 @@ quoteflow-pro-backend/
 #### **Core Tables**
 - **users** - User authentication and profiles
 - **sites** - Site locations with unique codes (A001, A002, A003, etc.)
-- **rfqs** - Request for quotations with GP prefix and site code numbering (GP-A001-001, GP-A002-001, etc.)
+- **rfqs** - Request for quotations with GP prefix and global sequence numbering (GP-A001-001, GP-A002-002, GP-A001-003, etc.)
 - **erp_items** - Master item catalog (ERP integration)
 - **rfq_items** - Individual items in RFQs (linked to erp_items)
 - **suppliers** - Vendor information
@@ -215,7 +215,7 @@ class RFQ(Base):
     __tablename__ = "rfqs"
     
     id = Column(Integer, primary_key=True, index=True)
-    rfq_number = Column(String(20), unique=True, index=True, nullable=False)  # GP-A001-001, GP-A002-001, etc.
+    rfq_number = Column(String(20), unique=True, index=True, nullable=False)  # GP-A001-001, GP-A002-002, GP-A001-003, etc. (global sequence)
     title = Column(String(200), nullable=False)
     description = Column(Text)
     commodity_type = Column(Enum(CommodityType), nullable=False)
@@ -1080,27 +1080,25 @@ from app.core.exceptions import PermissionDenied, ResourceNotFound
 class RFQService:
     @staticmethod
     def generate_rfq_number(db: Session, site_code: str) -> str:
-        """Generate unique RFQ number with GP prefix and site code"""
-        # Get the highest existing RFQ number for this site
-        last_rfq = db.query(RFQ).join(Site).filter(
-            Site.site_code == site_code
-        ).order_by(RFQ.id.desc()).first()
+        """Generate unique RFQ number with GP prefix and site code using global sequence"""
+        # Get the highest existing RFQ number across ALL sites (global sequence)
+        last_rfq = db.query(RFQ).order_by(RFQ.id.desc()).first()
         
         if last_rfq and last_rfq.rfq_number:
-            # Extract number from existing RFQ number (e.g., GP-A001-001 -> 1)
+            # Extract global sequence number from any existing RFQ
             try:
                 parts = last_rfq.rfq_number.split('-')
-                if len(parts) == 3 and parts[0] == 'GP' and parts[1] == site_code:
-                    last_number = int(parts[2])
-                    next_number = last_number + 1
+                if len(parts) == 3 and parts[0] == 'GP':
+                    last_sequence = int(parts[2])
+                    next_sequence = last_sequence + 1
                 else:
-                    next_number = 1
+                    next_sequence = 1
             except (IndexError, ValueError):
-                next_number = 1
+                next_sequence = 1
         else:
-            next_number = 1
+            next_sequence = 1
         
-        return f"GP-{site_code}-{next_number:03d}"
+        return f"GP-{site_code}-{next_sequence:03d}"
     
     @staticmethod
     def create_rfq(db: Session, rfq_data: RFQCreate, user_id: int) -> RFQ:
@@ -1114,7 +1112,7 @@ class RFQService:
         if not site:
             raise ValueError("Invalid site ID")
         
-        # Generate unique RFQ number with site code
+        # Generate unique RFQ number with global sequence
         rfq_number = RFQService.generate_rfq_number(db, site.site_code)
         
         # Create RFQ

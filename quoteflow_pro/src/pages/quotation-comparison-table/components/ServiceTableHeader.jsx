@@ -124,7 +124,7 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
                     }}
                     className="w-full h-7 text-xs bg-muted/50 hover:bg-muted border-dashed"
                   >
-                    Upload PDF
+                    Upload PDF / Excel / Image
                   </Button>
                 )}
               </div>

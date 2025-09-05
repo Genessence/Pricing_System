@@ -811,7 +811,7 @@ const QuotationComparisonTable = () => {
                       
                       {quotes?.map((quote, index) => (
                         <td key={index} className="p-3 border-r border-border">
-                          <div className="text-lg font-bold text-primary">
+                          <div className="flex justify-center text-lg font-bold text-primary">
                                                           ₹{calculateTotalAmount(index)?.toFixed(2)}
                           </div>
                         </td>
@@ -835,17 +835,7 @@ const QuotationComparisonTable = () => {
               </div>
               
               {/* Add Item Button */}
-              <div className="mt-4 flex justify-center">
-                <Button
-                  onClick={handleAddRow}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center space-x-2"
-                >
-                  <Icon name="Plus" size={16} />
-                  <span>Add Item</span>
-                </Button>
-              </div>
+              
             </div>
 
             {/* Provided Data Footer Section - Show when quotations are NOT confirmed but details should be shown */}
@@ -1161,7 +1151,7 @@ const QuotationComparisonTable = () => {
                       <td className="p-4 bg-card sticky left-188 z-10 border-r border-border"></td>
                       
                       {quotes?.map((quote, index) => (
-                        <td key={index} className="p-4 border-r border-border">
+                        <td key={index} className="p-4 flex justify-center border-r border-border">
                           <div className="text-center">
                             <div className="text-lg font-bold text-primary">
                               ₹{serviceItems?.reduce((total, item) => {
@@ -1287,7 +1277,7 @@ const QuotationComparisonTable = () => {
                       
                       {quotes?.map((quote, index) => (
                         <td key={index} className="p-4 border-r border-border">
-                          <div className="text-center">
+                          <div className="flex justify-center text-center">
                             <div className="text-lg font-bold text-primary">
                               ₹{transportItems?.reduce((total, item) => {
                                 const rate = quote?.rates?.[item?.id] || 0;

@@ -145,7 +145,7 @@ const ServiceItemRow = ({
         console.log('Quote data:', { quoteIndex, quote, itemId: item?.id });
         return (
         <td key={quoteIndex} className="p-3 border-r border-border">
-          <div className="space-y-2">
+          <div className="space-y-2 flex justify-evenly">
             {/* Rate Input */}
             <input
               type="number"

@@ -103,7 +103,7 @@ const TableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRem
         
         <th className="p-3 text-left bg-card sticky left-192 z-30 border-r border-border min-w-32">
           <div className="flex items-center space-x-2">
-            <Icon name="DollarSign" size={16} />
+            <Icon name="Rupee" size={16} />
             <span className="text-sm font-semibold text-foreground">Last Price</span>
           </div>
         </th>
@@ -199,7 +199,7 @@ const TableHeader = ({ quotes, suppliers, attachedFiles, onFileUpload, onFileRem
                     }}
                     className="w-full h-7 text-xs bg-muted/50 hover:bg-muted border-dashed"
                   >
-                    Upload PDF
+                    Upload PDF / Excel / Image
                   </Button>
                 )}
               </div>

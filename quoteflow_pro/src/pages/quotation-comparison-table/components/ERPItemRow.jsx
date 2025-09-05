@@ -84,8 +84,8 @@ const ERPItemRow = ({
   return (
     <tr className="border-b border-border hover:bg-muted/50 group">
       {/* Item Column - Search ERP Items */}
-      <td className="p-3 bg-card sticky left-0 z-10 border-r border-border min-w-48">
-        <div className="relative" ref={searchRef}>
+      <td className="sticky p-3 bg-card left-0 border-r border-border min-w-48">
+        <div className="" ref={searchRef}>
           {isEditing ? (
             <>
               <Input
@@ -99,7 +99,7 @@ const ERPItemRow = ({
                 className="w-full"
               />
               {showSuggestions && filteredERPItems?.length > 0 && (
-                <div className="absolute top-full left-0 right-0 bg-popover border border-border rounded-lg shadow-elevated z-20 max-h-48 overflow-y-auto">
+                <div className="top-full left-0 right-0 bg-popover border border-border rounded-lg shadow-elevated z-20 max-h-48 overflow-y-auto">
                   {filteredERPItems?.slice(0, 10)?.map((erpItem) => (
                     <div
                       key={erpItem?.id}
@@ -206,7 +206,7 @@ const ERPItemRow = ({
         )}
       </td>
       <td className="p-3 bg-card sticky left-192 z-10 border-r border-border min-w-32">
-        <div className="text-sm font-medium text-foreground">
+        <div className="text-sm font-medium text-center text-foreground">
           ₹{typeof item?.lastBuyingPrice === 'number' ? item?.lastBuyingPrice?.toFixed(2) : (item?.lastBuyingPrice || '0.00')}
         </div>
       </td>
@@ -218,7 +218,7 @@ const ERPItemRow = ({
       {/* Dynamic Quote Columns */}
       {quotes?.map((quote, quoteIndex) => (
         <td key={quoteIndex} className="p-3 border-r border-border">
-          <div className="space-y-2">
+          <div className="space-y-2 flex justify-evenly">
             <Input
               type="number"
               value={quote?.rate || ''}

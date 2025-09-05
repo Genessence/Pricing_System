@@ -345,15 +345,15 @@ const AdminQuotationDetail = () => {
           />
         </div>
 
-        {/* Summary Metrics */}
-        <div className="px-6 mb-6">
+        
+        {/* <div className="px-6 mb-6">
           <SummaryMetrics 
             lowestQuote={lowestQuote}
             highestQuote={highestQuote}
             averageQuote={averageQuote}
             suppliersCount={mockQuotationData?.suppliers?.length}
           />
-        </div>
+        </div> */}
 
         {/* Action Buttons */}
         <div className="px-6">

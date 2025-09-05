@@ -1,57 +1,143 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import TopNavigationBar from '../../components/ui/TopNavigationBar';
 import BreadcrumbTrail from '../../components/ui/BreadcrumbTrail';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
-import apiService from '../../services/api';
 
 const AdminApprovalScreen = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [loading, setLoading] = useState(true);
 
-  // Use real user data from backend
-  const currentUser = user;
+  // Mock user data
+  const currentUser = {
+    id: 1,
+    name: "Admin User",
+    email: "admin@company.com",
+    role: "Administrator",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+  };
 
-  // Real notifications from backend (will be implemented when notification system is added)
-  const [notifications, setNotifications] = useState([]);
+  // Mock notifications
+  const notifications = [
+    {
+      id: 1,
+      type: 'info',
+      title: 'New Quotation Request',
+      message: 'RFQ-2024-008 requires your approval',
+      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+      read: false
+    },
+    {
+      id: 2,
+      type: 'warning',
+      title: 'High Value Transaction',
+      message: 'Quotation exceeds $200K threshold',
+      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
+      read: false
+    }
+  ];
 
   // Get quotation requests from localStorage
   const [quotationRequests, setQuotationRequests] = useState([]);
 
   useEffect(() => {
-    const loadQuotationRequests = async () => {
-      try {
-        setLoading(true);
-        const rfqs = await apiService.getRFQs();
-        setQuotationRequests(rfqs);
-      } catch (error) {
-        console.error('Error loading RFQs:', error);
-        setQuotationRequests([]);
-      } finally {
-        setLoading(false);
+    const loadQuotationRequests = () => {
+      const storedQuotations = localStorage.getItem('quotationRequests');
+      if (storedQuotations) {
+        const allQuotations = JSON.parse(storedQuotations);
+        setQuotationRequests(allQuotations);
       }
     };
 
     loadQuotationRequests();
     
-    // Refresh data every 30 seconds to catch new submissions
-    const interval = setInterval(loadQuotationRequests, 30000);
+    // Refresh data every 5 seconds to catch new submissions
+    const interval = setInterval(loadQuotationRequests, 5000);
     
     return () => clearInterval(interval);
   }, [refreshKey]);
 
-  // Use only real data from backend - no mock data
-  const allQuotationRequests = quotationRequests;
-  console.log('All quotation requests from backend:', allQuotationRequests);
+  // Mock quotation requests data (fallback if no real data)
+  const mockQuotationRequests = [
+    {
+      id: 'RFQ-2024-007',
+      title: 'Industrial Equipment Procurement - Manufacturing Line Upgrade',
+      requestedBy: 'Sarah Johnson',
+      plant: 'Plant A - Manufacturing',
+      submittedDate: '2024-08-22 14:30:00',
+      status: 'Pending Approval',
+      totalValue: 245000,
+      supplierCount: 3,
+      commodityType: 'Provided Data',
+      description: 'Comprehensive procurement request for upgrading manufacturing line including machinery, safety equipment, and electronic components'
+    },
+    {
+      id: 'RFQ-2024-008',
+      title: 'Safety Equipment Supply - Plant B',
+      requestedBy: 'Mike Wilson',
+      plant: 'Plant B - Assembly',
+      submittedDate: '2024-08-23 09:15:00',
+      status: 'Pending Approval',
+      totalValue: 15000,
+      supplierCount: 2,
+      commodityType: 'Service',
+      description: 'Safety equipment procurement for Plant B assembly line workers'
+    },
+    {
+      id: 'RFQ-2024-009',
+      title: 'Electronic Components - Quality Control',
+      requestedBy: 'Emily Davis',
+      plant: 'Plant C - Quality Control',
+      submittedDate: '2024-08-21 16:45:00',
+      status: 'Approved',
+      totalValue: 45000,
+      supplierCount: 4,
+      commodityType: 'Transport',
+      description: 'Electronic components for quality control testing equipment'
+    },
+    {
+      id: 'RFQ-2024-010',
+      title: 'Office Supplies - Administrative Department',
+      requestedBy: 'David Brown',
+      plant: 'Head Office',
+      submittedDate: '2024-08-24 11:20:00',
+      status: 'Rejected',
+      totalValue: 5000,
+      supplierCount: 1,
+      commodityType: 'Provided Data',
+      description: 'Office supplies and stationery for administrative department'
+    },
+    {
+      id: 'RFQ-2024-011',
+      title: 'Raw Materials - Steel Supply',
+      requestedBy: 'Lisa Chen',
+      plant: 'Plant A - Manufacturing',
+      submittedDate: '2024-08-20 13:10:00',
+      status: 'Pending Approval',
+      totalValue: 180000,
+      supplierCount: 3,
+      commodityType: 'Service',
+      description: 'Steel supply for manufacturing operations'
+    }
+  ];
 
-  // No localStorage event listener needed - data comes from backend
+  // Use the quotationRequests state that's loaded from localStorage
+  const allQuotationRequests = quotationRequests.length > 0 ? quotationRequests : mockQuotationRequests;
+  console.log('All quotation requests:', allQuotationRequests);
+
+  // Force re-render when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleLogout = () => {
     navigate('/login-screen');
@@ -76,7 +162,7 @@ const AdminApprovalScreen = () => {
 
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all quotation data? This is for testing purposes only.')) {
-      // Note: In production, this would require admin privileges and backend API call
+      localStorage.removeItem('quotationRequests');
       setQuotationRequests([]);
     }
   };
@@ -134,8 +220,6 @@ const AdminApprovalScreen = () => {
   const approvedCount = allQuotationRequests.filter(q => q.status === 'Approved' || q.status === 'approved').length;
   const rejectedCount = allQuotationRequests.filter(q => q.status === 'Rejected' || q.status === 'rejected').length;
 
-  // Debug functions removed - all data comes from backend
-
   return (
     <div className="min-h-screen bg-background">
       <TopNavigationBar 
@@ -164,22 +248,6 @@ const AdminApprovalScreen = () => {
                  className="mr-2"
                >
                  Refresh
-               </Button>
-               <Button
-                 variant="outline"
-                 iconName="Bug"
-                 onClick={debugLocalStorage}
-                 className="mr-2 text-blue-600 border-blue-300 hover:bg-blue-50"
-               >
-                 Debug
-               </Button>
-               <Button
-                 variant="outline"
-                 iconName="Plus"
-                 onClick={createTestRFQ}
-                 className="mr-2 text-green-600 border-green-300 hover:bg-green-50"
-               >
-                 Test RFQ
                </Button>
                <Button
                  variant="outline"

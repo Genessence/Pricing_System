@@ -65,7 +65,8 @@ So that I can maintain procurement standards and reduce approval delays
 
 Acceptance Criteria:
 - View all pending RFQs in a centralized dashboard
-- Access detailed RFQ information including supplier quotes
+- Access detailed RFQ information including supplier quotes and fill a final decision column
+- Tthe table format should be same as the format submitted by the user
 - Compare multiple supplier quotations side-by-side
 - Approve or reject RFQs with comments
 - Track approval history and audit trail
@@ -81,7 +82,7 @@ So that I can make informed decisions about supplier relationships
 Acceptance Criteria:
 - View supplier performance metrics and ratings
 - Track cost savings trends over time
-- Generate supplier performance reports
+- Generate supplier performance 
 - Identify cost optimization opportunities
 - Monitor supplier compliance and delivery performance
 ```

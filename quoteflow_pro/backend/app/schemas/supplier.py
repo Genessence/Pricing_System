@@ -4,6 +4,8 @@ from datetime import datetime
 from app.models.supplier import SupplierStatus, SupplierCategory
 
 class SupplierBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200, description="Name")
+    vendor_code: str = Field(..., min_length=1, max_length=200, description="Vendor code")
     company_name: str = Field(..., min_length=1, max_length=200, description="Company name")
     contact_person: str = Field(..., min_length=1, max_length=100, description="Contact person name")
     email: str = Field(..., min_length=1, max_length=200, description="Email address")
@@ -38,6 +40,8 @@ class SupplierCreate(SupplierBase):
 
 class SupplierUpdate(BaseModel):
     """Schema for updating a supplier"""
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    vendor_code: Optional[str] = Field(None, min_length=1, max_length=200)
     company_name: Optional[str] = Field(None, min_length=1, max_length=200)
     contact_person: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -87,9 +91,15 @@ class SupplierResponse(SupplierBase):
 class SupplierList(BaseModel):
     """Schema for supplier list (minimal info)"""
     id: int
+    name: str
+    vendor_code: str
     company_name: str
     contact_person: str
     email: str
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: str
     category: SupplierCategory
     status: SupplierStatus
     rating: int

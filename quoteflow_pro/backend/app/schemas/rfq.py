@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from app.models.rfq import CommodityType, RFQStatus
 from app.schemas.user import UserResponse
@@ -40,9 +40,26 @@ class RFQBase(BaseModel):
             raise ValueError(f'Currency must be one of: {", ".join(valid_currencies)}')
         return v
 
+class QuoteFooter(BaseModel):
+    """Schema for quotation footer details"""
+    currency: Optional[str] = None
+    delivery_lead_time: Optional[str] = None
+    packing_charges: Optional[str] = None
+    remarks_of_quotation: Optional[str] = None
+    transportation_freight: Optional[str] = None
+    warranty: Optional[str] = None
+
+class QuoteData(BaseModel):
+    """Schema for individual quote data from frontend"""
+    id: int = Field(..., description="Frontend-generated quote ID")
+    supplierId: int = Field(..., description="Supplier ID")
+    rates: Dict[int, float] = Field(..., description="Item rates mapping")
+    footer: QuoteFooter = Field(..., description="Quotation footer details")
+
 class RFQCreate(RFQBase):
     site_id: int = Field(..., description="Site ID for GP numbering")
-    items: List[RFQItemCreate] = Field(..., min_items=1)
+    items: List[RFQItemCreate] = Field(..., min_length=1)
+    quotes: Optional[List[QuoteData]] = Field(default=[], description="Quotation data from frontend")
 
 class RFQUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)

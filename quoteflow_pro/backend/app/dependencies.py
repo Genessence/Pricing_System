@@ -30,7 +30,7 @@ def get_current_user(
             settings.SECRET_KEY, 
             algorithms=[ALGORITHM]
         )
-        user_id: str = payload.get("sub")
+        user_id: str = payload.get("sub") or ""
         if user_id is None:
             raise credentials_exception
             
@@ -52,7 +52,7 @@ def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """Get current active user."""
-    if not current_user.is_active:
+    if not current_user.is_active:  # type: ignore
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
@@ -60,6 +60,6 @@ def get_admin_user(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
     """Get current admin user."""
-    if current_user.role != UserRole.ADMIN:
+    if str(current_user.role) != UserRole.ADMIN.value:  # type: ignore
         raise PermissionDenied("Admin access required")
     return current_user

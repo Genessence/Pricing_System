@@ -108,7 +108,7 @@ async def create_supplier(
     Raises:
         HTTPException: If supplier email already exists or validation fails
     """
-    return SupplierService.create_supplier(db, supplier_data, current_user.id)
+    return SupplierService.create_supplier(db, supplier_data, int(current_user.id))  # type: ignore
 
 @router.put("/{supplier_id}", response_model=SupplierResponse)
 async def update_supplier(

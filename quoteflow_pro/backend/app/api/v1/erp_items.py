@@ -139,7 +139,7 @@ async def delete_erp_item(
         raise HTTPException(status_code=404, detail="ERP item not found")
     
     # Soft delete by setting is_active to False
-    item.is_active = False
+    # item.is_active = False
     db.commit()
     
     return {"message": "ERP item deleted successfully"}

@@ -101,7 +101,7 @@ async def create_site(
     Raises:
         HTTPException: If site code already exists or validation fails
     """
-    return SiteService.create_site(db, site_data, current_user.id)
+    return SiteService.create_site(db, site_data, int(current_user.id))  # type: ignore
 
 @router.put("/{site_id}", response_model=SiteResponse)
 async def update_site(

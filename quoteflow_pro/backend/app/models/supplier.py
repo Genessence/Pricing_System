@@ -20,6 +20,8 @@ class Supplier(Base):
     __tablename__ = "suppliers"
     
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, index=True)
+    vendor_code = Column(String, nullable=False, index=True)
     company_name = Column(String(200), nullable=False, index=True)
     contact_person = Column(String(100), nullable=False)
     email = Column(String(200), nullable=False, index=True)

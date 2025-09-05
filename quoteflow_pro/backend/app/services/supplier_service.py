@@ -73,6 +73,8 @@ class SupplierService:
         
         # Create new supplier
         db_supplier = Supplier(
+            name=supplier_data.name,
+            vendor_code=supplier_data.vendor_code,
             company_name=supplier_data.company_name,
             contact_person=supplier_data.contact_person,
             email=supplier_data.email,
@@ -153,7 +155,7 @@ class SupplierService:
             )
         
         # Soft delete by setting is_active to False
-        supplier.is_active = False
+        supplier.is_active = False  # type: ignore
         db.commit()
         return True
     
@@ -168,19 +170,19 @@ class SupplierService:
                 detail="Supplier not found"
             )
         
-        if supplier.status != SupplierStatus.PENDING_APPROVAL:
+        if str(supplier.status) != SupplierStatus.PENDING_APPROVAL.value:  # type: ignore
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Only pending suppliers can be approved"
             )
         
-        supplier.status = SupplierStatus.ACTIVE
+        supplier.status = SupplierStatus.ACTIVE.value  # type: ignore
         db.commit()
         db.refresh(supplier)
         return supplier
     
     @staticmethod
-    def reject_supplier(db: Session, supplier_id: int, current_user: User, reason: str = None) -> Supplier:
+    def reject_supplier(db: Session, supplier_id: int, current_user: User, reason: Optional[str] = None) -> Supplier:
         """Reject supplier (Admin only)"""
         supplier = SupplierService.get_supplier(db, supplier_id)
         
@@ -190,15 +192,15 @@ class SupplierService:
                 detail="Supplier not found"
             )
         
-        if supplier.status != SupplierStatus.PENDING_APPROVAL:
+        if str(supplier.status) != SupplierStatus.PENDING_APPROVAL.value:  # type: ignore
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Only pending suppliers can be rejected"
             )
         
-        supplier.status = SupplierStatus.INACTIVE
+        supplier.status = SupplierStatus.INACTIVE.value  # type: ignore
         if reason:
-            supplier.notes = f"Rejected: {reason}"
+            supplier.notes = f"Rejected: {reason}"  # type: ignore
         db.commit()
         db.refresh(supplier)
         return supplier

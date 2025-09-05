@@ -170,12 +170,12 @@ class ApiService {
 
   async createRFQ(rfqData) {
     // 🔍 API SERVICE DEBUGGER
-    console.log('🔍 ===== API SERVICE DEBUGGER =====');
-    console.log('📤 RFQ Data being sent to API:', rfqData);
-    console.log('📤 JSON Stringified:', JSON.stringify(rfqData, null, 2));
-    console.log('📤 Content-Type will be: application/json');
-    console.log('📤 Endpoint: POST /api/v1/rfqs/');
-    console.log('🔍 ===== END API SERVICE DEBUGGER =====');
+    // console.log('🔍 ===== API SERVICE DEBUGGER =====');
+    // console.log('📤 RFQ Data being sent to API:', rfqData);
+    // console.log('📤 JSON Stringified:', JSON.stringify(rfqData, null, 2));
+    // console.log('📤 Content-Type will be: application/json');
+    // console.log('📤 Endpoint: POST /api/v1/rfqs/');
+    // console.log('🔍 ===== END API SERVICE DEBUGGER =====');
     
     return await this.request('/rfqs/', {
       method: 'POST',
@@ -206,6 +206,39 @@ class ApiService {
   // Clear test data (Admin only)
   async clearTestData() {
     return await this.request('/rfqs/clear-test-data', {
+      method: 'DELETE',
+    });
+  }
+
+  // Supplier endpoints
+  async getSuppliers(skip = 0, limit = 100, category = null, status = null, isActive = true) {
+    const params = new URLSearchParams({ skip, limit, isActive });
+    if (category) params.append('category', category);
+    if (status) params.append('status', status);
+    
+    return await this.request(`/suppliers/?${params}`);
+  }
+
+  async getSupplier(supplierId) {
+    return await this.request(`/suppliers/${supplierId}`);
+  }
+
+  async createSupplier(supplierData) {
+    return await this.request('/suppliers/', {
+      method: 'POST',
+      body: JSON.stringify(supplierData),
+    });
+  }
+
+  async updateSupplier(supplierId, supplierData) {
+    return await this.request(`/suppliers/${supplierId}`, {
+      method: 'PUT',
+      body: JSON.stringify(supplierData),
+    });
+  }
+
+  async deleteSupplier(supplierId) {
+    return await this.request(`/suppliers/${supplierId}`, {
       method: 'DELETE',
     });
   }

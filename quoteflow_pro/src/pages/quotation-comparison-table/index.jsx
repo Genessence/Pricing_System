@@ -71,10 +71,9 @@ const QuotationComparisonTable = () => {
   useEffect(() => {
     const loadSuppliers = async () => {
       try {
-        // TODO: Implement supplier API endpoint
-        // const supplierData = await apiService.getSuppliers();
-        // setSuppliers(supplierData);
-        setSuppliers([]); // Empty for now until supplier management is implemented
+        const supplierData = await apiService.getSuppliers();
+        console.log(supplierData)
+        setSuppliers(supplierData);
       } catch (error) {
         console.error('Error loading suppliers:', error);
         setSuppliers([]);
@@ -89,8 +88,8 @@ const QuotationComparisonTable = () => {
   // Transform backend suppliers to match frontend format
   const mockSuppliers = suppliers.map(supplier => ({
     id: supplier.id,
-    name: supplier.name,
-    location: supplier.location || 'N/A',
+    name: supplier.name || 'N/A',
+    // location: supplier.location || 'N/A',
     email: supplier.email || 'N/A',
     phone: supplier.phone || 'N/A',
     rating: supplier.rating || 0,
@@ -329,11 +328,24 @@ const QuotationComparisonTable = () => {
       // Calculate total value based on form data
       let totalValue = 0;
       if (selectedCommodity === 'provided_data') {
-        totalValue = items?.reduce((total, item) => {
-          const quantity = parseFloat(item?.requiredQuantity) || 1;
-          const price = parseFloat(item?.lastBuyingPrice) || 0;
-          return total + (quantity * price);
+        // ✅ Sum all rates from quotes
+        totalValue = quotes?.reduce((sum, q) => {
+          if (q?.rates && typeof q.rates === 'object') {
+            return (
+              sum +
+              Object.values(q.rates).reduce(
+                (innerSum, rate) => innerSum + (parseFloat(rate) || 0),
+                0
+              )
+            );
+          }
+          return sum;
         }, 0);
+        // totalValue = items?.reduce((total, item) => {
+        //   const quantity = parseFloat(item?.requiredQuantity) || 1;
+        //   const price = parseFloat(item?.lastBuyingPrice) || 0;
+        //   return total + (quantity * price);
+        // }, 0);
       } else if (selectedCommodity === 'service') {
         totalValue = serviceItems?.reduce((total, item) => {
           const quantity = parseFloat(item?.requiredQuantity) || 1;
@@ -376,45 +388,15 @@ const QuotationComparisonTable = () => {
         total_value: totalValue,
         currency: 'INR',
         site_id: 1, // Default to site A001 (ID: 1) - in production this should be user-selectable
-        items: rfqItems
+        items: rfqItems,
+        quotes: quotes
       };
 
-      // 🔍 COMPREHENSIVE DEBUGGER - Print everything before API call
-      console.log('🔍 ===== RFQ SUBMISSION DEBUGGER =====');
-      console.log('📊 Selected Commodity:', selectedCommodity);
-      console.log('💰 Total Value Calculated:', totalValue);
-      console.log('💰 Total Value Source:', totalValue === 1 ? 'Set to 1 (was 0 - price to be determined)' : 'Calculated from items');
-      console.log('📦 Raw Items Data:', selectedCommodity === 'provided_data' ? items : selectedCommodity === 'service' ? serviceItems : transportItems);
-      console.log('🔄 Transformed RFQ Items:', rfqItems);
-      console.log('📋 Complete RFQ Data being sent:', rfqData);
-      console.log('🔍 Data Types Check:');
-      console.log('  - title type:', typeof rfqData.title);
-      console.log('  - description type:', typeof rfqData.description);
-      console.log('  - commodity_type type:', typeof rfqData.commodity_type);
-      console.log('  - total_value type:', typeof rfqData.total_value);
-      console.log('  - currency type:', typeof rfqData.currency);
-      console.log('  - site_id type:', typeof rfqData.site_id);
-      console.log('  - items type:', typeof rfqData.items);
-      console.log('  - items length:', rfqData.items.length);
-      console.log('🔍 Item Details:');
-      rfqData.items.forEach((item, index) => {
-        console.log(`  Item ${index + 1}:`, {
-          item_code: { value: item.item_code, type: typeof item.item_code },
-          description: { value: item.description, type: typeof item.description },
-          specifications: { value: item.specifications, type: typeof item.specifications },
-          unit_of_measure: { value: item.unit_of_measure, type: typeof item.unit_of_measure },
-          required_quantity: { value: item.required_quantity, type: typeof item.required_quantity },
-          last_buying_price: { value: item.last_buying_price, type: typeof item.last_buying_price },
-          last_vendor: { value: item.last_vendor, type: typeof item.last_vendor },
-          erp_item_id: { value: item.erp_item_id, type: typeof item.erp_item_id }
-        });
-      });
-      console.log('🔍 ===== END DEBUGGER =====');
 
+        console.log(quotes)
+      // console.log('RFQ data:', rfqData);
       // Submit to backend
-      console.log('🚀 Sending RFQ data to backend...');
       const createdRFQ = await apiService.createRFQ(rfqData);
-      console.log('RFQ created successfully:', createdRFQ);
       
       // Show success message
       setShowSuccessMessage(true);
@@ -431,20 +413,9 @@ const QuotationComparisonTable = () => {
       }, 5000);
       
     } catch (error) {
-      // 🔍 COMPREHENSIVE ERROR DEBUGGER
-      console.log('❌ ===== RFQ SUBMISSION ERROR DEBUGGER =====');
-      console.log('❌ Error object:', error);
-      console.log('❌ Error message:', error.message);
-      console.log('❌ Error response:', error.response);
-      console.log('❌ Error status:', error.response?.status);
-      console.log('❌ Error statusText:', error.response?.statusText);
-      console.log('❌ Error data:', error.response?.data);
-      console.log('❌ Error headers:', error.response?.headers);
-      console.log('❌ Error config:', error.config);
-      console.log('❌ Full error details:', JSON.stringify(error, null, 2));
-      console.log('❌ ===== END ERROR DEBUGGER =====');
-      
+
       setIsSubmitting(false);
+      console.error('Error creating RFQ:', error);
       // Show detailed error message to user
       const errorMessage = error.response?.data?.detail || error.message || 'Unknown error occurred';
       alert(`Failed to create RFQ: ${errorMessage}\n\nCheck console for detailed error information.`);
@@ -608,12 +579,12 @@ const QuotationComparisonTable = () => {
 
   // Debug useEffect to monitor serviceItems changes
   useEffect(() => {
-    console.log('serviceItems state updated:', serviceItems);
+    // console.log('serviceItems state updated:', serviceItems);
   }, [serviceItems]);
 
   // Debug useEffect to monitor quotes changes
   useEffect(() => {
-    console.log('quotes state updated:', quotes);
+    // console.log('quotes state updated:', quotes);
   }, [quotes]);
 
   const handleAddServiceRow = () => {

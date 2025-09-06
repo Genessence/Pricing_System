@@ -166,29 +166,34 @@ const QuotationComparisonTable = () => {
   const footerRows = [
     {
       label: "Transportation/Freight",
-      type: "text"
+      type: "number",
+      footerUpdateKey: "transportation_freight"
     },
     {
       label: "Packing Charges",
-      type: "text"
+      type: "number",
+      footerUpdateKey: "packing_charges"
     },
     {
       label: "Delivery Lead Time",
-      type: "text"
+      type: "number",
+      footerUpdateKey: "delivery_lead_time"
     },
     {
       label: "Warranty",
-      type: "text"
+      type: "number",
+      footerUpdateKey: "warranty"
     },
     {
       label: "Currency",
       type: "select",
-      options: getCurrencyOptions()
+      options: getCurrencyOptions(),
+      footerUpdateKey: "currency"
     },
-    {
-      label: "Remarks of Quotation",
-      type: "textarea"
-    }
+    // {
+    //   label: "Remarks of Quotation",
+    //   type: "textarea"
+    // }
   ];
 
   // Filtered items based on search and supplier filter
@@ -325,6 +330,16 @@ const QuotationComparisonTable = () => {
     setIsSubmitting(true);
     
     try {
+      // Validate that all quotes have valid supplier IDs
+      const quotesWithoutSupplier = quotes.filter(quote => 
+        !quote.supplierId || quote.supplierId === '' || isNaN(parseInt(quote.supplierId))
+      );
+      
+      if (quotesWithoutSupplier.length > 0) {
+        alert('Please select a supplier for all quotations before submitting.');
+        setIsSubmitting(false);
+        return;
+      }
       // Calculate total value based on form data
       let totalValue = 0;
       if (selectedCommodity === 'provided_data') {
@@ -380,6 +395,11 @@ const QuotationComparisonTable = () => {
         erp_item_id: item.erpItemId ? parseInt(item.erpItemId) : null
       }));
       
+      // Filter out quotes with empty supplierId before sending to backend
+      const validQuotes = quotes.filter(quote => 
+        quote.supplierId && quote.supplierId !== '' && !isNaN(parseInt(quote.supplierId))
+      );
+
       // Create RFQ data for backend
       const rfqData = {
         title: `${selectedCommodity === 'provided_data' ? 'Material' : selectedCommodity === 'service' ? 'Service' : 'Transport'} Procurement Request`,
@@ -389,11 +409,11 @@ const QuotationComparisonTable = () => {
         currency: 'INR',
         site_id: 1, // Default to site A001 (ID: 1) - in production this should be user-selectable
         items: rfqItems,
-        quotes: quotes
+        quotes: validQuotes
       };
 
 
-        console.log(quotes)
+        console.log(rfqData)
       // console.log('RFQ data:', rfqData);
       // Submit to backend
       const createdRFQ = await apiService.createRFQ(rfqData);
@@ -413,12 +433,30 @@ const QuotationComparisonTable = () => {
       }, 5000);
       
     } catch (error) {
-
       setIsSubmitting(false);
       console.error('Error creating RFQ:', error);
-      // Show detailed error message to user
-      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error occurred';
-      alert(`Failed to create RFQ: ${errorMessage}\n\nCheck console for detailed error information.`);
+      
+      // Parse and show user-friendly error messages
+      let errorMessage = 'Unknown error occurred';
+      
+      if (error.response?.data?.detail) {
+        if (Array.isArray(error.response.data.detail)) {
+          // Handle Pydantic validation errors
+          const validationErrors = error.response.data.detail.map(err => {
+            if (err.type === 'int_parsing' && err.loc.includes('supplierId')) {
+              return 'Please ensure all quotations have valid supplier selections.';
+            }
+            return `${err.loc.join('.')}: ${err.msg}`;
+          });
+          errorMessage = validationErrors.join('\n');
+        } else {
+          errorMessage = error.response.data.detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(`Failed to create RFQ:\n\n${errorMessage}\n\nPlease check your input and try again.`);
     }
   };
 
@@ -799,6 +837,7 @@ const QuotationComparisonTable = () => {
                         quotes={quotes}
                         onFooterUpdate={handleFooterUpdate}
                         options={footerRow?.options}
+                        footerUpdateKey={footerRow?.footerUpdateKey}
                       />
                     ))}
                   </tbody>
@@ -847,6 +886,7 @@ const QuotationComparisonTable = () => {
                           quotes={quotes}
                           onFooterUpdate={handleFooterUpdate}
                           options={footerRow?.options}
+                          footerUpdateKey={footerRow?.footerUpdateKey}
                         />
                       ))}
                     </tbody>
@@ -1082,6 +1122,11 @@ const QuotationComparisonTable = () => {
                     quotes={quotes} 
                     onAddQuotation={showAnyForm && quotes?.length < 5 ? handleAddQuote : null}
                     onRemoveQuote={handleRemoveQuote}
+                    supplierOptions={mockSuppliers}
+                    attachedFiles={attachedFiles}
+                    onFileUpload={handleFileUpload}
+                    onFileRemove={handleFileRemove}
+                    onSupplierChange={handleSupplierChange}
                   />
                   
                   <tbody>

@@ -4,6 +4,13 @@ import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
 
 const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierChange , supplierOptions, attachedFiles, fileInputRefs, handleFileSelect, onFileRemove }) => {
+  
+  const suppliers = supplierOptions?.map(supplier => ({
+    value: supplier?.id,
+    label: `${supplier?.vendorCode} - ${supplier?.name}`,
+    description: supplier?.location
+  }));
+
   return (
     <thead className="bg-muted border-b border-border sticky top-0 z-20">
       {/* Main Data Row */}
@@ -62,10 +69,11 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
               </div>
 
               {/* Supplier Selection with Vendor Code */}
-              <div>
+              <div> 
+                {/* {(()=>{console.log(supplierOptions)})()} */}
                 <Select
                   placeholder="Choose supplier..."
-                  options={supplierOptions}
+                  options={suppliers}
                   value={quote?.supplierId}
                   onChange={(supplierId) => onSupplierChange(index, supplierId)}
                   searchable

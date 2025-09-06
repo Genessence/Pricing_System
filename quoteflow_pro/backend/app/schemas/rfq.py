@@ -4,6 +4,7 @@ from datetime import datetime
 from app.models.rfq import CommodityType, RFQStatus
 from app.schemas.user import UserResponse
 from app.schemas.site import SiteResponse
+from app.schemas.quotation import QuotationResponse
 
 class RFQItemBase(BaseModel):
     item_code: str = Field(..., min_length=1, max_length=50)
@@ -78,6 +79,7 @@ class RFQResponse(RFQBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     items: List[RFQItemResponse] = []
+    quotations: List[QuotationResponse] = []
     user: Optional[UserResponse] = None
     site: Optional[SiteResponse] = None
     

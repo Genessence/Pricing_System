@@ -170,37 +170,51 @@ def create_rfq(
                 currency=quote_data.footer.currency or rfq_data.currency,
                 validity_days=30,
                 delivery_days=0,
+                transportation_freight=quote_data.footer.transportation_freight or 0.0,
+                packing_charges=quote_data.footer.packing_charges or 0.0,
+                delivery_lead_time=quote_data.footer.delivery_lead_time or 0,
+                warranty=quote_data.footer.warranty,
                 terms_conditions=quote_data.footer.remarks_of_quotation,
-                comments=f"Delivery: {quote_data.footer.delivery_lead_time or 'N/A'}, "
-                         f"Packing: {quote_data.footer.packing_charges or 'N/A'}, "
-                         f"Transport: {quote_data.footer.transportation_freight or 'N/A'}, "
-                         f"Warranty: {quote_data.footer.warranty or 'N/A'}"
+                comments=None
             )
             db.add(db_quotation)
             db.flush()  # Get quotation ID
             print(f"Quotation added with ID: {db_quotation.id}")
 
-            # Add quotation items
-            for rfq_item in db_rfq.items:
-                if rfq_item.id in quote_data.rates:
-                    unit_price = quote_data.rates[rfq_item.id]
-                    total_price = unit_price * rfq_item.required_quantity
+            print(f"DEBUG: RFQ data: {rfq_data}")
+            
+            # Add quotation items - map rates to RFQ items from request data
+            # Use the RFQ items from the original request data for mapping
+            # Add quotation items - map rates to RFQ items from request data
+            for index, rfq_item_data in enumerate(rfq_data.items):
+                rate_key = str(rfq_item_data.item_code)
+                
+                print(f"DEBUG: Rate key: {rate_key}")
+                print(f"DEBUG: Quote data: {quote_data.rates}")
+                
+                # Check if rate exists for this item
+                if rate_key in map(str, quote_data.rates.keys()):
+                    unit_price = quote_data.rates[int(rate_key)]  # keep as int if needed
+                    total_price = unit_price * rfq_item_data.required_quantity
 
-                    db_quotation_item = QuotationItem(
+                    # Instead of querying DB, just use the index or create a dummy ID
+                    quotation_item = QuotationItem(
                         quotation_id=db_quotation.id,
-                        rfq_item_id=rfq_item.id,
-                        item_code=rfq_item.item_code,
-                        description=rfq_item.description,
-                        specifications=rfq_item.specifications,
-                        unit_of_measure=rfq_item.unit_of_measure,
-                        quantity=rfq_item.required_quantity,
+                        rfq_item_id=index + 1,  # or generate some temporary ID
+                        item_code=rfq_item_data.item_code,
+                        description=rfq_item_data.description,
+                        specifications=rfq_item_data.specifications,
+                        unit_of_measure=rfq_item_data.unit_of_measure,
+                        quantity=rfq_item_data.required_quantity,
                         unit_price=unit_price,
                         total_price=total_price,
                         delivery_days=0,
                         notes=None
                     )
-                    db.add(db_quotation_item)
-                    print(f"Added quote item for RFQ item ID {rfq_item.id} with unit price {unit_price}")
+                    db.add(quotation_item)
+                    print(f"Added quotation item for RFQ item {rfq_item_data.item_code} with unit price {unit_price}")
+                else:
+                    print(f"Warning: No rate found for RFQ item at index {index+1} (item_code: {rfq_item_data.item_code})")
 
     # ✅ Commit everything to the database
     db.commit()
@@ -250,8 +264,17 @@ def get_rfq(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    """Get specific RFQ by ID."""
-    rfq = db.query(RFQ).filter(RFQ.id == rfq_id).first()
+    """Get specific RFQ by ID with quotations data."""
+    from sqlalchemy.orm import joinedload
+    
+    # Query RFQ with all related data including quotations, items, and suppliers
+    rfq = db.query(RFQ).options(
+        joinedload(RFQ.user),
+        joinedload(RFQ.site),
+        joinedload(RFQ.items),
+        joinedload(RFQ.quotations).joinedload(Quotation.supplier),
+        joinedload(RFQ.quotations).joinedload(Quotation.items)
+    ).filter(RFQ.id == rfq_id).first()
     
     if not rfq:
         raise HTTPException(status_code=404, detail="RFQ not found")
@@ -260,6 +283,64 @@ def get_rfq(
     if (str(current_user.role) == UserRole.USER.value and 
         rfq.user_id != current_user.id):  # type: ignore
         raise PermissionDenied("Access denied to this RFQ")
+    
+        # Build response manually so quotations include items array
+    rfq_dict = {
+        "id": rfq.id,
+        "rfq_number": rfq.rfq_number,
+        "title": rfq.title,
+        "description": rfq.description,
+        "commodity_type": rfq.commodity_type,
+        "total_value": rfq.total_value,
+        "currency": rfq.currency,
+        "site_id": rfq.site_id,
+        "user_id": rfq.user_id,
+        "items": [
+            {
+                "id": item.id,
+                "item_code": item.item_code,
+                "description": item.description,
+                "specifications": item.specifications,
+                "unit_of_measure": item.unit_of_measure,
+                "required_quantity": item.required_quantity,
+                "last_buying_price": item.last_buying_price,
+                "last_vendor": item.last_vendor
+            }
+            for item in rfq.items
+        ],
+        "quotations": [
+            {
+                "id": q.id,
+                "supplier_id": q.supplier_id,
+                "quotation_number": q.quotation_number,
+                "total_amount": q.total_amount,
+                "currency": q.currency,
+                "validity_days": q.validity_days,
+                "delivery_days": q.delivery_days,
+                "transportation_freight": q.transportation_freight,
+                "packing_charges": q.packing_charges,
+                "warranty": q.warranty,
+                "terms_conditions": q.terms_conditions,
+                "items": [
+                    {
+                        "id": qi.id,
+                        "rfq_item_id": qi.rfq_item_id,
+                        "item_code": qi.item_code,
+                        "description": qi.description,
+                        "specifications": qi.specifications,
+                        "unit_of_measure": qi.unit_of_measure,
+                        "quantity": qi.quantity,
+                        "unit_price": qi.unit_price,
+                        "total_price": qi.total_price,
+                        "delivery_days": qi.delivery_days,
+                        "notes": qi.notes
+                    }
+                    for qi in q.items
+                ]
+            }
+            for q in rfq.quotations
+        ]
+    }
     
     return rfq
 

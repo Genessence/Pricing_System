@@ -20,7 +20,12 @@ const UserQuotationDetail = () => {
         console.log('Loading quotation with ID:', quotationId);
         const quotationData = await apiService.getRFQ(quotationId);
         console.log('Found quotation data:', quotationData);
-        setQuotation(quotationData);
+        const normalizedData = {
+          ...quotationData,
+          quotes: quotationData.quotations || [],
+        };
+        delete normalizedData.quotations;
+        setQuotation(normalizedData);
       } catch (error) {
         console.error('Error loading quotation:', error);
         // Quotation not found or error occurred
@@ -226,7 +231,7 @@ const UserQuotationDetail = () => {
                 quotation.quotes.map((quote, quoteIndex) => (
                   <td key={quoteIndex} className="p-2 text-center border-r border-border">
                     <span className="text-sm text-foreground">
-                      {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
+                      {quote.items[itemIndex].total_price ? formatCurrency(quote.items[itemIndex].total_price) : '-'}
                     </span>
                   </td>
                 ))
@@ -246,7 +251,7 @@ const UserQuotationDetail = () => {
              {quotation.quotes && quotation.quotes.length > 0 ? (
                quotation.quotes.map((quote, index) => (
                  <td key={index} className="p-2 text-center border-r border-border">
-                   <span className="text-sm text-foreground">{quote.footer?.transportation_freight || '-'}</span>
+                   <span className="text-sm text-foreground">{quote.transportation_freight || '-'}</span>
                  </td>
                ))
              ) : (
@@ -263,7 +268,7 @@ const UserQuotationDetail = () => {
              {quotation.quotes && quotation.quotes.length > 0 ? (
                quotation.quotes.map((quote, index) => (
                  <td key={index} className="p-2 text-center border-r border-border">
-                   <span className="text-sm text-foreground">{quote.footer?.packing_charges || '-'}</span>
+                   <span className="text-sm text-foreground">{quote.packing_charges || '-'}</span>
                  </td>
                ))
              ) : (
@@ -280,7 +285,7 @@ const UserQuotationDetail = () => {
              {quotation.quotes && quotation.quotes.length > 0 ? (
                quotation.quotes.map((quote, index) => (
                  <td key={index} className="p-2 text-center border-r border-border">
-                   <span className="text-sm text-foreground">{quote.footer?.delivery_lead_time || '-'}</span>
+                   <span className="text-sm text-foreground">{quote.delivery_lead_time || '-'}</span>
                  </td>
                ))
              ) : (
@@ -297,7 +302,7 @@ const UserQuotationDetail = () => {
              {quotation.quotes && quotation.quotes.length > 0 ? (
                quotation.quotes.map((quote, index) => (
                  <td key={index} className="p-2 text-center border-r border-border">
-                   <span className="text-sm text-foreground">{quote.footer?.warranty || '-'}</span>
+                   <span className="text-sm text-foreground">{quote.warranty || '-'}</span>
                  </td>
                ))
              ) : (
@@ -314,7 +319,7 @@ const UserQuotationDetail = () => {
              {quotation.quotes && quotation.quotes.length > 0 ? (
                quotation.quotes.map((quote, index) => (
                  <td key={index} className="p-2 text-center border-r border-border">
-                   <span className="text-sm text-foreground">{quote.footer?.currency || '-'}</span>
+                   <span className="text-sm text-foreground">{quote.currency || '-'}</span>
                  </td>
                ))
              ) : (
@@ -331,7 +336,7 @@ const UserQuotationDetail = () => {
              {quotation.quotes && quotation.quotes.length > 0 ? (
                quotation.quotes.map((quote, index) => (
                  <td key={index} className="p-2 text-center border-r border-border">
-                   <span className="text-sm text-foreground">{quote.footer?.remarks_of_quotation || '-'}</span>
+                   <span className="text-sm text-foreground">{quote.remarks_of_quotation || '-'}</span>
                  </td>
                ))
              ) : (

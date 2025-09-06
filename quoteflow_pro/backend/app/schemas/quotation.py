@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from datetime import datetime
 from app.models.quotation import QuotationStatus
+from app.schemas.supplier import SupplierResponse
 
 class QuotationItemBase(BaseModel):
     rfq_item_id: int = Field(..., description="RFQ item ID")
@@ -42,6 +43,10 @@ class QuotationBase(BaseModel):
     currency: str = Field(default="INR", min_length=3, max_length=3, description="Currency code")
     validity_days: int = Field(default=30, ge=1, le=365, description="Validity period in days")
     delivery_days: int = Field(default=0, ge=0, description="Delivery period in days")
+    transportation_freight: Optional[float] = Field(default=0.0, ge=0, description="Transportation/Freight charges")
+    packing_charges: Optional[float] = Field(default=0.0, ge=0, description="Packing charges")
+    delivery_lead_time: Optional[int] = Field(default=0, ge=0, description="Delivery lead time in days")
+    warranty: Optional[str] = Field(None, max_length=100, description="Warranty information")
     terms_conditions: Optional[str] = Field(None, description="Terms and conditions")
     comments: Optional[str] = Field(None, description="Additional comments")
     
@@ -57,7 +62,7 @@ class QuotationCreate(QuotationBase):
     """Schema for creating a quotation"""
     rfq_id: int = Field(..., description="RFQ ID")
     supplier_id: int = Field(..., description="Supplier ID")
-    items: List[QuotationItemCreate] = Field(..., min_items=1, description="Quotation items")
+    items: List[QuotationItemCreate] = Field(..., min_length=1, description="Quotation items")
     
     @validator('items')
     def validate_items_total(cls, v, values):
@@ -74,6 +79,10 @@ class QuotationUpdate(BaseModel):
     currency: Optional[str] = Field(None, min_length=3, max_length=3)
     validity_days: Optional[int] = Field(None, ge=1, le=365)
     delivery_days: Optional[int] = Field(None, ge=0)
+    transportation_freight: Optional[float] = Field(None, ge=0)
+    packing_charges: Optional[float] = Field(None, ge=0)
+    delivery_lead_time: Optional[int] = Field(None, ge=0)
+    warranty: Optional[str] = Field(None, max_length=100)
     status: Optional[QuotationStatus] = None
     terms_conditions: Optional[str] = None
     comments: Optional[str] = None
@@ -100,8 +109,7 @@ class QuotationResponse(QuotationBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     items: List[QuotationItemResponse] = []
-    supplier: Optional[dict] = None
-    rfq: Optional[dict] = None
+    supplier: Optional[SupplierResponse] = None
     
     class Config:
         from_attributes = True

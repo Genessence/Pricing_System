@@ -7,15 +7,16 @@ const FooterRow = ({
   type, 
   quotes, 
   onFooterUpdate, 
-  options = [] 
+  options = [],
+  footerUpdateKey
 }) => {
   const handleValueChange = (quoteIndex, value) => {
-    onFooterUpdate(quoteIndex, label?.toLowerCase()?.replace(/\s+/g, '_'), value);
+    onFooterUpdate(quoteIndex, footerUpdateKey, value);
   };
 
   const renderCell = (quote, quoteIndex) => {
     const fieldKey = label?.toLowerCase()?.replace(/\s+/g, '_');
-    const currentValue = quote?.footer?.[fieldKey] || '';
+    const currentValue = quote?.footer?.[footerUpdateKey] || '';
 
     switch (type) {
       case 'select':

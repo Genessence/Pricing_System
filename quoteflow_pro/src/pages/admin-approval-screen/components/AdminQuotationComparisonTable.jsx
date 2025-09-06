@@ -138,15 +138,11 @@ const AdminQuotationComparisonTable = ({
           <tr key={item?.id || itemIndex} className="border-b border-border hover:bg-muted/50">
                          {/* Fixed Left Columns */}
              <td className="p-2 bg-card sticky left-0 z-10 border-r border-border min-w-36">
-               <div className="text-xs font-medium text-foreground">{item?.item || '-'}</div>
+               <div className="text-xs font-medium text-foreground">123</div>
              </td>
              
              <td className="p-2 bg-card sticky left-36 z-10 border-r border-border min-w-36">
                <div className="text-xs font-medium text-foreground">{item?.description}</div>
-             </td>
-            
-                         <td className="p-2 bg-card sticky left-96 z-10 border-r border-border min-w-48">
-               <div className="text-xs text-muted-foreground">{item?.description}</div>
              </td>
              
              <td className="p-2 bg-card sticky left-144 z-10 border-r border-border min-w-48">

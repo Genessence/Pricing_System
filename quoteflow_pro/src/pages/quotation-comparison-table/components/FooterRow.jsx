@@ -16,7 +16,20 @@ const FooterRow = ({
 
   const renderCell = (quote, quoteIndex) => {
     const fieldKey = label?.toLowerCase()?.replace(/\s+/g, '_');
-    const currentValue = quote?.footer?.[footerUpdateKey] || '';
+    // Handle both Pydantic model objects (from backend) and plain objects (from frontend state)
+    const getFooterValue = (footer, key) => {
+      if (!footer) return '';
+      // Try bracket notation first (for plain objects)
+      if (typeof footer === 'object' && footer[key] !== undefined) {
+        return footer[key];
+      }
+      // Try dot notation (for Pydantic model objects)
+      if (footer[key] !== undefined) {
+        return footer[key];
+      }
+      return '';
+    };
+    const currentValue = getFooterValue(quote?.footer, footerUpdateKey);
 
     switch (type) {
       case 'select':

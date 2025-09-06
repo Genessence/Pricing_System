@@ -3,6 +3,7 @@ from .base import Base
 from .user import User, UserRole
 from .site import Site
 from .erp_item import ERPItem
+from .transport_item import TransportItem
 from .rfq import RFQ, RFQStatus, CommodityType
 from .rfq_item import RFQItem
 from .supplier import Supplier, SupplierStatus, SupplierCategory
@@ -13,12 +14,13 @@ from .attachment import Attachment, AttachmentType
 
 __all__ = [
     "Base",
-    "User", 
+    "User",
     "UserRole",
     "Site",
     "ERPItem",
+    "TransportItem",
     "RFQ",
-    "RFQStatus", 
+    "RFQStatus",
     "CommodityType",
     "RFQItem",
     "Supplier",
@@ -31,5 +33,5 @@ __all__ = [
     "ApprovalStatus",
     "ApprovalType",
     "Attachment",
-    "AttachmentType"
+    "AttachmentType",
 ]

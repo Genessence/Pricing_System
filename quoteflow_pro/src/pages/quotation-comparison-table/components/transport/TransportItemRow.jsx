@@ -1,28 +1,45 @@
-import React, { useState } from 'react';
-import Icon from '../../../components/AppIcon';
-import Button from '../../../components/ui/Button';
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
+import React, { useState, useEffect } from "react";
+import Icon from "../../../../components/AppIcon";
+import Button from "../../../../components/ui/Button";
+import Input from "../../../../components/ui/Input";
+import Select from "../../../../components/ui/Select";
 
-const TransportItemRow = ({ 
-  item, 
-  quotes, 
-  suppliers, 
-  onItemChange, 
-  onQuoteUpdate, 
-  onRemoveItem,
-  isEditing = false 
+const TransportItemRow = ({
+  item,
+  quotes,
+  suppliers,
+  onItemUpdate,
+  onQuoteUpdate,
+  onDeleteRow,
+  onDuplicateRow,
+  isEditing = false,
+  onEditToggle,
 }) => {
   const [localItem, setLocalItem] = useState(item || {});
+
+  // Update local state when item prop changes
+  useEffect(() => {
+    setLocalItem(item || {});
+  }, [item]);
 
   const handleItemChange = (field, value) => {
     const updatedItem = { ...localItem, [field]: value };
     setLocalItem(updatedItem);
-    onItemChange?.(updatedItem);
+    console.log("TransportItemRow - handleItemChange:", {
+      field,
+      value,
+      updatedItem,
+      itemId: item?.id,
+    });
+    onItemUpdate?.(item?.id, updatedItem);
   };
 
   const handleQuoteUpdate = (quoteIndex, field, value) => {
     onQuoteUpdate?.(quoteIndex, field, value);
+  };
+
+  const handleQuoteRateChange = (quoteIndex, rate) => {
+    onQuoteUpdate?.(item?.id, quoteIndex, { rate: parseFloat(rate) || 0 });
   };
 
   const calculateAmount = (rate, frequency) => {
@@ -32,26 +49,26 @@ const TransportItemRow = ({
   };
 
   const vehicleSizeOptions = [
-    { value: 'small', label: 'Small (1-2 tons)' },
-    { value: 'medium', label: 'Medium (3-5 tons)' },
-    { value: 'large', label: 'Large (6-10 tons)' },
-    { value: 'xl', label: 'Extra Large (10+ tons)' }
+    { value: "small", label: "Small (1-2 tons)" },
+    { value: "medium", label: "Medium (3-5 tons)" },
+    { value: "large", label: "Large (6-10 tons)" },
+    { value: "xl", label: "Extra Large (10+ tons)" },
   ];
 
   const frequencyOptions = [
-    { value: 1, label: '1 time/month' },
-    { value: 2, label: '2 times/month' },
-    { value: 3, label: '3 times/month' },
-    { value: 4, label: '4 times/month' },
-    { value: 5, label: '5 times/month' },
-    { value: 6, label: '6 times/month' },
-    { value: 8, label: '8 times/month' },
-    { value: 10, label: '10 times/month' },
-    { value: 12, label: '12 times/month' },
-    { value: 15, label: '15 times/month' },
-    { value: 20, label: '20 times/month' },
-    { value: 25, label: '25 times/month' },
-    { value: 30, label: '30 times/month' }
+    { value: 1, label: "1 time/month" },
+    { value: 2, label: "2 times/month" },
+    { value: 3, label: "3 times/month" },
+    { value: 4, label: "4 times/month" },
+    { value: 5, label: "5 times/month" },
+    { value: 6, label: "6 times/month" },
+    { value: 8, label: "8 times/month" },
+    { value: 10, label: "10 times/month" },
+    { value: 12, label: "12 times/month" },
+    { value: 15, label: "15 times/month" },
+    { value: 20, label: "20 times/month" },
+    { value: 25, label: "25 times/month" },
+    { value: 30, label: "30 times/month" },
   ];
 
   return (
@@ -61,14 +78,14 @@ const TransportItemRow = ({
         {isEditing ? (
           <Input
             type="text"
-            value={localItem?.from || ''}
-            onChange={(e) => handleItemChange('from', e?.target?.value)}
+            value={localItem?.from || ""}
+            onChange={(e) => handleItemChange("from", e?.target?.value)}
             placeholder="Enter source location..."
             className="w-full text-sm"
           />
         ) : (
           <div className="text-sm font-medium text-foreground">
-            {localItem?.from || 'Not specified'}
+            {localItem?.from || "Not specified"}
           </div>
         )}
       </td>
@@ -78,14 +95,14 @@ const TransportItemRow = ({
         {isEditing ? (
           <Input
             type="text"
-            value={localItem?.to || ''}
-            onChange={(e) => handleItemChange('to', e?.target?.value)}
+            value={localItem?.to || ""}
+            onChange={(e) => handleItemChange("to", e?.target?.value)}
             placeholder="Enter destination..."
             className="w-full text-sm"
           />
         ) : (
           <div className="text-sm font-medium text-foreground">
-            {localItem?.to || 'Not specified'}
+            {localItem?.to || "Not specified"}
           </div>
         )}
       </td>
@@ -97,12 +114,14 @@ const TransportItemRow = ({
             placeholder="Select vehicle size..."
             options={vehicleSizeOptions}
             value={localItem?.vehicleSize}
-            onChange={(value) => handleItemChange('vehicleSize', value)}
+            onChange={(value) => handleItemChange("vehicleSize", value)}
             className="text-sm"
           />
         ) : (
           <div className="text-sm font-medium text-foreground">
-            {vehicleSizeOptions?.find(opt => opt?.value === localItem?.vehicleSize)?.label || 'Not specified'}
+            {vehicleSizeOptions?.find(
+              (opt) => opt?.value === localItem?.vehicleSize
+            )?.label || "Not specified"}
           </div>
         )}
       </td>
@@ -112,14 +131,14 @@ const TransportItemRow = ({
         {isEditing ? (
           <Input
             type="text"
-            value={localItem?.load || ''}
-            onChange={(e) => handleItemChange('load', e?.target?.value)}
+            value={localItem?.load || ""}
+            onChange={(e) => handleItemChange("load", e?.target?.value)}
             placeholder="Enter load details..."
             className="w-full text-sm"
           />
         ) : (
           <div className="text-sm font-medium text-foreground">
-            {localItem?.load || 'Not specified'}
+            {localItem?.load || "Not specified"}
           </div>
         )}
       </td>
@@ -129,14 +148,14 @@ const TransportItemRow = ({
         {isEditing ? (
           <Input
             type="text"
-            value={localItem?.dimensions || ''}
-            onChange={(e) => handleItemChange('dimensions', e?.target?.value)}
+            value={localItem?.dimensions || ""}
+            onChange={(e) => handleItemChange("dimensions", e?.target?.value)}
             placeholder="L x W x H..."
             className="w-full text-sm"
           />
         ) : (
           <div className="text-sm font-medium text-foreground">
-            {localItem?.dimensions || 'Not specified'}
+            {localItem?.dimensions || "Not specified"}
           </div>
         )}
       </td>
@@ -148,12 +167,14 @@ const TransportItemRow = ({
             placeholder="Select frequency..."
             options={frequencyOptions}
             value={localItem?.frequency}
-            onChange={(value) => handleItemChange('frequency', value)}
+            onChange={(value) => handleItemChange("frequency", value)}
             className="text-sm"
           />
         ) : (
           <div className="text-sm font-medium text-foreground">
-            {frequencyOptions?.find(opt => opt?.value === localItem?.frequency)?.label || 'Not specified'}
+            {frequencyOptions?.find(
+              (opt) => opt?.value === localItem?.frequency
+            )?.label || "Not specified"}
           </div>
         )}
       </td>
@@ -161,28 +182,32 @@ const TransportItemRow = ({
       {/* Suggestion (auto-fetched) with updated positioning */}
       <td className="p-3 bg-card sticky left-[51rem] z-30 border-r border-border min-w-48">
         <div className="flex items-center space-x-2">
-          <Icon name="Award" size={14} className="text-green-600 flex-shrink-0" />
+          <Icon
+            name="Award"
+            size={14}
+            className="text-green-600 flex-shrink-0"
+          />
           <div className="text-sm text-foreground">
-            {localItem?.suggestion || 'Auto-generated based on route and load'}
+            {localItem?.suggestion || "Auto-generated based on route and load"}
           </div>
         </div>
       </td>
 
       {/* Dynamic Supplier Columns - Matching Provided Data and Service Layout */}
       {quotes?.map((quote, quoteIndex) => (
-        <td key={quoteIndex} className="p-3 border-r border-border min-w-64 bg-background relative z-0">
-          <div className="space-y-2">
-            {/* Rate Input */}
+        <td key={quoteIndex} className="p-3 border-r border-border">
+          <div className="space-y-2 flex justify-evenly">
             <Input
               type="number"
-              value={quote?.rate || ''}
-              onChange={(e) => handleQuoteUpdate(quoteIndex, 'rate', e?.target?.value)}
+              value={quote?.rate || ""}
+              onChange={(e) =>
+                handleQuoteRateChange(quoteIndex, e?.target?.value)
+              }
               placeholder="0.00"
               className="w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               min="0"
               step="0.01"
             />
-            {/* Calculated Amount */}
             <div className="text-sm font-medium text-primary">
               ₹{calculateAmount(quote?.rate || 0, localItem?.frequency || 1)}
             </div>

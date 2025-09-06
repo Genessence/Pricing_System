@@ -1,14 +1,23 @@
-import React from 'react';
-import Icon from '../../../components/AppIcon';
-import Button from '../../../components/ui/Button';
-import Select from '../../../components/ui/Select';
+import React from "react";
+import Icon from "../../../../components/AppIcon";
+import Button from "../../../../components/ui/Button";
+import Select from "../../../../components/ui/Select";
 
-const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierChange , supplierOptions, attachedFiles, fileInputRefs, handleFileSelect, onFileRemove }) => {
-  
-  const suppliers = supplierOptions?.map(supplier => ({
+const ServiceTableHeader = ({
+  quotes,
+  onAddQuotation,
+  onRemoveQuote,
+  onSupplierChange,
+  supplierOptions,
+  attachedFiles,
+  fileInputRefs,
+  handleFileSelect,
+  onFileRemove,
+}) => {
+  const suppliers = supplierOptions?.map((supplier) => ({
     value: supplier?.id,
     label: `${supplier?.vendorCode} - ${supplier?.name}`,
-    description: supplier?.location
+    description: supplier?.location,
   }));
 
   return (
@@ -19,13 +28,17 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
         <th className="p-3 text-left bg-card sticky left-0 z-30 border-r border-border min-w-52">
           <div className="flex items-center space-x-2">
             <Icon name="FileText" size={16} className="text-primary" />
-            <span className="text-sm font-semibold text-foreground">Description</span>
+            <span className="text-sm font-semibold text-foreground">
+              Description
+            </span>
           </div>
         </th>
         <th className="p-3 text-left bg-card sticky left-52 z-30 border-r border-border min-w-60">
           <div className="flex items-center space-x-2">
             <Icon name="Settings" size={16} className="text-primary" />
-            <span className="text-sm font-semibold text-foreground">Specification</span>
+            <span className="text-sm font-semibold text-foreground">
+              Specification
+            </span>
           </div>
         </th>
         <th className="p-3 text-left bg-card sticky left-112 z-30 border-r border-border min-w-36">
@@ -37,7 +50,9 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
         <th className="p-3 text-left bg-card sticky left-148 z-30 border-r border-border min-w-40">
           <div className="flex items-center space-x-2">
             <Icon name="Hash" size={16} className="text-primary" />
-            <span className="text-sm font-semibold text-foreground">Req Qty</span>
+            <span className="text-sm font-semibold text-foreground">
+              Req Qty
+            </span>
           </div>
         </th>
         <th className="p-3 text-left bg-card sticky left-188 z-30 border-r border-border min-w-44">
@@ -47,9 +62,12 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
           </div>
         </th>
 
-         {/* Dynamic Quote Column Headers with compact PDF upload */}
-         {quotes?.map((quote, index) => (
-          <th key={index} className="p-3 text-left border-r border-border min-w-64">
+        {/* Dynamic Quote Column Headers with compact PDF upload */}
+        {quotes?.map((quote, index) => (
+          <th
+            key={index}
+            className="p-3 text-left border-r border-border min-w-64"
+          >
             <div className="space-y-3">
               {/* Quote Header with Remove Button */}
               <div className="flex items-center justify-between">
@@ -69,7 +87,7 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
               </div>
 
               {/* Supplier Selection with Vendor Code */}
-              <div> 
+              <div>
                 {/* {(()=>{console.log(supplierOptions)})()} */}
                 <Select
                   placeholder="Choose supplier..."
@@ -86,8 +104,15 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
                 {attachedFiles?.[index] ? (
                   <div className="flex items-center justify-between p-1.5 bg-muted rounded border border-border">
                     <div className="flex items-center space-x-1 min-w-0">
-                      <Icon name="FileText" size={10} className="text-primary flex-shrink-0" />
-                      <span className="text-xs text-foreground truncate max-w-16" title={attachedFiles?.[index]?.name}>
+                      <Icon
+                        name="FileText"
+                        size={10}
+                        className="text-primary flex-shrink-0"
+                      />
+                      <span
+                        className="text-xs text-foreground truncate max-w-16"
+                        title={attachedFiles?.[index]?.name}
+                      >
                         {attachedFiles?.[index]?.name}
                       </span>
                     </div>
@@ -97,8 +122,10 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
                         size="sm"
                         iconName="Download"
                         onClick={() => {
-                          const url = URL.createObjectURL(attachedFiles?.[index]);
-                          const a = document.createElement('a');
+                          const url = URL.createObjectURL(
+                            attachedFiles?.[index]
+                          );
+                          const a = document.createElement("a");
                           a.href = url;
                           a.download = attachedFiles?.[index]?.name;
                           a?.click();
@@ -123,10 +150,13 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
                     iconPosition="left"
                     onClick={() => {
                       if (!fileInputRefs?.current?.[index]) {
-                        fileInputRefs.current[index] = document.createElement('input');
-                        fileInputRefs.current[index].type = 'file';
-                        fileInputRefs.current[index].accept = '.pdf,.xlsx,.xls,.png,.jpeg,.jpg';
-                        fileInputRefs.current[index].onchange = (e) => handleFileSelect(e, index);
+                        fileInputRefs.current[index] =
+                          document.createElement("input");
+                        fileInputRefs.current[index].type = "file";
+                        fileInputRefs.current[index].accept =
+                          ".pdf,.xlsx,.xls,.png,.jpeg,.jpg";
+                        fileInputRefs.current[index].onchange = (e) =>
+                          handleFileSelect(e, index);
                       }
                       fileInputRefs?.current?.[index]?.click();
                     }}
@@ -139,7 +169,6 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
             </div>
           </th>
         ))}
-        
 
         {/* Add Quotation Button */}
         <th className="p-3 text-center bg-muted/20 min-w-48">
@@ -159,9 +188,6 @@ const ServiceTableHeader = ({ quotes, onAddQuotation, onRemoveQuote, onSupplierC
 };
 
 export default ServiceTableHeader;
-
-
-
 
 // {/* Supplier Quote Headers - Matching Provided Data Table */}
 // {quotes?.map((quote, index) => (

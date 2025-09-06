@@ -1,38 +1,38 @@
-import React from 'react';
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
+import React from "react";
+import Input from "../../../../components/ui/Input";
+import Select from "../../../../components/ui/Select";
 
-const FooterRow = ({ 
-  label, 
-  type, 
-  quotes, 
-  onFooterUpdate, 
+const FooterRow = ({
+  label,
+  type,
+  quotes,
+  onFooterUpdate,
   options = [],
-  footerUpdateKey
+  footerUpdateKey,
 }) => {
   const handleValueChange = (quoteIndex, value) => {
     onFooterUpdate(quoteIndex, footerUpdateKey, value);
   };
 
   const renderCell = (quote, quoteIndex) => {
-    const fieldKey = label?.toLowerCase()?.replace(/\s+/g, '_');
+    const fieldKey = label?.toLowerCase()?.replace(/\s+/g, "_");
     // Handle both Pydantic model objects (from backend) and plain objects (from frontend state)
     const getFooterValue = (footer, key) => {
-      if (!footer) return '';
+      if (!footer) return "";
       // Try bracket notation first (for plain objects)
-      if (typeof footer === 'object' && footer[key] !== undefined) {
+      if (typeof footer === "object" && footer[key] !== undefined) {
         return footer[key];
       }
       // Try dot notation (for Pydantic model objects)
       if (footer[key] !== undefined) {
         return footer[key];
       }
-      return '';
+      return "";
     };
     const currentValue = getFooterValue(quote?.footer, footerUpdateKey);
 
     switch (type) {
-      case 'select':
+      case "select":
         return (
           <Select
             options={options}
@@ -42,8 +42,8 @@ const FooterRow = ({
             className="w-full text-sm"
           />
         );
-      
-      case 'number':
+
+      case "number":
         return (
           <Input
             type="number"
@@ -55,8 +55,8 @@ const FooterRow = ({
             step="0.01"
           />
         );
-      
-      case 'text':
+
+      case "text":
         return (
           <Input
             type="text"
@@ -66,8 +66,8 @@ const FooterRow = ({
             className="w-full text-sm"
           />
         );
-      
-      case 'textarea':
+
+      case "textarea":
         return (
           <textarea
             value={currentValue}
@@ -77,7 +77,7 @@ const FooterRow = ({
             rows={3}
           />
         );
-      
+
       default:
         return (
           <Input
@@ -99,7 +99,7 @@ const FooterRow = ({
           {label}
         </div>
       </td>
-      
+
       {/* Specifications Column */}
       <td className="p-4 bg-card sticky left-48 z-10 border-r border-border min-w-48 max-w-48">
         <div className="text-xs text-muted-foreground">
@@ -111,28 +111,28 @@ const FooterRow = ({
           {/* Empty space for alignment */}
         </div>
       </td>
-      
+
       {/* Required Quantity Column */}
       <td className="p-4 bg-card sticky left-96 z-10 border-r border-border min-w-24 max-w-24">
         <div className="text-xs text-muted-foreground">
           {/* Empty space for alignment */}
         </div>
       </td>
-      
+
       {/* UOM Column */}
       <td className="p-4 bg-card sticky left-120 z-10 border-r border-border min-w-20 max-w-20">
         <div className="text-xs text-muted-foreground">
           {/* Empty space for alignment */}
         </div>
       </td>
-      
+
       {/* Last Price Column */}
       <td className="p-4 bg-card sticky left-144 z-10 border-r border-border min-w-24 max-w-24">
         <div className="text-xs text-muted-foreground">
           {/* Empty space for alignment */}
         </div>
       </td>
-      
+
       {/* Last Vendor Column */}
       <td className="p-4 bg-card sticky left-168 z-10 border-r border-border min-w-48 max-w-48">
         <div className="text-xs text-muted-foreground">
@@ -142,14 +142,13 @@ const FooterRow = ({
 
       {/* Dynamic Quote Columns - Properly spaced and styled */}
       {quotes?.map((quote, quoteIndex) => (
-        <td key={quoteIndex} className="p-4 border-r border-border min-w-64 max-w-64">
-          <div className="w-full">
-            {renderCell(quote, quoteIndex)}
-          </div>
+        <td
+          key={quoteIndex}
+          className="p-4 border-r border-border min-w-64 max-w-64"
+        >
+          <div className="w-full">{renderCell(quote, quoteIndex)}</div>
         </td>
       ))}
-      
-
     </tr>
   );
 };

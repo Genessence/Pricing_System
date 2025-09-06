@@ -704,9 +704,9 @@ const QuotationComparisonTable = () => {
           </div>
         )}
         
-        <div className="pt-4">
+        <div className="pt-4 w-full flex-col">
         {/* Header Section */}
-        <div className="px-6 mb-6">
+        <div className="px-6 mb-6 w-full ">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-foreground mb-2">
@@ -970,7 +970,7 @@ const QuotationComparisonTable = () => {
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 Mandatory Documents
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-6 md:grid-cols-6 gap-6">
                 {/* Signed BOQ Upload */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -978,14 +978,15 @@ const QuotationComparisonTable = () => {
                     Signed BOQ
                     <span className="ml-2 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">Mandatory</span>
                   </label>
-                  <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 text-center hover:border-orange-400 transition-colors">
+                  <>
+                  {/* <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 text-center hover:border-orange-400 transition-colors">
                     <Icon name="Upload" size={24} className="mx-auto text-orange-500 mb-2" />
                     <p className="text-sm text-muted-foreground mb-2">
                       Click to upload or drag and drop
                     </p>
                     <p className="text-xs text-muted-foreground">
                       PDF files only, max 10MB
-                    </p>
+                    </p> */}
                     <input
                       type="file"
                       accept=".pdf"
@@ -1000,6 +1001,7 @@ const QuotationComparisonTable = () => {
                       }}
                     />
                     {boqFile ? (
+                      <>
                       <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
@@ -1015,6 +1017,7 @@ const QuotationComparisonTable = () => {
                           />
                         </div>
                       </div>
+                      </>
                     ) : (
                       <Button
                         variant="outline"
@@ -1027,7 +1030,8 @@ const QuotationComparisonTable = () => {
                         Upload BOQ
                       </Button>
                     )}
-                  </div>
+                  {/* </div> */}
+                  </>
                 </div>
 
                 {/* Signed Drawing Upload */}
@@ -1037,14 +1041,15 @@ const QuotationComparisonTable = () => {
                     Signed Drawing
                     <span className="ml-2 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">Mandatory</span>
                   </label>
-                  <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 text-center hover:border-orange-400 transition-colors">
+                  <>
+                  {/* <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 text-center hover:border-orange-400 transition-colors">
                     <Icon name="Upload" size={24} className="mx-auto text-orange-500 mb-2" />
                     <p className="text-sm text-muted-foreground mb-2">
                       Click to upload or drag and drop
                     </p>
                     <p className="text-xs text-muted-foreground">
                       PDF files only, max 10MB
-                    </p>
+                    </p> */}
                     <input
                       type="file"
                       accept=".pdf"
@@ -1086,7 +1091,8 @@ const QuotationComparisonTable = () => {
                         Upload Drawing
                       </Button>
                     )}
-                  </div>
+                  {/* </div> */}
+                  </>
                 </div>
               </div>
             </div>
@@ -1157,7 +1163,30 @@ const QuotationComparisonTable = () => {
                     ))}
 
                     {/* Total Row for Service - Clean formatting */}
-                    <tr className="border-b-2 border-primary/20 bg-primary/5 font-semibold">
+                      {/* Total Row */}
+                    <tr className="border-b border-border bg-primary/5 font-semibold">
+                      <td className="p-3 bg-card sticky left-0 z-10 border-r border-border text-primary">
+                        Total Amount
+                      </td>
+                      <td className="p-3 bg-card sticky left-48 z-10 border-r border-border"></td>
+                      <td className="p-3 bg-card sticky left-96 z-10 border-r border-border"></td>
+                      <td className="p-3 bg-card sticky left-120 z-10 border-r border-border"></td>
+                      <td className="p-3 bg-card sticky left-144 z-10 border-r border-border"></td>
+                      
+                      {quotes?.map((quote, index) => (
+                        <td key={index} className="p-3 border-r border-border">
+                          <div className="flex justify-center text-lg font-bold text-primary">
+                          ₹{serviceItems?.reduce((total, item) => {
+                                const rate = quote?.rates?.[item?.id] || 0;
+                                return total + (rate * item?.requiredQuantity);
+                              }, 0)?.toFixed(2)}
+                                                          {/* ₹{calculateTotalAmount(index)?.toFixed(2)} */}
+                          </div>
+                        </td>
+                      ))}
+                      <td className="p-3"></td>
+                    </tr>
+                    {/* <tr className="border-b-2 border-primary/20 bg-primary/5 font-semibold">
                       <td className="p-4 bg-card sticky left-0 z-10 border-r border-border text-primary font-bold">
                         Total Amount
                       </td>
@@ -1182,7 +1211,7 @@ const QuotationComparisonTable = () => {
                         </td>
                       ))}
                       <td className="p-4"></td>
-                    </tr>
+                    </tr> */}
                   </tbody>
                 </table>
               </div>

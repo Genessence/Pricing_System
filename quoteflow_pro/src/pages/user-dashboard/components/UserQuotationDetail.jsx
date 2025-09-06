@@ -449,7 +449,7 @@ const UserQuotationDetail = () => {
                 quotation.quotes.map((quote, quoteIndex) => (
                   <td key={quoteIndex} className="p-2 text-center border-r border-border">
                     <span className="text-sm text-foreground">
-                      {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
+                      {quote.items[itemIndex].total_price ? formatCurrency(quote.items[itemIndex].total_price) : '-'}
                     </span>
                   </td>
                 ))
@@ -576,7 +576,7 @@ const UserQuotationDetail = () => {
                 quotation.quotes.map((quote, quoteIndex) => (
                   <td key={quoteIndex} className="p-2 text-center border-r border-border">
                     <span className="text-sm text-foreground">
-                      {quote.rates?.[item.id] ? formatCurrency(quote.rates[item.id]) : '-'}
+                      {quote.items[itemIndex].total_price ? formatCurrency(quote.items[itemIndex].total_price) : '-'}
                     </span>
                   </td>
                 ))

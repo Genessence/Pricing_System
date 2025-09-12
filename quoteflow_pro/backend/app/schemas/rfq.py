@@ -5,6 +5,7 @@ from app.models.rfq import CommodityType, RFQStatus
 from app.schemas.user import UserResponse
 from app.schemas.site import SiteResponse
 from app.schemas.quotation import QuotationResponse
+from app.schemas.transport_item import TransportItemResponse
 
 
 class RFQItemBase(BaseModel):
@@ -36,6 +37,7 @@ class RFQItemResponse(RFQItemBase):
     id: int
     erp_item_id: Optional[int] = None
     transport_item_id: Optional[int] = None
+    transport_item: Optional[TransportItemResponse] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -62,10 +64,10 @@ class QuoteFooter(BaseModel):
     """Schema for quotation footer details"""
 
     currency: Optional[str] = None
-    delivery_lead_time: Optional[str] = None
-    packing_charges: Optional[str] = None
+    delivery_lead_time: Optional[int] = None
+    packing_charges: Optional[float] = None
     remarks_of_quotation: Optional[str] = None
-    transportation_freight: Optional[str] = None
+    transportation_freight: Optional[float] = None
     warranty: Optional[str] = None
 
 
@@ -107,6 +109,17 @@ class RFQResponse(RFQBase):
     quotations: List[QuotationResponse] = []
     user: Optional[UserResponse] = None
     site: Optional[SiteResponse] = None
+
+    # Additional fields for comprehensive response
+    requested_by: Optional[str] = None
+    plant: Optional[str] = None
+    submitted_date: Optional[str] = None
+    deadline: Optional[str] = None
+    delivery_location: Optional[str] = None
+    special_requirements: Optional[str] = None
+    submission_time: Optional[str] = None
+    commodity_type_raw: Optional[str] = None
+    suppliers: List[dict] = []
 
     class Config:
         from_attributes = True

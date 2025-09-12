@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
@@ -332,6 +333,7 @@ def get_rfqs(
 @router.get("/{rfq_id}", response_model=RFQResponse)
 def get_rfq(
     rfq_id: int,
+    format: Optional[str] = "frontend",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -344,7 +346,7 @@ def get_rfq(
         .options(
             joinedload(RFQ.user),
             joinedload(RFQ.site),
-            joinedload(RFQ.items),
+            joinedload(RFQ.items).joinedload(RFQItem.transport_item),
             joinedload(RFQ.quotations).joinedload(Quotation.supplier),
             joinedload(RFQ.quotations).joinedload(Quotation.items),
         )
@@ -361,67 +363,152 @@ def get_rfq(
     ):  # type: ignore
         raise PermissionDenied("Access denied to this RFQ")
 
-        # Build response manually so quotations include items array
-    rfq_dict = {
-        "id": rfq.id,
-        "rfq_number": rfq.rfq_number,
-        "title": rfq.title,
-        "description": rfq.description,
-        "commodity_type": rfq.commodity_type,
-        "total_value": rfq.total_value,
-        "currency": rfq.currency,
-        "site_id": rfq.site_id,
-        "user_id": rfq.user_id,
-        "items": [
+    # Map commodity type for display and raw
+    rfq_status_raw = str(rfq.status)
+    rfq_status_display = {
+        "RFQStatus.DRAFT": "Draft",
+        "RFQStatus.PENDING": "Pending",
+        "RFQStatus.APPROVED": "Approved",
+        "RFQStatus.REJECTED": "Rejected",
+        "RFQStatus.CANCELLED": "Cancelled",
+    }.get(rfq_status_raw, rfq_status_raw.title())
+
+    # Map commodity type for display and raw
+    commodity_type_raw = str(rfq.commodity_type)
+
+    commodity_type_key = commodity_type_raw.split(".")[1].upper()
+
+    commodity_type_display = {
+        "PROVIDED_DATA": "Provided Data",
+        "SERVICE": "Service",
+        "TRANSPORT": "Transport",
+    }.get(commodity_type_key)
+
+    # Build suppliers list for comprehensive response
+    suppliers_list = []
+    for q in rfq.quotations:
+        supplier = q.supplier
+        supplier_items = []
+        for qi in q.items:
+            supplier_items.append(
+                {
+                    "itemId": qi.rfq_item_id,
+                    "unitPrice": qi.unit_price,
+                    "totalPrice": qi.total_price,
+                    "deliveryTime": (
+                        f"{qi.delivery_days} days" if qi.delivery_days else None
+                    ),
+                    "warranty": q.warranty,
+                    "notes": qi.notes,
+                }
+            )
+
+        suppliers_list.append(
             {
+                "id": supplier.id if supplier else q.supplier_id,
+                "name": supplier.company_name if supplier else None,
+                "contact": supplier.email if supplier else None,
+                "rating": supplier.rating if supplier else None,
+                "items": supplier_items,
+                "totalQuote": q.total_amount,
+                "attachments": [],
+                "termsConditions": q.terms_conditions,
+                "currency": q.currency,
+                "warranty": q.warranty,
+                "deliveryLeadTime": q.delivery_lead_time,
+                "packagingCharges": q.packing_charges,
+                "transportationFreight": q.transportation_freight,
+            }
+        )
+
+    # Optional frontend-friendly format
+    if format == "frontend":
+        # RFQ items list for top-level items array
+        items_for_frontend = []
+        for item in rfq.items:
+            item_payload = {
                 "id": item.id,
                 "item_code": item.item_code,
+                "erp_item_id": item.erp_item_id,
                 "description": item.description,
                 "specifications": item.specifications,
-                "unit_of_measure": item.unit_of_measure,
-                "required_quantity": item.required_quantity,
-                "last_buying_price": item.last_buying_price,
-                "last_vendor": item.last_vendor,
-                "created_at": item.created_at,
-                "updated_at": item.updated_at,
+                "quantity": item.required_quantity,
+                "unitOfMeasure": item.unit_of_measure,
+                "lastBuyingPrice": item.last_buying_price,
+                "lastVendor": item.last_vendor,
             }
-            for item in rfq.items
-        ],
-        "quotations": [
-            {
-                "id": q.id,
-                "supplier_id": q.supplier_id,
-                "quotation_number": q.quotation_number,
-                "total_amount": q.total_amount,
-                "currency": q.currency,
-                "validity_days": q.validity_days,
-                "delivery_days": q.delivery_days,
-                "transportation_freight": q.transportation_freight,
-                "packing_charges": q.packing_charges,
-                "warranty": q.warranty,
-                "terms_conditions": q.terms_conditions,
-                "items": [
-                    {
-                        "id": qi.id,
-                        "rfq_item_id": qi.rfq_item_id,
-                        "item_code": qi.item_code,
-                        "description": qi.description,
-                        "specifications": qi.specifications,
-                        "unit_of_measure": qi.unit_of_measure,
-                        "quantity": qi.quantity,
-                        "unit_price": qi.unit_price,
-                        "total_price": qi.total_price,
-                        "delivery_days": qi.delivery_days,
-                        "notes": qi.notes,
-                    }
-                    for qi in q.items
-                ],
-            }
-            for q in rfq.quotations
-        ],
-    }
+            # Attach transport details if present
+            if item.transport_item is not None:
+                item_payload["transportDetails"] = {
+                    "fromLocation": item.transport_item.from_location,
+                    "toLocation": item.transport_item.to_location,
+                    "vehicleSize": item.transport_item.vehicle_size,
+                    "load": item.transport_item.load,
+                    "dimensions": item.transport_item.dimensions,
+                    "frequency": item.transport_item.frequency,
+                }
+            items_for_frontend.append(item_payload)
 
-    return rfq
+        payload = {
+            "id": rfq.rfq_number,
+            "title": rfq.title,
+            "description": rfq.description,
+            "requestedBy": rfq.user.full_name if rfq.user else None,
+            "plant": getattr(rfq.site, "site_code", None) if rfq.site else None,
+            "submittedDate": (
+                rfq.created_at.strftime("%m/%d/%Y") if rfq.created_at else None
+            ),
+            "deadline": None,
+            "deliveryLocation": None,
+            "specialRequirements": None,
+            "status": rfq_status_display,
+            "statusRaw": rfq_status_raw,
+            "submissionTime": (
+                rfq.created_at.strftime("%Y-%m-%d %H:%M:%S") if rfq.created_at else None
+            ),
+            "commodityType": commodity_type_display,
+            "commodityTypeRaw": commodity_type_raw,
+            "totalValue": rfq.total_value,
+            "currency": rfq.currency,
+            "items": items_for_frontend,
+            "suppliers": suppliers_list,
+        }
+
+        return JSONResponse(content=payload)
+
+    # Create comprehensive RFQ response for standard format
+    rfq_response = RFQResponse(
+        id=rfq.id,
+        rfq_number=rfq.rfq_number,
+        title=rfq.title,
+        description=rfq.description,
+        commodity_type=rfq.commodity_type,
+        total_value=rfq.total_value,
+        currency=rfq.currency,
+        status=rfq.status,
+        user_id=rfq.user_id,
+        site_id=rfq.site_id,
+        created_at=rfq.created_at,
+        updated_at=rfq.updated_at,
+        items=rfq.items,
+        quotations=rfq.quotations,
+        user=rfq.user,
+        site=rfq.site,
+        # Additional comprehensive fields
+        requested_by=rfq.user.full_name if rfq.user else None,
+        plant=rfq.site.site_code if rfq.site else None,
+        submitted_date=rfq.created_at.strftime("%m/%d/%Y") if rfq.created_at else None,
+        deadline=None,  # Not stored in current schema
+        delivery_location=None,  # Not stored in current schema
+        special_requirements=None,  # Not stored in current schema
+        submission_time=(
+            rfq.created_at.strftime("%Y-%m-%d %H:%M:%S") if rfq.created_at else None
+        ),
+        commodity_type_raw=commodity_type_raw,
+        suppliers=suppliers_list,
+    )
+
+    return rfq_response
 
 
 @router.put("/{rfq_id}", response_model=RFQResponse)

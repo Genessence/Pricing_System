@@ -4,6 +4,7 @@ import TopNavigationBar from '../../components/ui/TopNavigationBar';
 import BreadcrumbTrail from '../../components/ui/BreadcrumbTrail';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
+import apiService from '../../services/api';
 
 const AdminApprovalScreen = () => {
   const navigate = useNavigate();
@@ -41,22 +42,33 @@ const AdminApprovalScreen = () => {
     }
   ];
 
-  // Get quotation requests from localStorage
+  // Get quotation requests from backend API
   const [quotationRequests, setQuotationRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadQuotationRequests = () => {
-      const storedQuotations = localStorage.getItem('quotationRequests');
-      if (storedQuotations) {
-        const allQuotations = JSON.parse(storedQuotations);
-        setQuotationRequests(allQuotations);
+    const loadQuotationRequests = async () => {
+      try {
+        setLoading(true);
+        console.log('🔍 Loading RFQs from API for admin approval...');
+        const rfqsData = await apiService.getRFQs();
+        console.log('🔍 RFQs loaded for admin approval:', {
+          count: rfqsData?.length || 0,
+          data: rfqsData
+        });
+        setQuotationRequests(rfqsData);
+      } catch (error) {
+        console.error("Error loading RFQs for admin approval:", error);
+        setQuotationRequests([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadQuotationRequests();
     
-    // Refresh data every 5 seconds to catch new submissions
-    const interval = setInterval(loadQuotationRequests, 5000);
+    // Refresh data every 30 seconds to catch new submissions
+    const interval = setInterval(loadQuotationRequests, 30000);
     
     return () => clearInterval(interval);
   }, [refreshKey]);
@@ -203,9 +215,14 @@ const AdminApprovalScreen = () => {
   const filteredQuotations = allQuotationRequests.filter(quotation => {
     const matchesSearch = !searchTerm || 
       quotation.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.rfq_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       quotation.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.requestedBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.commodityType?.toLowerCase().includes(searchTerm.toLowerCase());
+      quotation.user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.user?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.site?.site_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.site?.site_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.commodity_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quotation.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || 
       quotation.status === statusFilter ||
@@ -219,6 +236,56 @@ const AdminApprovalScreen = () => {
   const pendingCount = allQuotationRequests.filter(q => q.status === 'Pending Approval' || q.status === 'pending').length;
   const approvedCount = allQuotationRequests.filter(q => q.status === 'Approved' || q.status === 'approved').length;
   const rejectedCount = allQuotationRequests.filter(q => q.status === 'Rejected' || q.status === 'rejected').length;
+
+  // Debug logging for admin approval screen
+  React.useEffect(() => {
+    console.log('🔍 Admin Approval Screen Debug:', {
+      totalRFQs: allQuotationRequests?.length || 0,
+      filteredRFQs: filteredQuotations?.length || 0,
+      searchTerm,
+      statusFilter,
+      loading
+    });
+    
+    // Log first RFQ structure to understand data format
+    if (allQuotationRequests && allQuotationRequests.length > 0) {
+      console.log('🔍 First RFQ Data Structure (Admin):', {
+        rfq: allQuotationRequests[0],
+        user: allQuotationRequests[0]?.user,
+        site: allQuotationRequests[0]?.site,
+        quotations: allQuotationRequests[0]?.quotations,
+        status: allQuotationRequests[0]?.status,
+        commodity_type: allQuotationRequests[0]?.commodity_type
+      });
+    }
+  }, [allQuotationRequests, filteredQuotations, searchTerm, statusFilter, loading]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNavigationBar 
+          user={currentUser}
+          notifications={notifications}
+          onLogout={handleLogout}
+          onNotificationRead={() => {}}
+          onNotificationClear={() => {}}
+        />
+        <BreadcrumbTrail />
+        <div className="flex items-center justify-center h-screen">
+          <div className="flex items-center space-x-2">
+            <Icon
+              name="Loader"
+              size={24}
+              className="animate-spin text-primary"
+            />
+            <span className="text-muted-foreground">
+              Loading admin approval screen...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -405,28 +472,21 @@ const AdminApprovalScreen = () => {
                        <td className="px-6 py-5">
                          <div>
                            <div className="flex items-center space-x-3 mb-2">
-                             <span className="text-sm font-bold text-foreground bg-muted px-3 py-1 rounded-lg">{quotation.id}</span>
+                             <span className="text-sm font-bold text-foreground bg-muted px-3 py-1 rounded-lg">{quotation.rfq_number || quotation.id}</span>
                            </div>
                            <h3 className="text-sm font-semibold text-foreground mb-2 leading-tight">{quotation.title}</h3>
-                           {(quotation.commodityType === 'Service' || quotation.commodityType === 'service') && quotation.serviceProjectName && (
-                             <div className="mb-2">
-                               <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                 Project: {quotation.serviceProjectName}
-                               </span>
-                             </div>
-                           )}
-                           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{quotation.description}</p>
+                           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{quotation.description || "No description"}</p>
                          </div>
                        </td>
                        <td className="px-6 py-5">
                          <div className="space-y-1">
-                           <p className="text-sm font-semibold text-foreground">{quotation.requestedBy}</p>
-                           <p className="text-xs text-muted-foreground">{quotation.plant}</p>
-                           <p className="text-xs text-muted-foreground">{new Date(quotation.submittedAt || quotation.submittedDate).toLocaleDateString('en-US', { 
+                           <p className="text-sm font-semibold text-foreground">{quotation.user?.full_name || quotation.user?.username || "Unknown"}</p>
+                           <p className="text-xs text-muted-foreground">{quotation.site?.site_name || quotation.site?.site_code || "Unknown Site"}</p>
+                           <p className="text-xs text-muted-foreground">{quotation.created_at ? new Date(quotation.created_at).toLocaleDateString('en-US', { 
                              year: 'numeric', 
                              month: 'short', 
                              day: 'numeric' 
-                           })}</p>
+                           }) : "Unknown Date"}</p>
                          </div>
                        </td>
                                                <td className="px-6 py-5">
@@ -437,16 +497,16 @@ const AdminApprovalScreen = () => {
                           </span>
                         </td>
                                                <td className="px-6 py-5">
-                          <span className={`px-3 py-2 text-xs font-semibold rounded-full whitespace-nowrap ${getCommodityTypeColor(quotation.commodityType)}`}>
-                            {quotation.commodityType === 'provided_data' ? 'Provided Data' :
-                             quotation.commodityType === 'service' ? 'Service' :
-                             quotation.commodityType === 'transport' ? 'Transport' : quotation.commodityType}
+                          <span className={`px-3 py-2 text-xs font-semibold rounded-full whitespace-nowrap ${getCommodityTypeColor(quotation.commodity_type)}`}>
+                            {quotation.commodity_type === 'provided_data' ? 'Provided Data' :
+                             quotation.commodity_type === 'service' ? 'Service' :
+                             quotation.commodity_type === 'transport' ? 'Transport' : quotation.commodity_type || 'N/A'}
                           </span>
                         </td>
                        <td className="px-6 py-5">
                          <div className="space-y-1">
-                           <p className="text-sm font-bold text-foreground">₹{(quotation.totalValue || 0).toLocaleString()}</p>
-                           <p className="text-xs text-muted-foreground">{quotation.supplierCount} supplier{quotation.supplierCount !== 1 ? 's' : ''}</p>
+                           <p className="text-sm font-bold text-foreground">₹{(quotation.total_value || 0).toLocaleString()}</p>
+                           <p className="text-xs text-muted-foreground">{quotation.quotations?.length || 0} supplier{(quotation.quotations?.length || 0) !== 1 ? 's' : ''}</p>
                          </div>
                        </td>
                        <td className="px-6 py-5">

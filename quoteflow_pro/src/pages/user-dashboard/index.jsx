@@ -259,7 +259,7 @@ const UserDashboard = () => {
                   >
                     {refreshing ? 'Refreshing...' : 'Refresh'}
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     iconName="Bug"
@@ -267,7 +267,7 @@ const UserDashboard = () => {
                     className="text-blue-600 border-blue-300 hover:bg-blue-50"
                   >
                     Debug
-                  </Button>
+                  </Button> */}
                   <Button
                     variant="outline"
                     size="sm"

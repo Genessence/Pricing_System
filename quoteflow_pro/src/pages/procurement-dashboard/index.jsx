@@ -30,6 +30,10 @@ const ProcurementDashboard = () => {
     dateRange: "",
     category: "",
   });
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Use authenticated user data
   const currentUser = user;
@@ -38,7 +42,12 @@ const ProcurementDashboard = () => {
   const loadRFQs = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Loading RFQs from API...');
       const rfqsData = await apiService.getRFQs();
+      console.log('🔍 RFQs loaded from API:', {
+        count: rfqsData?.length || 0,
+        data: rfqsData
+      });
       setRfqs(rfqsData);
     } catch (error) {
       console.error("Error loading RFQs:", error);
@@ -169,25 +178,66 @@ const ProcurementDashboard = () => {
     const matchesSearch =
       !searchQuery ||
       rfq?.rfq_number?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.subject_from_plant
-        ?.toLowerCase()
-        ?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.title?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
       rfq?.description?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.commodity_type
-        ?.toLowerCase()
-        ?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.submitted_by?.toLowerCase()?.includes(searchQuery?.toLowerCase());
+      rfq?.commodity_type?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.user?.username?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.user?.full_name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.site?.site_name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.site?.site_code?.toLowerCase()?.includes(searchQuery?.toLowerCase());
 
     const matchesStatus = !filters?.status || rfq?.status === filters?.status;
-    const matchesSupplier =
-      !filters?.supplier || rfq?.supplier === filters?.supplier;
-    const matchesCategory =
-      !filters?.category ||
-      rfq?.commodity_type?.toLowerCase()?.replace(/\s+/g, "-") ===
-        filters?.category;
+    
+    // Fix supplier filter - check if any quotation has the matching supplier
+    // Note: RFQ list endpoint doesn't include quotations, so supplier filter won't work
+    // This is a limitation of the current backend API design
+    const matchesSupplier = !filters?.supplier || 
+      (rfq?.quotations && rfq?.quotations?.length > 0 && rfq?.quotations?.some(quote => {
+        const supplierName = quote?.supplier?.company_name || quote?.supplier?.name;
+        const supplierValue = supplierName?.toLowerCase()?.replace(/\s+/g, '-');
+        return supplierValue === filters?.supplier;
+      }));
+    
+    const matchesCategory = !filters?.category || rfq?.commodity_type === filters?.category;
 
     return matchesSearch && matchesStatus && matchesSupplier && matchesCategory;
   });
+
+  // Pagination logic
+  const totalItems = filteredRFQs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRFQs = filteredRFQs.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, searchQuery]);
+
+  // Extract unique suppliers from RFQ quotations
+  // Note: RFQ list endpoint doesn't include quotations, so this will be empty
+  // This is a limitation of the current backend API design
+  const uniqueSuppliers = React.useMemo(() => {
+    const suppliers = new Set();
+    rfqs?.forEach(rfq => {
+      if (rfq?.quotations && rfq?.quotations?.length > 0) {
+        rfq?.quotations?.forEach(quote => {
+          if (quote?.supplier) {
+            const supplierName = quote?.supplier?.company_name || quote?.supplier?.name;
+            if (supplierName) {
+              suppliers.add(supplierName);
+            }
+          }
+        });
+      }
+    });
+    
+    return Array.from(suppliers).map(supplierName => ({
+      value: supplierName.toLowerCase().replace(/\s+/g, '-'),
+      label: supplierName
+    }));
+  }, [rfqs]);
 
   // Calculate metrics
   const totalRFQs = rfqs?.length || 0;
@@ -200,10 +250,37 @@ const ProcurementDashboard = () => {
     rfqs?.reduce((sum, rfq) => sum + calculateTotalAmount(rfq), 0) || 0;
   const costSavings = 285000; // Mock cost savings - can be calculated from actual data later
   const averageTAT = 12; // Mock average TAT in days - can be calculated from actual data later
-  const supplierCount = 12; // Mock supplier count - can be fetched from API later
+  const supplierCount = uniqueSuppliers?.length || 0;
   const activeUsers =
     mockUsers?.filter((user) => user?.status === "Active")?.length || 0;
   const totalUsers = mockUsers?.length || 0;
+
+  // Debug logging for filtering
+  React.useEffect(() => {
+    console.log('🔍 RFQ Filtering Debug:', {
+      totalRFQs: rfqs?.length || 0,
+      filteredRFQs: filteredRFQs?.length || 0,
+      paginatedRFQs: paginatedRFQs?.length || 0,
+      currentPage,
+      itemsPerPage,
+      totalPages,
+      filters,
+      searchQuery,
+      uniqueSuppliers: uniqueSuppliers?.length || 0
+    });
+    
+    // Log first RFQ structure to understand data format
+    if (rfqs && rfqs.length > 0) {
+      console.log('🔍 First RFQ Data Structure:', {
+        rfq: rfqs[0],
+        user: rfqs[0]?.user,
+        site: rfqs[0]?.site,
+        quotations: rfqs[0]?.quotations,
+        status: rfqs[0]?.status,
+        commodity_type: rfqs[0]?.commodity_type
+      });
+    }
+  }, [rfqs, filteredRFQs, paginatedRFQs, currentPage, itemsPerPage, totalPages, filters, searchQuery, uniqueSuppliers]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -364,6 +441,7 @@ const ProcurementDashboard = () => {
             onClearFilters={handleClearFilters}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
+            supplierOptions={uniqueSuppliers}
           />
 
           {/* Enhanced RFQ Table */}
@@ -430,7 +508,7 @@ const ProcurementDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredRFQs.length === 0 ? (
+                  {paginatedRFQs.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
@@ -451,7 +529,7 @@ const ProcurementDashboard = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredRFQs.slice(0, 5).map((rfq) => (
+                    paginatedRFQs.map((rfq) => (
                       <tr
                         key={rfq.id}
                         className="hover:bg-muted/30 transition-colors"
@@ -470,8 +548,7 @@ const ProcurementDashboard = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                          {`${rfq.user.username}-${rfq.site.site_name}` ||
-                            "Unknown"}
+                          {rfq?.user?.full_name || rfq?.user?.username || "Unknown"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
@@ -531,6 +608,88 @@ const ProcurementDashboard = () => {
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination Controls */}
+            {totalItems > 0 && (
+              <div className="px-6 py-4 border-t border-border bg-muted/20">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  {/* Items per page selector */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">Show:</span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="px-3 py-1 text-sm border border-border rounded-md bg-background"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <span className="text-sm text-muted-foreground">per page</span>
+                  </div>
+                  
+                  {/* Pagination info */}
+                  <div className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} results
+                  </div>
+                  
+                  {/* Pagination buttons */}
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      iconName="ChevronLeft"
+                    >
+                      Previous
+                    </Button>
+                    
+                    {/* Page numbers */}
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      iconName="ChevronRight"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Performance Charts */}

@@ -499,7 +499,7 @@ const AdminQuotationComparisonTable = ({
             <th key={quoteIndex} className="p-2 text-center bg-card border-r border-border min-w-48">
               <div className="space-y-1">
                 <div className="text-xs font-semibold text-foreground">Quote {quoteIndex + 1}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground">h
                   {getSupplierName(quote?.id)}
                 </div>
                 <div className="text-xs text-muted-foreground">

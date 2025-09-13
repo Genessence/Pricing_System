@@ -1,250 +1,227 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import TopNavigationBar from '../../components/ui/TopNavigationBar';
-import BreadcrumbTrail from '../../components/ui/BreadcrumbTrail';
-import MetricsCard from './components/MetricsCard';
-import RFQTable from './components/RFQTable';
-import FilterControls from './components/FilterControls';
-import QuickActions from './components/QuickActions';
-import PerformanceCharts from './components/PerformanceCharts';
-import Button from '../../components/ui/Button';
-import Icon from '../../components/AppIcon';
-import { cn } from '../../utils/cn';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import TopNavigationBar from "../../components/ui/TopNavigationBar";
+import BreadcrumbTrail from "../../components/ui/BreadcrumbTrail";
+import MetricsCard from "./components/MetricsCard";
+import RFQTable from "./components/RFQTable";
+import FilterControls from "./components/FilterControls";
+import QuickActions from "./components/QuickActions";
+import PerformanceCharts from "./components/PerformanceCharts";
+import Button from "../../components/ui/Button";
+import Icon from "../../components/AppIcon";
+import { cn } from "../../utils/cn";
+import apiService from "../../services/api";
 
 const ProcurementDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedRFQs, setSelectedRFQs] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
   const [showUserManagement, setShowUserManagement] = useState(false);
+  const [rfqs, setRfqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [filters, setFilters] = useState({
-    status: searchParams?.get('filter') || '',
-    supplier: '',
-    dateRange: '',
-    category: ''
+    status: searchParams?.get("filter") || "",
+    supplier: "",
+    dateRange: "",
+    category: "",
   });
 
   // Use authenticated user data
   const currentUser = user;
 
+  // Load RFQs from backend
+  const loadRFQs = async () => {
+    try {
+      setLoading(true);
+      const rfqsData = await apiService.getRFQs();
+      setRfqs(rfqsData);
+    } catch (error) {
+      console.error("Error loading RFQs:", error);
+      setRfqs([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadRFQs();
+  };
+
+  useEffect(() => {
+    loadRFQs();
+
+    // Refresh data every 30 seconds to catch new submissions
+    const interval = setInterval(loadRFQs, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Mock user data for user management
   const mockUsers = [
     {
       id: 1,
-      name: 'John Doe',
-      email: 'john.doe@company.com',
-      role: 'User',
-      status: 'Active',
-      lastLogin: '2024-08-22 10:30',
+      name: "John Doe",
+      email: "john.doe@company.com",
+      role: "User",
+      status: "Active",
+      lastLogin: "2024-08-22 10:30",
       quotationCount: 5,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+      avatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
     },
     {
       id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@company.com',
-      role: 'User',
-      status: 'Active',
-      lastLogin: '2024-08-22 09:15',
+      name: "Jane Smith",
+      email: "jane.smith@company.com",
+      role: "User",
+      status: "Active",
+      lastLogin: "2024-08-22 09:15",
       quotationCount: 3,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     },
     {
       id: 3,
-      name: 'Mike Johnson',
-      email: 'mike.johnson@company.com',
-      role: 'User',
-      status: 'Inactive',
-      lastLogin: '2024-08-15 14:20',
+      name: "Mike Johnson",
+      email: "mike.johnson@company.com",
+      role: "User",
+      status: "Inactive",
+      lastLogin: "2024-08-15 14:20",
       quotationCount: 0,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-    }
+      avatar:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    },
   ];
 
   // Mock notifications
   const notifications = [
     {
       id: 1,
-      type: 'warning',
-      title: 'RFQ Deadline Approaching',
-      message: 'RFQ-2024-003 deadline is in 2 days',
+      type: "warning",
+      title: "RFQ Deadline Approaching",
+      message: "RFQ-2024-003 deadline is in 2 days",
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      read: false
+      read: false,
     },
     {
       id: 2,
-      type: 'success',
-      title: 'Quotation Received',
-      message: 'New quotation from ACME Corporation for Industrial Pumps',
+      type: "success",
+      title: "Quotation Received",
+      message: "New quotation from ACME Corporation for Industrial Pumps",
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      read: false
+      read: false,
     },
     {
       id: 3,
-      type: 'info',
-      title: 'RFQ Approved',
-      message: 'RFQ-2024-001 has been approved by Finance Team',
+      type: "info",
+      title: "RFQ Approved",
+      message: "RFQ-2024-001 has been approved by Finance Team",
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      read: true
+      read: true,
     },
     {
       id: 4,
-      type: 'warning',
-      title: 'New User Registration',
-      message: 'New user Sarah Wilson has registered and needs approval',
+      type: "warning",
+      title: "New User Registration",
+      message: "New user Sarah Wilson has registered and needs approval",
       timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-      read: false
-    }
+      read: false,
+    },
   ];
 
-  // Mock RFQ data
-  const mockRFQs = [
-    {
-      id: 1,
-      rfqId: 'RFQ-2024-001',
-      subjectFromPlant: 'Industrial Water Pumps Requirement - Plant A',
-      description: 'Industrial Water Pumps - High Capacity',
-      category: 'Machinery',
-      quantity: 25,
-      unit: 'Units',
-      totalAmount: 125000,
-      status: 'Approved',
-      createdDate: '08/15/2024',
-      supplier: 'acme-corp',
-      estimatedValue: 125000,
-      submittedBy: 'John Doe',
-      priority: 'High'
-    },
-    {
-      id: 2,
-      rfqId: 'RFQ-2024-002',
-      subjectFromPlant: 'Electronic Components Supply - Plant B',
-      description: 'Electronic Components - Microcontrollers',
-      category: 'Electronics',
-      quantity: 500,
-      unit: 'Pieces',
-      totalAmount: 75000,
-      status: 'In Review',
-      createdDate: '08/18/2024',
-      supplier: 'tech-solutions',
-      estimatedValue: 75000,
-      submittedBy: 'Jane Smith',
-      priority: 'Medium'
-    },
-    {
-      id: 3,
-      rfqId: 'RFQ-2024-003',
-      subjectFromPlant: 'Safety Equipment Procurement - Plant C',
-      description: 'Safety Equipment - Hard Hats & Vests',
-      category: 'Safety Equipment',
-      quantity: 200,
-      unit: 'Sets',
-      totalAmount: 15000,
-      status: 'Pending',
-      createdDate: '08/20/2024',
-      supplier: 'quality-materials',
-      estimatedValue: 15000,
-      submittedBy: 'Mike Johnson',
-      priority: 'High'
-    },
-    {
-      id: 4,
-      rfqId: 'RFQ-2024-004',
-      subjectFromPlant: 'Office Supplies Request - Plant D',
-      description: 'Office Supplies - Stationery Bundle',
-      category: 'Office Supplies',
-      quantity: 100,
-      unit: 'Packages',
-      totalAmount: 5000,
-      status: 'Draft',
-      createdDate: '08/21/2024',
-      supplier: '',
-      estimatedValue: 5000,
-      submittedBy: 'John Doe',
-      priority: 'Low'
-    },
-    {
-      id: 5,
-      rfqId: 'RFQ-2024-005',
-      subjectFromPlant: 'Raw Materials Supply - Plant A',
-      description: 'Raw Materials - Steel Sheets',
-      category: 'Raw Materials',
-      quantity: 50,
-      unit: 'Tons',
-      totalAmount: 200000,
-      status: 'Completed',
-      createdDate: '08/10/2024',
-      supplier: 'industrial-parts',
-      estimatedValue: 200000,
-      submittedBy: 'Jane Smith',
-      priority: 'High'
-    },
-    {
-      id: 6,
-      rfqId: 'RFQ-2024-006',
-      subjectFromPlant: 'Machinery Parts Order - Plant B',
-      description: 'Machinery Parts - Conveyor Belts',
-      category: 'Machinery',
-      quantity: 15,
-      unit: 'Meters',
-      totalAmount: 35000,
-      status: 'Rejected',
-      createdDate: '08/12/2024',
-      supplier: 'global-supply',
-      estimatedValue: 35000,
-      submittedBy: 'Mike Johnson',
-      priority: 'Medium'
+  // Helper function to calculate total amount for an RFQ
+  const calculateTotalAmount = (rfq) => {
+    // Use the total_value from the backend API
+    if (rfq.total_value !== undefined) {
+      return rfq.total_value;
     }
-  ];
+
+    // Fallback to totalValue (camelCase) for backward compatibility
+    if (rfq.totalValue !== undefined) {
+      return rfq.totalValue;
+    }
+
+    // Fallback to calculating from quotes if total_value is not available
+    if (!rfq.quotes || rfq.quotes.length === 0) return 0;
+
+    return rfq.quotes.reduce((total, quote) => {
+      if (quote.items && quote.items.length > 0) {
+        return (
+          total +
+          quote.items.reduce((itemTotal, item) => {
+            return itemTotal + (item.amount || 0);
+          }, 0)
+        );
+      }
+      return total;
+    }, 0);
+  };
 
   // Filter RFQs based on current filters and search
-  const filteredRFQs = mockRFQs?.filter(rfq => {
-    const matchesSearch = !searchQuery || 
-      rfq?.rfqId?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.subjectFromPlant?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+  const filteredRFQs = rfqs?.filter((rfq) => {
+    const matchesSearch =
+      !searchQuery ||
+      rfq?.rfq_number?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.subject_from_plant
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLowerCase()) ||
       rfq?.description?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.category?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.submittedBy?.toLowerCase()?.includes(searchQuery?.toLowerCase());
-    
+      rfq?.commodity_type
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.submitted_by?.toLowerCase()?.includes(searchQuery?.toLowerCase());
+
     const matchesStatus = !filters?.status || rfq?.status === filters?.status;
-    const matchesSupplier = !filters?.supplier || rfq?.supplier === filters?.supplier;
-    const matchesCategory = !filters?.category || rfq?.category?.toLowerCase()?.replace(/\s+/g, '-') === filters?.category;
-    
+    const matchesSupplier =
+      !filters?.supplier || rfq?.supplier === filters?.supplier;
+    const matchesCategory =
+      !filters?.category ||
+      rfq?.commodity_type?.toLowerCase()?.replace(/\s+/g, "-") ===
+        filters?.category;
+
     return matchesSearch && matchesStatus && matchesSupplier && matchesCategory;
   });
 
   // Calculate metrics
-  const totalRFQs = mockRFQs?.length;
-  const pendingRFQs = mockRFQs?.filter(rfq => rfq?.status === 'Pending')?.length;
-  const completedRFQs = mockRFQs?.filter(rfq => rfq?.status === 'Completed')?.length;
-  const draftRFQs = mockRFQs?.filter(rfq => rfq?.status === 'Draft')?.length;
-  const totalValue = mockRFQs?.reduce((sum, rfq) => sum + rfq?.estimatedValue, 0);
-  const costSavings = 285000; // Mock cost savings
-  const averageTAT = 12; // Mock average TAT in days
-  const supplierCount = 12; // Mock supplier count
-  const activeUsers = mockUsers?.filter(user => user?.status === 'Active')?.length;
-  const totalUsers = mockUsers?.length;
+  const totalRFQs = rfqs?.length || 0;
+  const pendingRFQs =
+    rfqs?.filter((rfq) => rfq?.status === "pending")?.length || 0;
+  const completedRFQs =
+    rfqs?.filter((rfq) => rfq?.status === "approved")?.length || 0;
+  const draftRFQs = rfqs?.filter((rfq) => rfq?.status === "draft")?.length || 0;
+  const totalValue =
+    rfqs?.reduce((sum, rfq) => sum + calculateTotalAmount(rfq), 0) || 0;
+  const costSavings = 285000; // Mock cost savings - can be calculated from actual data later
+  const averageTAT = 12; // Mock average TAT in days - can be calculated from actual data later
+  const supplierCount = 12; // Mock supplier count - can be fetched from API later
+  const activeUsers =
+    mockUsers?.filter((user) => user?.status === "Active")?.length || 0;
+  const totalUsers = mockUsers?.length || 0;
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSearch = () => {
     // Search is handled in real-time through filteredRFQs
-    console.log('Search executed with query:', searchQuery);
+    console.log("Search executed with query:", searchQuery);
   };
 
   const handleClearFilters = () => {
     setFilters({
-      status: '',
-      supplier: '',
-      dateRange: '',
-      category: ''
+      status: "",
+      supplier: "",
+      dateRange: "",
+      category: "",
     });
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   const handleBulkAction = (action) => {
@@ -254,55 +231,89 @@ const ProcurementDashboard = () => {
   };
 
   const handleLogout = () => {
-    navigate('/login-screen');
+    navigate("/login-screen");
   };
 
   const handleNotificationRead = (notificationId) => {
-    console.log('Mark notification as read:', notificationId);
+    console.log("Mark notification as read:", notificationId);
   };
 
   const handleNotificationClear = () => {
-    console.log('Clear all notifications');
+    console.log("Clear all notifications");
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount || 0);
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'High':
-        return 'bg-red-100 text-red-800 border border-red-200';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
-      case 'Low':
-        return 'bg-green-100 text-green-800 border border-green-200';
+      case "High":
+        return "bg-red-100 text-red-800 border border-red-200";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800 border border-yellow-200";
+      case "Low":
+        return "bg-green-100 text-green-800 border border-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 border border-gray-200';
+        return "bg-gray-100 text-gray-800 border border-gray-200";
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active':
-        return 'bg-green-100 text-green-800 border border-green-200';
-      case 'Inactive':
-        return 'bg-red-100 text-red-800 border border-red-200';
+      case "Active":
+        return "bg-green-100 text-green-800 border border-green-200";
+      case "Inactive":
+        return "bg-red-100 text-red-800 border border-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 border border-gray-200';
+        return "bg-gray-100 text-gray-800 border border-gray-200";
+    }
+  };
+
+  const getCommodityTypeColor = (type) => {
+    switch (type) {
+      case "provided_data":
+        return "bg-blue-100 text-blue-800 border border-blue-200";
+      case "service":
+        return "bg-purple-100 text-purple-800 border border-purple-200";
+      case "transport":
+        return "bg-orange-100 text-orange-800 border border-orange-200";
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-200";
     }
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: 'BarChart3' },
-    { id: 'users', label: 'User Management', icon: 'Users' },
-    { id: 'analytics', label: 'Advanced Analytics', icon: 'TrendingUp' },
-    { id: 'reports', label: 'Reports', icon: 'FileText' }
+    { id: "overview", label: "Overview", icon: "BarChart3" },
+    { id: "users", label: "User Management", icon: "Users" },
+    { id: "analytics", label: "Advanced Analytics", icon: "TrendingUp" },
+    { id: "reports", label: "Reports", icon: "FileText" },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNavigationBar user={currentUser} />
+        <div className="flex items-center justify-center h-screen">
+          <div className="flex items-center space-x-2">
+            <Icon
+              name="Loader"
+              size={24}
+              className="animate-spin text-primary"
+            />
+            <span className="text-muted-foreground">
+              Loading procurement dashboard...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderOverviewTab = () => (
     <>
@@ -360,7 +371,9 @@ const ProcurementDashboard = () => {
             <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">Recent Quotation Requests</h2>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    Recent Quotation Requests
+                  </h2>
                   <p className="text-muted-foreground mt-1">
                     Monitor and manage all quotation requests from users
                   </p>
@@ -369,15 +382,20 @@ const ProcurementDashboard = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    iconName="Download"
+                    iconName="RefreshCw"
+                    onClick={handleRefresh}
+                    disabled={refreshing}
                   >
+                    {refreshing ? "Refreshing..." : "Refresh"}
+                  </Button>
+                  <Button variant="outline" size="sm" iconName="Download">
                     Export
                   </Button>
                   <Button
                     variant="default"
                     size="sm"
                     iconName="Plus"
-                    onClick={() => navigate('/admin-approval-screen')}
+                    onClick={() => navigate("/admin-approval-screen")}
                   >
                     View All
                   </Button>
@@ -398,7 +416,7 @@ const ProcurementDashboard = () => {
                       Submitted By
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Priority
+                      Commodity Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Amount
@@ -412,53 +430,104 @@ const ProcurementDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredRFQs.slice(0, 5).map((rfq) => (
-                    <tr key={rfq.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                        {rfq.rfqId}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        <div>
-                          <div className="font-medium">{rfq.subjectFromPlant}</div>
-                          <div className="text-muted-foreground">{rfq.description}</div>
+                  {filteredRFQs.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center">
+                          <Icon
+                            name="FileText"
+                            size={48}
+                            className="text-muted-foreground mb-4"
+                          />
+                          <h3 className="text-lg font-medium text-foreground mb-2">
+                            No RFQs found
+                          </h3>
+                          <p className="text-muted-foreground">
+                            {rfqs.length === 0
+                              ? "No quotation requests have been submitted yet."
+                              : "No RFQs match your current filters."}
+                          </p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {rfq.submittedBy}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={cn(
-                          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                          getPriorityColor(rfq.priority)
-                        )}>
-                          {rfq.priority}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {formatCurrency(rfq.totalAmount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={cn(
-                          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                          rfq.status === 'Approved' ? 'bg-green-100 text-green-800 border border-green-200' :
-                          rfq.status === 'Pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
-                          rfq.status === 'Rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
-                          'bg-gray-100 text-gray-800 border border-gray-200'
-                        )}>
-                          {rfq.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/admin-approval-screen/${rfq.id}`)}
-                        >
-                          Review
-                        </Button>
-                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredRFQs.slice(0, 5).map((rfq) => (
+                      <tr
+                        key={rfq.id}
+                        className="hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                          {rfq.rfq_number || rfq.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          <div>
+                            <div className="font-medium">
+                              {rfq.title || "N/A"}
+                            </div>
+                            <div className="text-muted-foreground">
+                              {rfq.description || "No description"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          {`${rfq.user.username}-${rfq.site.site_name}` ||
+                            "Unknown"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={cn(
+                              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                              getCommodityTypeColor(rfq.commodity_type)
+                            )}
+                          >
+                            {rfq.commodity_type === "provided_data"
+                              ? "Provided Data"
+                              : rfq.commodity_type === "service"
+                              ? "Service"
+                              : rfq.commodity_type === "transport"
+                              ? "Transport"
+                              : rfq.commodity_type || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          {formatCurrency(calculateTotalAmount(rfq))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={cn(
+                              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                              rfq.status === "approved"
+                                ? "bg-green-100 text-green-800 border border-green-200"
+                                : rfq.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                                : rfq.status === "rejected"
+                                ? "bg-red-100 text-red-800 border border-red-200"
+                                : "bg-gray-100 text-gray-800 border border-gray-200"
+                            )}
+                          >
+                            {rfq.status === "pending"
+                              ? "Pending Review"
+                              : rfq.status === "approved"
+                              ? "Approved"
+                              : rfq.status === "rejected"
+                              ? "Rejected"
+                              : "Draft"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              navigate(`/admin-approval-screen/${rfq.id}`)
+                            }
+                          >
+                            Review
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -467,7 +536,9 @@ const ProcurementDashboard = () => {
           {/* Performance Charts */}
           <div className="mt-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-foreground">Performance Analytics</h2>
+              <h2 className="text-xl font-semibold text-foreground">
+                Performance Analytics
+              </h2>
               <Button variant="ghost" size="sm" iconName="BarChart3">
                 View Detailed Reports
               </Button>
@@ -478,10 +549,7 @@ const ProcurementDashboard = () => {
 
         {/* Sidebar */}
         <div className="xl:col-span-1">
-          <QuickActions 
-            pendingApprovals={pendingRFQs}
-            draftRFQs={draftRFQs}
-          />
+          <QuickActions pendingApprovals={pendingRFQs} draftRFQs={draftRFQs} />
         </div>
       </div>
     </>
@@ -491,7 +559,9 @@ const ProcurementDashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">User Management</h2>
+          <h2 className="text-xl font-semibold text-foreground">
+            User Management
+          </h2>
           <p className="text-muted-foreground mt-1">
             Manage user accounts, permissions, and access controls
           </p>
@@ -532,7 +602,10 @@ const ProcurementDashboard = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {mockUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                <tr
+                  key={user.id}
+                  className="hover:bg-muted/30 transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <img
@@ -541,8 +614,12 @@ const ProcurementDashboard = () => {
                         alt={user.name}
                       />
                       <div>
-                        <div className="text-sm font-medium text-foreground">{user.name}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                        <div className="text-sm font-medium text-foreground">
+                          {user.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {user.email}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -550,10 +627,12 @@ const ProcurementDashboard = () => {
                     {user.role}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={cn(
-                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                      getStatusColor(user.status)
-                    )}>
+                    <span
+                      className={cn(
+                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        getStatusColor(user.status)
+                      )}
+                    >
                       {user.status}
                     </span>
                   </td>
@@ -569,7 +648,7 @@ const ProcurementDashboard = () => {
                         Edit
                       </Button>
                       <Button variant="ghost" size="sm">
-                        {user.status === 'Active' ? 'Deactivate' : 'Activate'}
+                        {user.status === "Active" ? "Deactivate" : "Activate"}
                       </Button>
                     </div>
                   </td>
@@ -585,7 +664,9 @@ const ProcurementDashboard = () => {
   const renderAnalyticsTab = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-foreground">Advanced Analytics</h2>
+        <h2 className="text-xl font-semibold text-foreground">
+          Advanced Analytics
+        </h2>
         <p className="text-muted-foreground mt-1">
           Deep insights into procurement performance and trends
         </p>
@@ -593,35 +674,58 @@ const ProcurementDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Approval Trends</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            Approval Trends
+          </h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Approval Rate</span>
+              <span className="text-sm text-muted-foreground">
+                Approval Rate
+              </span>
               <span className="text-sm font-medium text-foreground">85%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+              <div
+                className="bg-green-500 h-2 rounded-full"
+                style={{ width: "85%" }}
+              ></div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Average Processing Time</span>
-              <span className="text-sm font-medium text-foreground">2.3 days</span>
+              <span className="text-sm text-muted-foreground">
+                Average Processing Time
+              </span>
+              <span className="text-sm font-medium text-foreground">
+                2.3 days
+              </span>
             </div>
           </div>
         </div>
 
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Cost Analysis</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            Cost Analysis
+          </h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Total Procurement Value</span>
-              <span className="text-sm font-medium text-foreground">{formatCurrency(totalValue)}</span>
+              <span className="text-sm text-muted-foreground">
+                Total Procurement Value
+              </span>
+              <span className="text-sm font-medium text-foreground">
+                {formatCurrency(totalValue)}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Cost Savings</span>
-              <span className="text-sm font-medium text-green-600">{formatCurrency(costSavings)}</span>
+              <span className="text-sm text-muted-foreground">
+                Cost Savings
+              </span>
+              <span className="text-sm font-medium text-green-600">
+                {formatCurrency(costSavings)}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Savings Rate</span>
+              <span className="text-sm text-muted-foreground">
+                Savings Rate
+              </span>
               <span className="text-sm font-medium text-foreground">12.5%</span>
             </div>
           </div>
@@ -629,20 +733,28 @@ const ProcurementDashboard = () => {
       </div>
 
       <div className="bg-card border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Category Performance</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">
+          Category Performance
+        </h3>
         <div className="space-y-3">
-          {['Machinery', 'Electronics', 'Safety Equipment', 'Office Supplies', 'Raw Materials'].map((category, index) => (
+          {[
+            "Machinery",
+            "Electronics",
+            "Safety Equipment",
+            "Office Supplies",
+            "Raw Materials",
+          ].map((category, index) => (
             <div key={category} className="flex items-center justify-between">
               <span className="text-sm text-foreground">{category}</span>
               <div className="flex items-center space-x-2">
                 <div className="w-24 bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full" 
-                    style={{ width: `${70 + (index * 5)}%` }}
+                  <div
+                    className="bg-blue-500 h-2 rounded-full"
+                    style={{ width: `${70 + index * 5}%` }}
                   ></div>
                 </div>
                 <span className="text-sm text-muted-foreground w-12 text-right">
-                  {70 + (index * 5)}%
+                  {70 + index * 5}%
                 </span>
               </div>
             </div>
@@ -655,7 +767,9 @@ const ProcurementDashboard = () => {
   const renderReportsTab = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-foreground">Reports & Exports</h2>
+        <h2 className="text-xl font-semibold text-foreground">
+          Reports & Exports
+        </h2>
         <p className="text-muted-foreground mt-1">
           Generate comprehensive reports and export data
         </p>
@@ -665,9 +779,13 @@ const ProcurementDashboard = () => {
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <Icon name="FileText" size={24} className="text-blue-600" />
-            <Button variant="ghost" size="sm">Generate</Button>
+            <Button variant="ghost" size="sm">
+              Generate
+            </Button>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Monthly Procurement Report</h3>
+          <h3 className="font-semibold text-foreground mb-2">
+            Monthly Procurement Report
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
             Comprehensive overview of all procurement activities
           </p>
@@ -679,9 +797,13 @@ const ProcurementDashboard = () => {
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <Icon name="TrendingUp" size={24} className="text-green-600" />
-            <Button variant="ghost" size="sm">Generate</Button>
+            <Button variant="ghost" size="sm">
+              Generate
+            </Button>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Cost Savings Analysis</h3>
+          <h3 className="font-semibold text-foreground mb-2">
+            Cost Savings Analysis
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
             Detailed breakdown of cost savings and optimization
           </p>
@@ -693,9 +815,13 @@ const ProcurementDashboard = () => {
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <Icon name="Users" size={24} className="text-purple-600" />
-            <Button variant="ghost" size="sm">Generate</Button>
+            <Button variant="ghost" size="sm">
+              Generate
+            </Button>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">User Activity Report</h3>
+          <h3 className="font-semibold text-foreground mb-2">
+            User Activity Report
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
             User engagement and quotation submission statistics
           </p>
@@ -707,9 +833,13 @@ const ProcurementDashboard = () => {
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <Icon name="Clock" size={24} className="text-orange-600" />
-            <Button variant="ghost" size="sm">Generate</Button>
+            <Button variant="ghost" size="sm">
+              Generate
+            </Button>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Turnaround Time Report</h3>
+          <h3 className="font-semibold text-foreground mb-2">
+            Turnaround Time Report
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
             Processing times and efficiency metrics
           </p>
@@ -721,9 +851,13 @@ const ProcurementDashboard = () => {
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <Icon name="Shield" size={24} className="text-red-600" />
-            <Button variant="ghost" size="sm">Generate</Button>
+            <Button variant="ghost" size="sm">
+              Generate
+            </Button>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Approval Workflow Report</h3>
+          <h3 className="font-semibold text-foreground mb-2">
+            Approval Workflow Report
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
             Approval patterns and decision analytics
           </p>
@@ -735,9 +869,13 @@ const ProcurementDashboard = () => {
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <Icon name="BarChart3" size={24} className="text-indigo-600" />
-            <Button variant="ghost" size="sm">Generate</Button>
+            <Button variant="ghost" size="sm">
+              Generate
+            </Button>
           </div>
-          <h3 className="font-semibold text-foreground mb-2">Custom Analytics Report</h3>
+          <h3 className="font-semibold text-foreground mb-2">
+            Custom Analytics Report
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
             Customizable reports based on your criteria
           </p>
@@ -751,7 +889,7 @@ const ProcurementDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopNavigationBar 
+      <TopNavigationBar
         user={currentUser}
         notifications={notifications}
         onLogout={handleLogout}
@@ -764,23 +902,26 @@ const ProcurementDashboard = () => {
           {/* Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Admin Dashboard
+              </h1>
               <p className="text-muted-foreground">
-                Comprehensive procurement management and analytics for administrators
+                Comprehensive procurement management and analytics for
+                administrators
               </p>
             </div>
             <div className="flex items-center space-x-3 mt-4 lg:mt-0">
               <Button
                 variant="outline"
                 iconName="Shield"
-                onClick={() => navigate('/admin-approval-screen')}
+                onClick={() => navigate("/admin-approval-screen")}
               >
                 Admin Approval
               </Button>
               <Button
                 variant="default"
                 iconName="Plus"
-                onClick={() => navigate('/quotation-comparison-table')}
+                onClick={() => navigate("/quotation-comparison-table")}
               >
                 View Quotations
               </Button>
@@ -809,10 +950,10 @@ const ProcurementDashboard = () => {
           </div>
 
           {/* Tab Content */}
-          {activeTab === 'overview' && renderOverviewTab()}
-          {activeTab === 'users' && renderUserManagementTab()}
-          {activeTab === 'analytics' && renderAnalyticsTab()}
-          {activeTab === 'reports' && renderReportsTab()}
+          {activeTab === "overview" && renderOverviewTab()}
+          {activeTab === "users" && renderUserManagementTab()}
+          {activeTab === "analytics" && renderAnalyticsTab()}
+          {activeTab === "reports" && renderReportsTab()}
         </div>
       </div>
     </div>

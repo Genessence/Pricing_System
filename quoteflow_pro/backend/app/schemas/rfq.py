@@ -129,6 +129,7 @@ class RFQList(BaseModel):
     id: int
     rfq_number: str
     title: str
+    description: Optional[str] = None
     commodity_type: CommodityType
     status: RFQStatus
     total_value: float

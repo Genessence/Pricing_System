@@ -235,13 +235,115 @@ const AdminQuotationComparisonTable = ({
         ))}
       </tbody>
 
-      {/* Footer Row */}
+      {/* Footer Rows */}
       <tfoot className="bg-muted/20 border-t border-border">
-        <tr>
-                     <td colSpan={8} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
-             <div className="text-xs font-semibold text-foreground">Total Amount</div>
-           </td>
-          
+        {/* Transportation/Freight Row */}
+        <tr className="bg-muted/30 font-medium">
+          <td colSpan={7} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs text-foreground">Transportation/Freight</div>
+          </td>
+          {quotes?.map((quote, index) => (
+            <td key={index} className="p-2 text-center border-r border-border min-w-48">
+              <div className="text-xs text-foreground">
+                {quote?.footer?.transportation_freight || "-"}
+              </div>
+            </td>
+          ))}
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs text-foreground">-</div>
+          </td>
+        </tr>
+
+        {/* Packing Charges Row */}
+        <tr className="bg-muted/20 font-medium">
+          <td colSpan={7} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs text-foreground">Packing Charges</div>
+          </td>
+          {quotes?.map((quote, index) => (
+            <td key={index} className="p-2 text-center border-r border-border min-w-48">
+              <div className="text-xs text-foreground">
+                {quote?.footer?.packing_charges || "-"}
+              </div>
+            </td>
+          ))}
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs text-foreground">-</div>
+          </td>
+        </tr>
+
+        {/* Delivery Lead Time Row */}
+        <tr className="bg-muted/30 font-medium">
+          <td colSpan={7} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs text-foreground">Delivery Lead Time</div>
+          </td>
+          {quotes?.map((quote, index) => (
+            <td key={index} className="p-2 text-center border-r border-border min-w-48">
+              <div className="text-xs text-foreground">
+                {quote?.footer?.delivery_lead_time || "-"}
+              </div>
+            </td>
+          ))}
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs text-foreground">-</div>
+          </td>
+        </tr>
+
+        {/* Warranty Row */}
+        <tr className="bg-muted/20 font-medium">
+          <td colSpan={7} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs text-foreground">Warranty</div>
+          </td>
+          {quotes?.map((quote, index) => (
+            <td key={index} className="p-2 text-center border-r border-border min-w-48">
+              <div className="text-xs text-foreground">
+                {quote?.footer?.warranty || "-"}
+              </div>
+            </td>
+          ))}
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs text-foreground">-</div>
+          </td>
+        </tr>
+
+        {/* Currency Row */}
+        <tr className="bg-muted/30 font-medium">
+          <td colSpan={7} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs text-foreground">Currency</div>
+          </td>
+          {quotes?.map((quote, index) => (
+            <td key={index} className="p-2 text-center border-r border-border min-w-48">
+              <div className="text-xs text-foreground">
+                {quote?.footer?.currency || "-"}
+              </div>
+            </td>
+          ))}
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs text-foreground">-</div>
+          </td>
+        </tr>
+
+        {/* Remarks of Quotation Row */}
+        <tr className="bg-muted/20 font-medium">
+          <td colSpan={7} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs text-foreground">Remarks of Quotation</div>
+          </td>
+          {quotes?.map((quote, index) => (
+            <td key={index} className="p-2 text-center border-r border-border min-w-48">
+              <div className="text-xs text-foreground">
+                {quote?.footer?.remarks_of_quotation || "-"}
+              </div>
+            </td>
+          ))}
+          <td className="p-2 bg-muted/5 min-w-48">
+            <div className="text-xs text-foreground">-</div>
+          </td>
+        </tr>
+
+        {/* Total Amount Row */}
+        <tr className="bg-primary/5 font-bold">
+          <td colSpan={7} className="p-2 bg-card sticky left-0 z-10 border-r border-border">
+            <div className="text-xs text-foreground">Total Amount</div>
+          </td>
           {quotes?.map((quote, quoteIndex) => {
             const totalAmount = items?.reduce((total, item) => {
               const itemQuote = quote?.items?.find(qi => qi?.itemId === item?.id);
@@ -249,14 +351,13 @@ const AdminQuotationComparisonTable = ({
               return total + (rate * item?.quantity);
             }, 0);
             return (
-              <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
+              <td key={quoteIndex} className="p-2 text-center border-r border-border min-w-48">
                 <div className="text-xs font-semibold text-primary">
                   ₹{totalAmount?.toLocaleString()}
                 </div>
               </td>
             );
           })}
-          
           <td className="p-2 bg-muted/5 min-w-48">
             <div className="text-xs font-semibold text-green-600">
               ₹{items?.reduce((total, item) => {

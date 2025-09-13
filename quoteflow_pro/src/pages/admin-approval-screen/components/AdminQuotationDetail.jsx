@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
 import TopNavigationBar from "../../../components/ui/TopNavigationBar";
 import BreadcrumbTrail from "../../../components/ui/BreadcrumbTrail";
 import Button from "../../../components/ui/Button";
@@ -8,11 +9,15 @@ import RejectModal from "./RejectModal";
 import StatusIndicator from "./StatusIndicator";
 import AdminQuotationComparisonTable from "./AdminQuotationComparisonTable";
 import AppIcon from "../../../components/AppIcon";
+import apiService from "../../../services/api";
 
 const AdminQuotationDetail = () => {
   const navigate = useNavigate();
   const { quotationId } = useParams();
+  const { user } = useAuth();
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [quotation, setQuotation] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Add admin approval state
   const [adminApproval, setAdminApproval] = useState({
@@ -21,15 +26,29 @@ const AdminQuotationDetail = () => {
     transport: {},
   });
 
-  // Mock user data
-  const currentUser = {
-    id: 1,
-    name: "Admin User",
-    email: "admin@company.com",
-    role: "Administrator",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-  };
+  // Use authenticated user data
+  const currentUser = user;
+
+  // Load RFQ data from API
+  useEffect(() => {
+    const loadQuotation = async () => {
+      try {
+        console.log("Loading quotation with ID:", quotationId);
+        const quotationData = await apiService.getRFQ(quotationId);
+        console.log("Found quotation data:", quotationData);
+        setQuotation(quotationData);
+      } catch (error) {
+        console.error("Error loading quotation:", error);
+        // Quotation not found or error occurred
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (quotationId) {
+      loadQuotation();
+    }
+  }, [quotationId]);
 
   // Mock notifications
   const notifications = [
@@ -43,157 +62,12 @@ const AdminQuotationDetail = () => {
     },
   ];
 
-  // Get quotation data from localStorage or use mock data as fallback
-  const submittedQuotations = JSON.parse(
-    localStorage.getItem("submittedQuotations") || "[]"
-  );
-  const quotationData = submittedQuotations.find((q) => q.id === quotationId);
-
-  // Mock quotation data - fallback if not found in localStorage
-  const mockQuotationData = quotationData || {
-    id: quotationId || "RFQ-2024-007",
-    title: "Industrial Equipment Procurement - Manufacturing Line Upgrade",
-    description:
-      "Comprehensive procurement request for upgrading manufacturing line including machinery, safety equipment, and electronic components",
-    requestedBy: "Sarah Johnson",
-    plant: "Plant A - Manufacturing",
-    submittedDate: "08/20/2024",
-    deadline: "09/15/2024",
-    deliveryLocation: "Manufacturing Facility - Building A, Floor 3",
-    specialRequirements:
-      "ISO 9001 certified suppliers required, 2-year warranty mandatory",
-    status: "Pending Approval",
-    submissionTime: "2024-08-22 14:30:00",
-    commodityType:
-      quotationData?.commodityTypeRaw ||
-      (quotationId?.includes("RFQ-2024-008")
-        ? "Service"
-        : quotationId?.includes("RFQ-2024-009")
-        ? "Transport"
-        : "Provided Data"),
-    commodityTypeRaw:
-      quotationData?.commodityTypeRaw ||
-      (quotationId?.includes("RFQ-2024-008")
-        ? "service"
-        : quotationId?.includes("RFQ-2024-009")
-        ? "transport"
-        : "provided_data"),
-    items: [
-      {
-        id: 1,
-        description: "Industrial CNC Machine - 5-axis",
-        specifications:
-          "Working envelope: 1000x800x600mm, Spindle speed: 12000 RPM",
-        quantity: 2,
-        unitOfMeasure: "Units",
-        lastBuyingPrice: 150000,
-        lastVendor: "Tech Solutions Inc.",
-      },
-      {
-        id: 2,
-        description: "Safety Equipment Bundle",
-        specifications:
-          "Hard hats, safety vests, protective goggles, steel-toe boots",
-        quantity: 50,
-        unitOfMeasure: "Sets",
-        lastBuyingPrice: 7500,
-        lastVendor: "Global Safety Corp.",
-      },
-      {
-        id: 3,
-        description: "Electronic Control Systems",
-        specifications: "PLC controllers, HMI panels, sensor arrays",
-        quantity: 10,
-        unitOfMeasure: "Units",
-        lastBuyingPrice: 25000,
-        lastVendor: "TechFlow Manufacturing",
-      },
-    ],
-    suppliers: [
-      {
-        id: 1,
-        name: "ACME Industrial Solutions",
-        contact: "john.smith@acme-industrial.com",
-        rating: 4.8,
-        items: [
-          {
-            itemId: 1,
-            unitPrice: 72000,
-            totalPrice: 144000,
-            deliveryTime: "8-10 weeks",
-            warranty: "3 years",
-            notes: "Premium quality, extended warranty included",
-          },
-          {
-            itemId: 2,
-            unitPrice: 145,
-            totalPrice: 7250,
-            deliveryTime: "2-3 weeks",
-            warranty: "1 year",
-            notes: "CE certified, bulk discount applied",
-          },
-        ],
-        totalQuote: 151250,
-        attachments: ["technical_specs.pdf", "warranty_terms.pdf"],
-      },
-      {
-        id: 2,
-        name: "TechFlow Manufacturing",
-        contact: "sarah.jones@techflow.com",
-        rating: 4.6,
-        items: [
-          {
-            itemId: 1,
-            unitPrice: 68000,
-            totalPrice: 136000,
-            deliveryTime: "6-8 weeks",
-            warranty: "2 years",
-            notes: "Standard warranty, installation included",
-          },
-          {
-            itemId: 3,
-            unitPrice: 2400,
-            totalPrice: 24000,
-            deliveryTime: "4-5 weeks",
-            warranty: "2 years",
-            notes: "Latest generation controllers",
-          },
-        ],
-        totalQuote: 160000,
-        attachments: ["product_catalog.pdf", "installation_guide.pdf"],
-      },
-      {
-        id: 3,
-        name: "Global Safety Corp",
-        contact: "mike.wilson@globalsafety.com",
-        rating: 4.9,
-        items: [
-          {
-            itemId: 2,
-            unitPrice: 140,
-            totalPrice: 7000,
-            deliveryTime: "1-2 weeks",
-            warranty: "1 year",
-            notes: "Premium safety equipment, ISO certified",
-          },
-          {
-            itemId: 3,
-            unitPrice: 2600,
-            totalPrice: 26000,
-            deliveryTime: "3-4 weeks",
-            warranty: "3 years",
-            notes: "Extended support package included",
-          },
-        ],
-        totalQuote: 33000,
-        attachments: ["safety_certificates.pdf", "compliance_docs.pdf"],
-      },
-    ],
-  };
+  // Use real quotation data from API
+  const quotationData = quotation;
 
   const handleApprove = () => {
     // Handle approval logic
-    console.log("Quotation approved:", mockQuotationData?.id);
+    console.log("Quotation approved:", quotationData?.id);
     alert("Quotation has been approved successfully!");
     navigate("/admin-approval-screen");
   };
@@ -205,7 +79,7 @@ const AdminQuotationDetail = () => {
   const handleRejectConfirm = (rejectionReason) => {
     console.log(
       "Quotation rejected:",
-      mockQuotationData?.id,
+      quotationData?.id,
       "Reason:",
       rejectionReason
     );
@@ -219,22 +93,22 @@ const AdminQuotationDetail = () => {
   };
 
   const totalEstimatedValue =
-    mockQuotationData?.suppliers?.reduce(
+    quotationData?.suppliers?.reduce(
       (sum, supplier) => sum + supplier?.totalQuote,
       0
     ) || 0;
   const lowestQuote = Math.min(
-    ...(mockQuotationData?.suppliers?.map((s) => s?.totalQuote) || [0])
+    ...(quotationData?.suppliers?.map((s) => s?.totalQuote) || [0])
   );
   const highestQuote = Math.max(
-    ...(mockQuotationData?.suppliers?.map((s) => s?.totalQuote) || [0])
+    ...(quotationData?.suppliers?.map((s) => s?.totalQuote) || [0])
   );
   const averageQuote =
-    totalEstimatedValue / (mockQuotationData?.suppliers?.length || 1);
+    totalEstimatedValue / (quotationData?.suppliers?.length || 1);
 
   // Transform quotation data for the comparison table format
   const transformedSuppliers =
-    mockQuotationData?.suppliers?.map((supplier, index) => ({
+    quotationData?.suppliers?.map((supplier, index) => ({
       id: supplier?.id || `supplier-${index}`,
       name: supplier?.name || `Supplier ${index + 1}`,
       contact: supplier?.contact || `contact@supplier${index + 1}.com`,
@@ -242,8 +116,10 @@ const AdminQuotationDetail = () => {
     })) || [];
 
   const transformedQuotes =
-    mockQuotationData?.suppliers?.map((supplier) => ({
+    quotationData?.suppliers?.map((supplier) => ({
       id: supplier?.id,
+      name: supplier?.name,
+      contact: supplier?.contact,
       items: supplier?.items || [],
       rates:
         supplier?.items?.reduce((acc, item) => {
@@ -251,20 +127,19 @@ const AdminQuotationDetail = () => {
           return acc;
         }, {}) || {},
       footer: {
-        transportation_freight: "Included in quote",
-        packing_charges: "Extra as applicable",
-        delivery_lead_time:
-          supplier?.items?.[0]?.deliveryTime || "As per agreement",
-        warranty: supplier?.items?.[0]?.warranty || "Standard warranty",
-        currency: "INR",
-        remarks_of_quotation: "All terms as per RFQ",
+        transportation_freight: supplier?.transportationFreight || "Included in quote",
+        packing_charges: supplier?.packagingCharges || "Extra as applicable",
+        delivery_lead_time: supplier?.deliveryLeadTime || "As per agreement",
+        warranty: supplier?.warranty || "Standard warranty",
+        currency: supplier?.currency || "INR",
+        remarks_of_quotation: supplier?.termsConditions || "All terms as per RFQ",
       },
     })) || [];
 
   // Add handlers for admin approval fields
   const handleFinalSupplierChange = (itemId, field, value) => {
     const commodityType =
-      mockQuotationData?.commodityTypeRaw || "provided_data";
+      quotationData?.commodityTypeRaw || "provided_data";
     console.log("handleFinalSupplierChange called:", {
       itemId,
       field,
@@ -285,7 +160,7 @@ const AdminQuotationDetail = () => {
 
   const handleFinalPriceChange = (itemId, value) => {
     const commodityType =
-      mockQuotationData?.commodityTypeRaw || "provided_data";
+      quotationData?.commodityTypeRaw || "provided_data";
     console.log("handleFinalPriceChange called:", {
       itemId,
       value,
@@ -311,11 +186,66 @@ const AdminQuotationDetail = () => {
   // Calculate sum amount based on quantity and final price
   const calculateSumAmount = (itemId, quantity) => {
     const commodityType =
-      mockQuotationData?.commodityTypeRaw || "provided_data";
+      quotationData?.commodityTypeRaw || "provided_data";
     const finalPrice =
       adminApproval?.[commodityType]?.[itemId]?.finalPrice || 0;
     return (parseFloat(finalPrice) * quantity)?.toFixed(2);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNavigationBar user={currentUser} />
+        <div className="flex items-center justify-center h-screen">
+          <div className="flex items-center space-x-2">
+            <AppIcon
+              name="Loader"
+              size={24}
+              className="animate-spin text-primary"
+            />
+            <span className="text-muted-foreground">
+              Loading quotation details...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state - quotation not found
+  if (!quotation) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNavigationBar user={currentUser} />
+        <div className="pt-20">
+          <div className="container mx-auto px-6 py-8">
+            <div className="text-center">
+              <AppIcon
+                name="AlertCircle"
+                size={48}
+                className="mx-auto text-red-500 mb-4"
+              />
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                Quotation Not Found
+              </h1>
+              <p className="text-muted-foreground mb-6">
+                The quotation you're looking for doesn't exist or has been
+                removed.
+              </p>
+              <button
+                onClick={() => navigate("/admin-approval-screen")}
+                className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                <AppIcon name="ArrowLeft" size={16} className="mr-2" />
+                Back to Approval Screen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -374,15 +304,15 @@ const AdminQuotationDetail = () => {
           {/* Status Indicator */}
           <div className="px-6 mb-6">
             <StatusIndicator
-              status={mockQuotationData?.status}
-              submissionTime={mockQuotationData?.submissionTime}
+              status={quotationData?.status}
+              submissionTime={quotationData?.submissionTime}
             />
           </div>
 
           {/* Attached Documents Section */}
-          {(mockQuotationData?.attachments?.boqFile ||
-            mockQuotationData?.attachments?.drawingFile ||
-            mockQuotationData?.attachments?.quoteFiles) && (
+          {(quotationData?.attachments?.boqFile ||
+            quotationData?.attachments?.drawingFile ||
+            quotationData?.attachments?.quoteFiles) && (
             <div className="px-6 mb-6">
               <div className="bg-card border border-border rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-foreground mb-4">
@@ -390,9 +320,9 @@ const AdminQuotationDetail = () => {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Service Documents */}
-                  {mockQuotationData?.commodityType === "Service" && (
+                  {quotationData?.commodityType === "Service" && (
                     <>
-                      {mockQuotationData?.attachments?.boqFile && (
+                      {quotationData?.attachments?.boqFile && (
                         <div className="p-4 border border-border rounded-lg">
                           <div className="flex items-center space-x-2 mb-2">
                             <AppIcon
@@ -405,11 +335,11 @@ const AdminQuotationDetail = () => {
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {mockQuotationData.attachments.boqFile.name}
+                            {quotationData.attachments.boqFile.name}
                           </p>
                         </div>
                       )}
-                      {mockQuotationData?.attachments?.drawingFile && (
+                      {quotationData?.attachments?.drawingFile && (
                         <div className="p-4 border border-border rounded-lg">
                           <div className="flex items-center space-x-2 mb-2">
                             <AppIcon
@@ -422,7 +352,7 @@ const AdminQuotationDetail = () => {
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {mockQuotationData.attachments.drawingFile.name}
+                            {quotationData.attachments.drawingFile.name}
                           </p>
                         </div>
                       )}
@@ -430,8 +360,8 @@ const AdminQuotationDetail = () => {
                   )}
 
                   {/* Quote Files */}
-                  {mockQuotationData?.attachments?.quoteFiles &&
-                    Object.keys(mockQuotationData.attachments.quoteFiles)
+                  {quotationData?.attachments?.quoteFiles &&
+                    Object.keys(quotationData.attachments.quoteFiles)
                       .length > 0 && (
                       <div className="p-4 border border-border rounded-lg">
                         <div className="flex items-center space-x-2 mb-2">
@@ -446,7 +376,7 @@ const AdminQuotationDetail = () => {
                         </div>
                         <div className="space-y-1">
                           {Object.entries(
-                            mockQuotationData.attachments.quoteFiles
+                            quotationData.attachments.quoteFiles
                           ).map(([index, file]) => (
                             <p
                               key={index}
@@ -475,9 +405,9 @@ const AdminQuotationDetail = () => {
             </div>
             <AdminQuotationComparisonTable
               suppliers={transformedSuppliers}
-              items={mockQuotationData?.items}
+              items={quotationData?.items}
               quotes={transformedQuotes}
-              commodityType={mockQuotationData?.commodityType}
+              commodityType={quotationData?.commodityType}
               adminApproval={adminApproval}
               onFinalSupplierChange={handleFinalSupplierChange}
               onFinalPriceChange={handleFinalPriceChange}
@@ -536,7 +466,7 @@ const AdminQuotationDetail = () => {
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
         onConfirm={handleRejectConfirm}
-        quotationId={mockQuotationData?.id}
+        quotationId={quotationData?.id}
       />
     </div>
   );

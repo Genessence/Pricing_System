@@ -113,7 +113,7 @@ const AdminQuotationComparisonTable = ({
                   <span className="text-xs font-semibold text-foreground">Quote {index + 1}</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {getSupplierName(quote?.supplierId)}
+                  {quote?.name}
                 </div>
               </div>
             </th>
@@ -138,7 +138,7 @@ const AdminQuotationComparisonTable = ({
           <tr key={item?.id || itemIndex} className="border-b border-border hover:bg-muted/50">
                          {/* Fixed Left Columns */}
              <td className="p-2 bg-card sticky left-0 z-10 border-r border-border min-w-36">
-               <div className="text-xs font-medium text-foreground">123</div>
+               <div className="text-xs font-medium text-foreground">{item?.item_code}</div>
              </td>
              
              <td className="p-2 bg-card sticky left-36 z-10 border-r border-border min-w-36">
@@ -158,11 +158,13 @@ const AdminQuotationComparisonTable = ({
              </td>
              
              <td className="p-2 bg-card sticky left-240 z-10 border-r border-border min-w-32">
-                               <div className="text-xs font-medium text-foreground">₹{item?.lastBuyingPrice?.toLocaleString()}</div>
+               <div className="text-xs font-medium text-foreground">
+                 {item?.lastBuyingPrice ? `₹${item?.lastBuyingPrice?.toLocaleString()}` : 'N/A'}
+               </div>
              </td>
              
              <td className="p-2 bg-card sticky left-272 z-10 border-r border-border min-w-48">
-               <div className="text-xs text-muted-foreground">{item?.lastVendor}</div>
+               <div className="text-xs text-muted-foreground">{item?.lastVendor || 'N/A'}</div>
              </td>
 
             {/* Dynamic Quote Columns */}
@@ -349,21 +351,23 @@ const AdminQuotationComparisonTable = ({
             </td>
             
             <td className="p-2 bg-card sticky left-68 z-10 border-r border-border min-w-16">
-              <div className="text-xs text-foreground">{item?.uom || 'N/A'}</div>
+              <div className="text-xs text-foreground">{item?.unitOfMeasure || 'N/A'}</div>
             </td>
             
             <td className="p-2 bg-card sticky left-84 z-10 border-r border-border min-w-16">
-              <div className="text-xs text-foreground">{item?.requiredQuantity || '0'}</div>
+              <div className="text-xs text-foreground">{item?.quantity || '0'}</div>
             </td>
             
             <td className="p-2 bg-card sticky left-100 z-10 border-r border-border min-w-20">
-              <div className="text-xs text-foreground">₹{item?.rate || '0'}</div>
+              <div className="text-xs text-foreground">
+                {item?.lastBuyingPrice ? `₹${item?.lastBuyingPrice}` : 'N/A'}
+              </div>
             </td>
 
             {/* Dynamic Quote Columns */}
             {quotes?.map((quote, quoteIndex) => {
               const itemRate = quote?.rates?.[item?.id] || 0;
-              const amount = calculateAmount(itemRate, item?.requiredQuantity || 0);
+              const amount = calculateAmount(itemRate, item?.quantity || 0);
               return (
                 <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
                   <div className="space-y-1">
@@ -424,7 +428,7 @@ const AdminQuotationComparisonTable = ({
           {quotes?.map((quote, quoteIndex) => {
             const totalAmount = items?.reduce((total, item) => {
               const rate = quote?.rates?.[item?.id] || 0;
-              const quantity = item?.requiredQuantity || 0;
+              const quantity = item?.quantity || 0;
               return total + (rate * quantity);
             }, 0);
             return (
@@ -525,33 +529,33 @@ const AdminQuotationComparisonTable = ({
           <tr key={item?.id} className="hover:bg-muted/10">
             {/* Fixed Left Columns */}
             <td className="p-2 bg-card sticky left-0 z-10 border-r border-border min-w-32">
-              <div className="text-xs text-foreground">{item?.from || 'N/A'}</div>
+              <div className="text-xs text-foreground">{item?.transportDetails?.fromLocation || 'N/A'}</div>
             </td>
             
             <td className="p-2 bg-card sticky left-32 z-10 border-r border-border min-w-32">
-              <div className="text-xs text-foreground">{item?.to || 'N/A'}</div>
+              <div className="text-xs text-foreground">{item?.transportDetails?.toLocation || 'N/A'}</div>
             </td>
             
             <td className="p-2 bg-card sticky left-64 z-10 border-r border-border min-w-24">
-              <div className="text-xs text-foreground">{item?.vehicleSize || 'N/A'}</div>
+              <div className="text-xs text-foreground">{item?.transportDetails?.vehicleSize || 'N/A'}</div>
             </td>
             
             <td className="p-2 bg-card sticky left-88 z-10 border-r border-border min-w-24">
-              <div className="text-xs text-foreground">{item?.load || 'N/A'}</div>
+              <div className="text-xs text-foreground">{item?.transportDetails?.load || 'N/A'}</div>
             </td>
             
             <td className="p-2 bg-card sticky left-112 z-10 border-r border-border min-w-28">
-              <div className="text-xs text-foreground">{item?.dimensions || 'N/A'}</div>
+              <div className="text-xs text-foreground">{item?.transportDetails?.dimensions || 'N/A'}</div>
             </td>
             
             <td className="p-2 bg-card sticky left-140 z-10 border-r border-border min-w-20">
-              <div className="text-xs text-foreground">{item?.frequency || '0'}</div>
+              <div className="text-xs text-foreground">{item?.transportDetails?.frequency || '0'}</div>
             </td>
 
             {/* Dynamic Quote Columns */}
             {quotes?.map((quote, quoteIndex) => {
               const itemRate = quote?.rates?.[item?.id] || 0;
-              const frequency = item?.frequency || 1;
+              const frequency = item?.transportDetails?.frequency || 1;
               const amount = calculateAmount(itemRate, frequency);
               return (
                 <td key={quoteIndex} className="p-2 border-r border-border min-w-48">
@@ -613,7 +617,7 @@ const AdminQuotationComparisonTable = ({
           {quotes?.map((quote, quoteIndex) => {
             const totalAmount = items?.reduce((total, item) => {
               const rate = quote?.rates?.[item?.id] || 0;
-              const frequency = item?.frequency || 1;
+              const frequency = item?.transportDetails?.frequency || 1;
               return total + (rate * frequency);
             }, 0);
             return (

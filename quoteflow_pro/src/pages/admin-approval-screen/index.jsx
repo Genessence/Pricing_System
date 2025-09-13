@@ -467,7 +467,7 @@ const AdminApprovalScreen = () => {
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-border">
-                   {filteredQuotations.map((quotation) => (
+                   {filteredQuotations.reverse().map((quotation) => (
                      <tr key={quotation.id} className="hover:bg-muted/50 transition-colors duration-200">
                        <td className="px-6 py-5">
                          <div>

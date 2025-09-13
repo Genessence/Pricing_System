@@ -208,7 +208,7 @@ const ProcurementDashboard = () => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedRFQs = filteredRFQs.slice(startIndex, endIndex);
+  const paginatedRFQs = filteredRFQs.reverse().slice(startIndex, endIndex);
 
   // Reset to first page when filters change
   React.useEffect(() => {

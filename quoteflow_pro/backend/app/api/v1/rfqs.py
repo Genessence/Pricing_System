@@ -810,20 +810,3 @@ def update_final_decision(
     return final_decision
 
 
-# Add validation error handler
-@router.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    print(f"=== VALIDATION ERROR DEBUG ===")
-    print(f"Request URL: {request.url}")
-    print(f"Request method: {request.method}")
-    print(f"Validation errors: {exc.errors()}")
-    print(f"Request body: {await request.body()}")
-    print(f"=== END VALIDATION ERROR DEBUG ===")
-    
-    return JSONResponse(
-        status_code=422,
-        content={
-            "detail": "Validation error",
-            "errors": exc.errors()
-        }
-    )

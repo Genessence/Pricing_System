@@ -15,12 +15,20 @@ const UserDashboard = () => {
   const [userQuotations, setUserQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Load user quotations from backend
-  const loadUserQuotations = async () => {
+  const loadUserQuotations = async (resetPage = false) => {
     try {
       const rfqs = await apiService.getRFQs();
       setUserQuotations(rfqs);
+      // Only reset to first page when explicitly requested
+      if (resetPage) {
+        setCurrentPage(1);
+      }
     } catch (error) {
       console.error('Error loading RFQs:', error);
       setUserQuotations([]);
@@ -30,9 +38,46 @@ const UserDashboard = () => {
     }
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(userQuotations.length / itemsPerPage);
+  
+  // Ensure current page doesn't exceed total pages
+  const safeCurrentPage = Math.min(currentPage, Math.max(1, totalPages));
+  if (safeCurrentPage !== currentPage) {
+    setCurrentPage(safeCurrentPage);
+  }
+  
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  
+  // Get current page data (reversed for newest first)
+  const currentPageData = userQuotations
+    .slice()
+    .reverse()
+    .slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top of table
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePreviousPage = () => {
+    if (safeCurrentPage > 1) {
+      handlePageChange(safeCurrentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (safeCurrentPage < totalPages) {
+      handlePageChange(safeCurrentPage + 1);
+    }
+  };
+
   const handleRefresh = () => {
     setRefreshing(true);
-    loadUserQuotations();
+    loadUserQuotations(false); // Don't reset page on manual refresh
   };
 
   const handleClearData = async () => {
@@ -59,13 +104,13 @@ const UserDashboard = () => {
         setUserQuotations([]);
         
         // Refresh data from backend to get current state
-        await loadUserQuotations();
+        await loadUserQuotations(true); // Reset page after clearing data
         
         console.log('✅ Test data cleared successfully');
       } catch (error) {
         console.error('❌ Error clearing test data:', error);
         // Still refresh from backend
-        await loadUserQuotations();
+        await loadUserQuotations(true); // Reset page after error
       } finally {
         setLoading(false);
       }
@@ -78,10 +123,10 @@ const UserDashboard = () => {
   };
 
   useEffect(() => {
-    loadUserQuotations();
+    loadUserQuotations(true); // Reset page on initial load
     
     // Refresh data every 5 seconds to catch new submissions
-    const interval = setInterval(loadUserQuotations, 5000);
+    const interval = setInterval(() => loadUserQuotations(false), 5000);
     
     return () => clearInterval(interval);
   }, []);
@@ -299,75 +344,125 @@ const UserDashboard = () => {
                 </a>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Request ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Commodity Type
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Total Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Submitted Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {userQuotations.map((quotation, index) => (
-                      <tr key={index} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                          {quotation.rfq_number || quotation.id || `RFQ-${String(index + 1).padStart(3, '0')}`}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={cn(
-                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            getCommodityTypeColor(quotation.commodity_type || quotation.commodityType)
-                          )}>
-                            {(quotation.commodity_type || quotation.commodityType) === 'provided_data' ? 'Provided Data' :
-                             (quotation.commodity_type || quotation.commodityType) === 'service' ? 'Service' :
-                             (quotation.commodity_type || quotation.commodityType) === 'transport' ? 'Transport' : (quotation.commodity_type || quotation.commodityType)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                          {formatCurrency(calculateTotalAmount(quotation))}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={cn(
-                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            getStatusColor(quotation.status)
-                          )}>
-                            {quotation.status === 'pending' ? 'Pending Review' :
-                             quotation.status === 'approved' ? 'Approved' :
-                             quotation.status === 'rejected' ? 'Rejected' : 'Draft'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {new Date(quotation.created_at || quotation.submittedAt || Date.now()).toLocaleDateString()}
-                        </td>
-                                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                           <button 
-                             onClick={() => navigate(`/user-dashboard/${quotation.id}`)}
-                             className="text-primary hover:text-primary/80 font-medium"
-                           >
-                             View Details
-                           </button>
-                         </td>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Request ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Commodity Type
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Total Amount
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Submitted Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {currentPageData.map((quotation, index) => (
+                        <tr key={index} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                            {quotation.rfq_number || quotation.id || `RFQ-${String(index + 1).padStart(3, '0')}`}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={cn(
+                              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                              getCommodityTypeColor(quotation.commodity_type || quotation.commodityType)
+                            )}>
+                              {(quotation.commodity_type || quotation.commodityType) === 'provided_data' ? 'Provided Data' :
+                               (quotation.commodity_type || quotation.commodityType) === 'service' ? 'Service' :
+                               (quotation.commodity_type || quotation.commodityType) === 'transport' ? 'Transport' : (quotation.commodity_type || quotation.commodityType)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                            {formatCurrency(calculateTotalAmount(quotation))}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={cn(
+                              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                              getStatusColor(quotation.status)
+                            )}>
+                              {quotation.status === 'pending' ? 'Pending Review' :
+                               quotation.status === 'approved' ? 'Approved' :
+                               quotation.status === 'rejected' ? 'Rejected' : 'Draft'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                            {new Date(quotation.created_at || quotation.submittedAt || Date.now()).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <button 
+                              onClick={() => navigate(`/user-dashboard/${quotation.id}`)}
+                              className="text-primary hover:text-primary/80 font-medium"
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* Pagination Controls */}
+                {userQuotations.length > itemsPerPage && (
+                  <div className="px-6 py-4 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {startIndex + 1} to {Math.min(endIndex, userQuotations.length)} of {userQuotations.length} quotations
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        {/* Previous Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          iconName="ChevronLeft"
+                          onClick={handlePreviousPage}
+                          disabled={safeCurrentPage === 1}
+                          className="h-8 w-8 p-0"
+                        />
+                        
+                        {/* Page Numbers */}
+                        <div className="flex items-center space-x-1">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <Button
+                              key={page}
+                              variant={safeCurrentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(page)}
+                              className="h-8 w-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+                        
+                        {/* Next Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          iconName="ChevronRight"
+                          onClick={handleNextPage}
+                          disabled={safeCurrentPage === totalPages}
+                          className="h-8 w-8 p-0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

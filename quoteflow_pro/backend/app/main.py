@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 import logging
 from app.core.config import settings
 from app.core.exceptions import QuoteFlowException, ResourceNotFound, PermissionDenied, ValidationError, BusinessRuleViolation
@@ -93,6 +94,22 @@ def create_application() -> FastAPI:
         return JSONResponse(
             status_code=422,
             content={"detail": str(exc)}
+        )
+    
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        print(f"=== VALIDATION ERROR DEBUG ===")
+        print(f"Request URL: {request.url}")
+        print(f"Request method: {request.method}")
+        print(f"Validation errors: {exc.errors()}")
+        print(f"=== END VALIDATION ERROR DEBUG ===")
+        
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": "Validation error",
+                "errors": exc.errors()
+            }
         )
     
     return app

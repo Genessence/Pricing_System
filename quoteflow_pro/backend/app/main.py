@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+import logging
 from app.core.config import settings
 from app.core.exceptions import QuoteFlowException, ResourceNotFound, PermissionDenied, ValidationError, BusinessRuleViolation
 from app.api.v1 import auth, users, erp_items, rfqs, sites, suppliers, quotations
@@ -16,14 +18,44 @@ def create_application() -> FastAPI:
         openapi_url="/openapi.json",
     )
     
-    # Add middleware
+    # Configure logging for CORS debugging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    
+    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=settings.CORS_CREDENTIALS,
+        allow_methods=settings.CORS_METHODS,
+        allow_headers=settings.CORS_HEADERS,
+        expose_headers=["*"],
     )
+    
+    # Add trusted host middleware for security
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.ALLOWED_HOSTS
+    )
+    
+    # Add CORS debugging middleware
+    @app.middleware("http")
+    async def cors_debug_middleware(request: Request, call_next):
+        # Log CORS-related headers
+        origin = request.headers.get("origin")
+        method = request.method
+        path = request.url.path
+        
+        logger.info(f"CORS Debug - Method: {method}, Path: {path}, Origin: {origin}")
+        
+        response = await call_next(request)
+        
+        # Log response headers
+        cors_headers = {k: v for k, v in response.headers.items() if 'access-control' in k.lower()}
+        if cors_headers:
+            logger.info(f"CORS Response Headers: {cors_headers}")
+        
+        return response
     
     # Include routers
     app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
@@ -37,30 +69,30 @@ def create_application() -> FastAPI:
     # Global exception handlers
     @app.exception_handler(ResourceNotFound)
     async def resource_not_found_handler(request, exc):
-        return HTTPException(
+        return JSONResponse(
             status_code=404,
-            detail=str(exc)
+            content={"detail": str(exc)}
         )
     
     @app.exception_handler(PermissionDenied)
     async def permission_denied_handler(request, exc):
-        return HTTPException(
+        return JSONResponse(
             status_code=403,
-            detail=str(exc)
+            content={"detail": str(exc)}
         )
     
     @app.exception_handler(ValidationError)
     async def validation_error_handler(request, exc):
-        return HTTPException(
+        return JSONResponse(
             status_code=400,
-            detail=str(exc)
+            content={"detail": str(exc)}
         )
     
     @app.exception_handler(BusinessRuleViolation)
     async def business_rule_violation_handler(request, exc):
-        return HTTPException(
+        return JSONResponse(
             status_code=422,
-            detail=str(exc)
+            content={"detail": str(exc)}
         )
     
     return app

@@ -203,6 +203,25 @@ class ApiService {
     });
   }
 
+  // Final Decision endpoints
+  async createFinalDecision(rfqId, finalDecisionData) {
+    return await this.request(`/rfqs/${rfqId}/final-decision`, {
+      method: 'POST',
+      body: JSON.stringify(finalDecisionData),
+    });
+  }
+
+  async getFinalDecision(rfqId) {
+    return await this.request(`/rfqs/${rfqId}/final-decision`);
+  }
+
+  async updateFinalDecision(rfqId, finalDecisionData) {
+    return await this.request(`/rfqs/${rfqId}/final-decision`, {
+      method: 'PUT',
+      body: JSON.stringify(finalDecisionData),
+    });
+  }
+
   // Clear test data (Admin only)
   async clearTestData() {
     return await this.request('/rfqs/clear-test-data', {

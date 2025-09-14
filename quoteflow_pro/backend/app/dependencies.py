@@ -60,6 +60,19 @@ def get_admin_user(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
     """Get current admin user."""
-    if str(current_user.role) != UserRole.ADMIN.value:  # type: ignore
+    # Debug logging
+    print(f"=== ADMIN USER DEBUG ===")
+    print(f"Current user ID: {current_user.id}")
+    print(f"Current user role: {current_user.role}")
+    print(f"Current user role type: {type(current_user.role)}")
+    print(f"Current user role str: {str(current_user.role)}")
+    print(f"UserRole.ADMIN.value: {UserRole.ADMIN.value}")
+    print(f"Role comparison: {str(current_user.role) == UserRole.ADMIN.value}")
+    print(f"Role comparison (direct): {current_user.role == UserRole.ADMIN}")
+    print(f"=== END ADMIN USER DEBUG ===")
+    
+    # Try multiple comparison methods
+    if (str(current_user.role) != UserRole.ADMIN.value and 
+        current_user.role != UserRole.ADMIN):
         raise PermissionDenied("Admin access required")
     return current_user

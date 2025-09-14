@@ -38,6 +38,7 @@ class RFQ(Base):
     quotations = relationship("Quotation", back_populates="rfq", cascade="all, delete-orphan", lazy="select")
     approvals = relationship("Approval", back_populates="rfq", cascade="all, delete-orphan", lazy="select")
     attachments = relationship("Attachment", back_populates="rfq", cascade="all, delete-orphan", lazy="select")
+    final_decisions = relationship("FinalDecision", back_populates="rfq", cascade="all, delete-orphan", lazy="select")
     
     def __repr__(self):
         return f"<RFQ(id={self.id}, title='{self.title}', status='{self.status}')>"

@@ -11,6 +11,8 @@ from .quotation import Quotation, QuotationStatus
 from .quotation_item import QuotationItem
 from .approval import Approval, ApprovalStatus, ApprovalType
 from .attachment import Attachment, AttachmentType
+from .final_decision import FinalDecision
+from .final_decision_item import FinalDecisionItem
 
 __all__ = [
     "Base",
@@ -34,4 +36,6 @@ __all__ = [
     "ApprovalType",
     "Attachment",
     "AttachmentType",
+    "FinalDecision",
+    "FinalDecisionItem",
 ]

@@ -64,7 +64,7 @@ const StatusIndicator = ({ status, submissionTime }) => {
     <div className="bg-card rounded-lg border border-border p-4 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         {/* Status Badge */}
-        <div className="flex items-center space-x-3">
+        {/* <div className="flex items-center space-x-3">
           <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full border ${statusConfig?.color}`}>
             <Icon name={statusConfig?.icon} size={16} className={statusConfig?.iconColor} />
             <span className="text-sm font-semibold">
@@ -74,7 +74,7 @@ const StatusIndicator = ({ status, submissionTime }) => {
           <div className="text-sm text-muted-foreground">
             Current approval status
           </div>
-        </div>
+        </div> */}
 
         {/* Submission Info */}
         <div className="flex items-center space-x-4 text-sm text-muted-foreground">

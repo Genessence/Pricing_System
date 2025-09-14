@@ -6,11 +6,13 @@ const AdminQuotationComparisonTable = ({
   items = [], 
   quotes = [],
   commodityType = 'Provided Data',
+  commodityTypeKey = "PROVIDED_DATA", // Passed from parent component
   adminApproval = {},
   onFinalSupplierChange,
   onFinalPriceChange,
   calculateSumAmount
 }) => {
+
   const getSupplierName = (supplierId) => {
     const supplier = suppliers?.find(s => s?.id === supplierId);
     return supplier ? supplier?.name : 'Unknown Supplier';
@@ -200,10 +202,10 @@ const AdminQuotationComparisonTable = ({
             <td className="p-2 bg-muted/5 min-w-48">
               <div className="space-y-2">
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Final Price (₹)</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Final Total Price (₹)</label>
                   <input
                     type="number"
-                    value={adminApproval?.provided_data?.[item?.id]?.finalPrice || ''}
+                    value={adminApproval?.[commodityTypeKey]?.[item?.id]?.totalPrice || ''}
                     onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
@@ -212,13 +214,15 @@ const AdminQuotationComparisonTable = ({
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Supplier</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Select Vendor</label>
                   <select
-                    value={adminApproval?.provided_data?.[item?.id]?.finalSupplier || ''}
-                    onChange={(e) => onFinalSupplierChange(item?.id, 'name', e.target.value)}
+                    value={adminApproval?.[commodityTypeKey]?.[item?.id]?.finalSupplier?.vendorName || ''}
+                    onChange={(e) => {
+                      onFinalSupplierChange(item?.id, 'vendorName', e.target.value);
+                    }}
                     className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <option value="">Select Supplier</option>
+                    <option value="">Select Vendor</option>
                     {suppliers?.map((supplier, index) => (
                       <option key={supplier?.id || index} value={supplier?.name}>
                         {supplier?.name}
@@ -487,10 +491,10 @@ const AdminQuotationComparisonTable = ({
             <td className="p-2 bg-muted/5 min-w-48">
               <div className="space-y-2">
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Final Price (₹)</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Final Total Price (₹)</label>
                   <input
                     type="number"
-                    value={adminApproval?.service?.[item?.id]?.finalPrice || ''}
+                    value={adminApproval?.[commodityTypeKey]?.[item?.id]?.totalPrice || ''}
                     onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
@@ -499,19 +503,23 @@ const AdminQuotationComparisonTable = ({
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Supplier</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Select Vendor</label>
                   <select
-                    value={adminApproval?.service?.[item?.id]?.finalSupplier || ''}
-                    onChange={(e) => onFinalSupplierChange(item?.id, 'name', e.target.value)}
+                    value={adminApproval?.[commodityTypeKey]?.[item?.id]?.finalSupplier?.vendorName || ''}
+                    onChange={(e) => {
+                      console.log("Service dropdown changed for item", item?.id, "to value:", e.target.value);
+                      onFinalSupplierChange(item?.id, 'vendorName', e.target.value);
+                    }}
                     className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <option value="">Select Supplier</option>
+                    <option value="">Select Vendor</option>
                     {suppliers?.map((supplier, index) => (
                       <option key={supplier?.id || index} value={supplier?.name}>
                         {supplier?.name}
                       </option>
                     ))}
                   </select>
+                 
                 </div>
               </div>
             </td>
@@ -543,7 +551,7 @@ const AdminQuotationComparisonTable = ({
           
           <td className="p-2 bg-muted/5 min-w-48">
             <div className="text-xs font-semibold text-green-600">
-              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.service?.[item?.id]?.finalPrice) || 0), 0)?.toLocaleString()}
+              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.[commodityTypeKey]?.[item?.id]?.totalPrice) || 0), 0)?.toLocaleString()}
             </div>
           </td>
         </tr>
@@ -676,10 +684,10 @@ const AdminQuotationComparisonTable = ({
             <td className="p-2 bg-muted/5 min-w-48">
               <div className="space-y-2">
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Final Price (₹)</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Final Total Price (₹)</label>
                   <input
                     type="number"
-                    value={adminApproval?.transport?.[item?.id]?.finalPrice || ''}
+                    value={adminApproval?.[commodityTypeKey]?.[item?.id]?.totalPrice || ''}
                     onChange={(e) => onFinalPriceChange(item?.id, e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
@@ -688,13 +696,16 @@ const AdminQuotationComparisonTable = ({
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Supplier</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Select Vendor</label>
                   <select
-                    value={adminApproval?.transport?.[item?.id]?.finalSupplier || ''}
-                    onChange={(e) => onFinalSupplierChange(item?.id, 'name', e.target.value)}
+                    value={adminApproval?.[commodityTypeKey]?.[item?.id]?.finalSupplier?.vendorName || ''}
+                    onChange={(e) => {
+                      console.log("Transport dropdown changed for item", item?.id, "to value:", e.target.value);
+                      onFinalSupplierChange(item?.id, 'vendorName', e.target.value);
+                    }}
                     className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <option value="">Select Supplier</option>
+                    <option value="">Select Vendor</option>
                     {suppliers?.map((supplier, index) => (
                       <option key={supplier?.id || index} value={supplier?.name}>
                         {supplier?.name}
@@ -732,7 +743,7 @@ const AdminQuotationComparisonTable = ({
           
           <td className="p-2 bg-muted/5 min-w-48">
             <div className="text-xs font-semibold text-green-600">
-              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.transport?.[item?.id]?.finalPrice) || 0), 0)?.toLocaleString()}
+              ₹{items?.reduce((total, item) => total + (parseFloat(adminApproval?.[commodityTypeKey]?.[item?.id]?.totalPrice) || 0), 0)?.toLocaleString()}
             </div>
           </td>
         </tr>

@@ -750,6 +750,16 @@ def create_final_decision(
             )
             db.add(final_decision_item)
 
+            # ✅ Update RFQItem last_buying_price & last_vendor if APPROVED
+            if final_decision_data.status == "APPROVED":
+                rfq_item = db.query(RFQItem).filter(RFQItem.id == item_data.rfq_item_id).first()
+                if rfq_item and rfq_item.erp_item_id:
+                    erp_item = db.query(ERPItem).filter(ERPItem.id == rfq_item.erp_item_id).first()
+                    if erp_item:
+                        erp_item.last_buying_price = item_data.final_unit_price
+                        erp_item.last_vendor = item_data.supplier_name
+                        db.add(erp_item)
+
         # Update RFQ status based on final decision
         if final_decision_data.status == "APPROVED":
             rfq.status = RFQStatus.APPROVED.value  # type: ignore

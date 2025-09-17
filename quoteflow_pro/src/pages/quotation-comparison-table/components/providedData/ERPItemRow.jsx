@@ -21,16 +21,32 @@ const ERPItemRow = ({
   const [isManualEntry, setIsManualEntry] = useState(false);
   const searchRef = useRef(null);
 
-  const filteredERPItems = erpItems?.filter(
-    (erpItem) =>
-      erpItem?.item_code?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      erpItem?.description
-        ?.toLowerCase()
-        ?.includes(searchTerm?.toLowerCase()) ||
-      erpItem?.specifications
-        ?.toLowerCase()
-        ?.includes(searchTerm?.toLowerCase())
-  );
+  // const filteredERPItems = erpItems?.filter(
+  //   (erpItem) =>
+  //     erpItem?.item_code?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+  //     erpItem?.description
+  //       ?.toLowerCase()
+  //       ?.includes(searchTerm?.toLowerCase()) ||
+  //     erpItem?.specifications
+  //       ?.toLowerCase()
+  //       ?.includes(searchTerm?.toLowerCase())
+  // );
+
+  const filteredERPItems = React.useMemo(() => {
+    if (!erpItems || !Array.isArray(erpItems)) return [];
+    return erpItems.filter(
+      (erpItem) =>
+        erpItem?.item_code
+          ?.toLowerCase()
+          ?.includes(searchTerm?.toLowerCase()) ||
+        erpItem?.description
+          ?.toLowerCase()
+          ?.includes(searchTerm?.toLowerCase()) ||
+        erpItem?.specifications
+          ?.toLowerCase()
+          ?.includes(searchTerm?.toLowerCase())
+    );
+  }, [erpItems, searchTerm]);
 
   const handleERPItemSelect = (erpItem) => {
     onItemUpdate(item?.id, {
@@ -39,6 +55,8 @@ const ERPItemRow = ({
       specifications: erpItem?.specifications,
       uom: erpItem?.unit_of_measure,
       erpItemId: erpItem?.id,
+      last_buying_price: erpItem?.last_buying_price,
+      last_vendor: erpItem?.last_vendor,
     });
     setSearchTerm(erpItem?.item_code);
     setShowSuggestions(false);
@@ -219,14 +237,14 @@ const ERPItemRow = ({
       <td className="p-3 bg-card sticky left-192 z-10 border-r border-border min-w-32">
         <div className="text-sm font-medium text-center text-foreground">
           ₹
-          {typeof item?.lastBuyingPrice === "number"
-            ? item?.lastBuyingPrice?.toFixed(2)
-            : item?.lastBuyingPrice || "0.00"}
+          {typeof item?.last_buying_price === "number"
+            ? item?.last_buying_price?.toFixed(2)
+            : item?.last_buying_price || "0.00"}
         </div>
       </td>
       <td className="p-3 bg-card sticky left-224 z-10 border-r border-border min-w-48">
         <div className="text-sm text-muted-foreground">
-          {item?.lastVendor || "-"}
+          {item?.last_vendor || "-"}
         </div>
       </td>
       {/* Dynamic Quote Columns */}

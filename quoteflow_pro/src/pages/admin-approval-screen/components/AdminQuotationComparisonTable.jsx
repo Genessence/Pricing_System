@@ -497,8 +497,9 @@ const AdminQuotationComparisonTable = ({
                 ?.reduce((total, item) => {
                   const typeKey =
                     commodityType?.toLowerCase() === "provided data"
-                      ? "provided_data"
-                      : commodityType?.toLowerCase();
+                      ? "PROVIDED_DATA"
+                      : 
+                      commodityType?.toLowerCase();
                   const finalPrice =
                     adminApproval?.[typeKey]?.[item?.id]?.finalPrice || 0;
                   return total + (parseFloat(finalPrice) * item?.quantity || 0);

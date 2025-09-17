@@ -5,18 +5,21 @@ import TopNavigationBar from "../../../components/ui/TopNavigationBar";
 import BreadcrumbTrail from "../../../components/ui/BreadcrumbTrail";
 import Button from "../../../components/ui/Button";
 import SummaryMetrics from "./SummaryMetrics";
-import RejectModal from "./RejectModal";
+import ApproveRejectModal from "./ApproveRejectModal";
 import StatusIndicator from "./StatusIndicator";
 import AdminQuotationComparisonTable from "./AdminQuotationComparisonTable";
 import AppIcon from "../../../components/AppIcon";
 import { cn } from "../../../utils/cn";
 import apiService from "../../../services/api";
+import { Icon } from "lucide-react";
 
 const AdminQuotationDetail = () => {
   const navigate = useNavigate();
   const { quotationId } = useParams();
   const { user } = useAuth();
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isApproveRejectModalOpen, setIsApproveRejectModalOpen] =
+    useState(false);
+  const [approveRejectModalMode, setapproveRejectModalMode] = useState("");
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -146,7 +149,12 @@ const AdminQuotationDetail = () => {
     console.log("=== END COMPONENT DATA DEBUG ===");
   }, [adminApproval, quotationData, items]);
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
+    setIsApproveRejectModalOpen(true);
+    setapproveRejectModalMode("approve");
+  };
+
+  const handleApproveConfirm = async (approveComment) => {
     try {
       // Prepare final decision data
       const finalDecisionData = {
@@ -164,7 +172,7 @@ const AdminQuotationDetail = () => {
             return total + parseFloat(totalPrice);
           }, 0) || 0,
         currency: quotationData?.currency || "INR",
-        approval_notes: "Approved by admin",
+        approval_notes: approveComment || "Approved by admin",
         items:
           items?.map((item) => {
             const commodityTypeRaw =
@@ -216,7 +224,8 @@ const AdminQuotationDetail = () => {
   };
 
   const handleReject = () => {
-    setIsRejectModalOpen(true);
+    setIsApproveRejectModalOpen(true);
+    setapproveRejectModalMode("reject");
   };
 
   const handleRejectConfirm = async (rejectionReason) => {
@@ -248,7 +257,7 @@ const AdminQuotationDetail = () => {
       );
 
       console.log("Final decision created:", response);
-      setIsRejectModalOpen(false);
+      setIsApproveRejectModalOpen(false);
       alert("Quotation has been rejected with reason: " + rejectionReason);
       navigate("/admin-approval-screen");
     } catch (error) {
@@ -776,10 +785,54 @@ const AdminQuotationDetail = () => {
           />
         </div> */}
 
+          {/* Decision Comments */}
+          {quotation.status !== "Pending" && (
+            <div className="px-6 mt-6">
+              <div className="bg-card border border-border rounded-lg p-6 shadow-md">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      quotation.finalDecisions?.[0]?.status === "APPROVED"
+                        ? "bg-green-100"
+                        : "bg-red-100"
+                    }`}
+                  >
+                    <StatusIcon
+                      status={quotation?.finalDecisions?.[0]?.status}
+                    />
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-lg font-semibold ${
+                        quotation.finalDecisions?.[0]?.status === "APPROVED"
+                          ? "text-green-700"
+                          : "text-red-700"
+                      }`}
+                    >
+                      {quotation.finalDecisions?.[0]?.status === "APPROVED"
+                        ? "Quotation Approved"
+                        : "Quotation Rejected"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Decision and notes provided by the approver
+                    </p>
+                  </div>
+                </div>
+
+                {/* Comment Section */}
+                <div className="bg-muted rounded-lg p-4 border border-border">
+                  <p className="text-sm text-foreground whitespace-pre-line">
+                    {quotation.finalDecisions?.[0]?.approvalNotes ||
+                      quotation.finalDecisions?.[0]?.rejectionReason ||
+                      "No notes provided."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
-          {quotation.finalDecisions[0]?.status == "APPROVED" ? (
-            <></>
-          ) : (
+          {quotation.status == "Pending" && (
             <div className="px-6">
               <div className="sticky bottom-6 bg-card border border-border rounded-lg p-6 shadow-lg">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -842,14 +895,40 @@ const AdminQuotationDetail = () => {
       </div>
 
       {/* Reject Modal */}
-      <RejectModal
-        isOpen={isRejectModalOpen}
-        onClose={() => setIsRejectModalOpen(false)}
-        onConfirm={handleRejectConfirm}
+      <ApproveRejectModal
+        isOpen={isApproveRejectModalOpen}
+        onClose={() => setIsApproveRejectModalOpen(false)}
+        onRejectConfirm={handleRejectConfirm}
+        onApproveConfirm={handleApproveConfirm}
         quotationId={quotationData?.id}
+        mode={approveRejectModalMode}
       />
     </div>
   );
 };
 
 export default AdminQuotationDetail;
+
+const StatusIcon = ({ status }) => {
+  let iconSrc = "";
+  let colorClass = "";
+
+  switch (status) {
+    case "APPROVED":
+      iconSrc =
+        "https://img.icons8.com/?size=100&id=sz8cPVwzLrMP&format=png&color=000000";
+      colorClass = "text-green-600";
+      break;
+    case "REJECTED":
+      iconSrc =
+        "https://img.icons8.com/?size=100&id=T9nkeADgD3z6&format=png&color=000000";
+      colorClass = "text-red-600";
+      break;
+    default:
+      iconSrc =
+        "https://img.icons8.com/?size=100&id=lzICmAiUWSkI&format=png&color=000000";
+      colorClass = "text-gray-500";
+  }
+
+  return <img src={iconSrc} alt={status} className={`w-5 h-5 ${colorClass}`} />;
+};

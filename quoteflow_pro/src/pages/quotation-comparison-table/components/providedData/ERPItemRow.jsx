@@ -34,18 +34,24 @@ const ERPItemRow = ({
 
   const filteredERPItems = React.useMemo(() => {
     if (!erpItems || !Array.isArray(erpItems)) return [];
-    return erpItems.filter(
-      (erpItem) =>
-        erpItem?.item_code
-          ?.toLowerCase()
-          ?.includes(searchTerm?.toLowerCase()) ||
-        erpItem?.description
-          ?.toLowerCase()
-          ?.includes(searchTerm?.toLowerCase()) ||
-        erpItem?.specifications
-          ?.toLowerCase()
-          ?.includes(searchTerm?.toLowerCase())
-    );
+    return erpItems
+      .filter(
+        (erpItem) =>
+          erpItem?.item_code
+            ?.toLowerCase()
+            ?.includes(searchTerm?.toLowerCase()) ||
+          erpItem?.description
+            ?.toLowerCase()
+            ?.includes(searchTerm?.toLowerCase()) ||
+          erpItem?.specifications
+            ?.toLowerCase()
+            ?.includes(searchTerm?.toLowerCase())
+      )
+      .sort((a, b) =>
+        (a?.item_code || "").localeCompare(b?.item_code || "", undefined, {
+          sensitivity: "base",
+        })
+      );
   }, [erpItems, searchTerm]);
 
   const handleERPItemSelect = (erpItem) => {

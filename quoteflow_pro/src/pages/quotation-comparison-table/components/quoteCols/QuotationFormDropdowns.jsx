@@ -73,7 +73,7 @@ const QuotationFormDropdowns = ({
           </p>
         </div>
 
-        {/* Product Type Dropdown */}
+        {/* Product Type Dropdown
         <div>
           <Select
             label="Product Type"
@@ -87,7 +87,7 @@ const QuotationFormDropdowns = ({
           <p className="text-xs text-muted-foreground mt-1">
             Classification of the product category
           </p>
-        </div>
+        </div> */}
 
         {/* Type of Work Dropdown - Hidden for Transport */}
         {selectedCommodity !== "transport" && (

@@ -93,20 +93,27 @@ const AdminQuotationDetail = () => {
   // Use real quotation data from API
   const quotationData = quotation;
   const items = quotationData?.items || [];
-  
+
   // Load existing final decisions if any
   useEffect(() => {
-    if (quotationData?.finalDecisions && quotationData.finalDecisions.length > 0) {
-      const latestDecision = quotationData.finalDecisions[quotationData.finalDecisions.length - 1];
+    if (
+      quotationData?.finalDecisions &&
+      quotationData.finalDecisions.length > 0
+    ) {
+      const latestDecision =
+        quotationData.finalDecisions[quotationData.finalDecisions.length - 1];
       if (latestDecision?.items) {
         const decisionState = {
           PROVIDED_DATA: {},
           SERVICE: {},
           TRANSPORT: {},
         };
-        latestDecision.items.forEach(item => {
-          const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-          const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
+        latestDecision.items.forEach((item) => {
+          const commodityTypeRaw =
+            quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+          const commodityType = commodityTypeRaw.includes(".")
+            ? commodityTypeRaw.split(".")[1]
+            : commodityTypeRaw;
           if (!decisionState[commodityType]) {
             decisionState[commodityType] = {};
           }
@@ -116,8 +123,8 @@ const AdminQuotationDetail = () => {
               vendorCode: item.supplierCode,
               vendorName: item.supplierName,
               supplierId: null, // Will be populated if needed
-              quotationId: null // Will be populated if needed
-            }
+              quotationId: null, // Will be populated if needed
+            },
           };
         });
         console.log("Loading existing final decisions:", decisionState);
@@ -132,51 +139,73 @@ const AdminQuotationDetail = () => {
     console.log("quotationData:", quotationData);
     console.log("items:", items);
     console.log("Current adminApproval state:", adminApproval);
-    console.log("quotationData?.commodityTypeRaw:", quotationData?.commodityTypeRaw);
+    console.log(
+      "quotationData?.commodityTypeRaw:",
+      quotationData?.commodityTypeRaw
+    );
     console.log("=== END COMPONENT DATA DEBUG ===");
   }, [adminApproval, quotationData, items]);
 
   const handleApprove = async () => {
     try {
       // Prepare final decision data
-       const finalDecisionData = {
-         rfq_id: parseInt(quotationId),
-         status: "APPROVED",
-         total_approved_amount: items?.reduce((total, item) => {
-           const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-           const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
-           const totalPrice = adminApproval?.[commodityType]?.[item?.id]?.totalPrice || 0;
-           return total + parseFloat(totalPrice);
-         }, 0) || 0,
-         currency: quotationData?.currency || "INR",
-         approval_notes: "Approved by admin",
-         items: items?.map(item => {
-           const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-           const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
-           const finalPrice = adminApproval?.[commodityType]?.[item?.id]?.finalPrice || 0;
-           const totalPrice = adminApproval?.[commodityType]?.[item?.id]?.totalPrice || 0;
-           const supplierData = adminApproval?.[commodityType]?.[item?.id]?.finalSupplier || {};
-           
-           return {
-             rfq_item_id: parseInt(item?.id) || 0,
-             selected_supplier_id: supplierData?.supplierId ? parseInt(supplierData.supplierId) : null,
-             selected_quotation_id: supplierData?.quotationId ? parseInt(supplierData.quotationId) : null,
-             final_unit_price: parseFloat(finalPrice) || 0,
-             final_total_price: parseFloat(totalPrice) || 0,
-             supplier_code: supplierData?.vendorCode || "",
-             supplier_name: supplierData?.vendorName || "",
-             decision_notes: `Approved with total price: ${totalPrice}`
-           };
-         }) || []
-       };
+      const finalDecisionData = {
+        rfq_id: parseInt(quotationId),
+        status: "APPROVED",
+        total_approved_amount:
+          items?.reduce((total, item) => {
+            const commodityTypeRaw =
+              quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+            const commodityType = commodityTypeRaw.includes(".")
+              ? commodityTypeRaw.split(".")[1]
+              : commodityTypeRaw;
+            const totalPrice =
+              adminApproval?.[commodityType]?.[item?.id]?.totalPrice || 0;
+            return total + parseFloat(totalPrice);
+          }, 0) || 0,
+        currency: quotationData?.currency || "INR",
+        approval_notes: "Approved by admin",
+        items:
+          items?.map((item) => {
+            const commodityTypeRaw =
+              quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+            const commodityType = commodityTypeRaw.includes(".")
+              ? commodityTypeRaw.split(".")[1]
+              : commodityTypeRaw;
+            const finalPrice =
+              adminApproval?.[commodityType]?.[item?.id]?.finalPrice || 0;
+            const totalPrice =
+              adminApproval?.[commodityType]?.[item?.id]?.totalPrice || 0;
+            const supplierData =
+              adminApproval?.[commodityType]?.[item?.id]?.finalSupplier || {};
+
+            return {
+              rfq_item_id: parseInt(item?.id) || 0,
+              selected_supplier_id: supplierData?.supplierId
+                ? parseInt(supplierData.supplierId)
+                : null,
+              selected_quotation_id: supplierData?.quotationId
+                ? parseInt(supplierData.quotationId)
+                : null,
+              final_unit_price: parseFloat(finalPrice) || 0,
+              final_total_price: parseFloat(totalPrice) || 0,
+              supplier_code: supplierData?.vendorCode.toString() || "",
+              supplier_name: supplierData?.vendorName || "",
+              decision_notes: `Approved with total price: ${totalPrice}`,
+            };
+          }) || [],
+      };
 
       // Debug logging
       console.log("Final decision data being sent:", finalDecisionData);
       console.log("Items being sent:", finalDecisionData.items);
-      
+
       // Call API to create final decision
-      const response = await apiService.createFinalDecision(parseInt(quotationId), finalDecisionData);
-      
+      const response = await apiService.createFinalDecision(
+        parseInt(quotationId),
+        finalDecisionData
+      );
+
       console.log("Final decision created:", response);
       alert("Quotation has been approved successfully!");
       navigate("/admin-approval-screen");
@@ -188,7 +217,7 @@ const AdminQuotationDetail = () => {
 
   const handleReject = () => {
     setIsRejectModalOpen(true);
-  };  
+  };
 
   const handleRejectConfirm = async (rejectionReason) => {
     try {
@@ -199,21 +228,25 @@ const AdminQuotationDetail = () => {
         total_approved_amount: 0,
         currency: quotationData?.currency || "INR",
         rejection_reason: rejectionReason,
-        items: items?.map(item => ({
-          rfq_item_id: item?.id,
-          selected_supplier_id: null,
-          selected_quotation_id: null,
-          final_unit_price: 0,
-          final_total_price: 0,
-          supplier_code: "",
-          supplier_name: "",
-          decision_notes: `Rejected: ${rejectionReason}`
-        })) || []
+        items:
+          items?.map((item) => ({
+            rfq_item_id: item?.id,
+            selected_supplier_id: null,
+            selected_quotation_id: null,
+            final_unit_price: 0,
+            final_total_price: 0,
+            supplier_code: "",
+            supplier_name: "",
+            decision_notes: `Rejected: ${rejectionReason}`,
+          })) || [],
       };
 
       // Call API to create final decision
-      const response = await apiService.createFinalDecision(parseInt(quotationId), finalDecisionData);
-      
+      const response = await apiService.createFinalDecision(
+        parseInt(quotationId),
+        finalDecisionData
+      );
+
       console.log("Final decision created:", response);
       setIsRejectModalOpen(false);
       alert("Quotation has been rejected with reason: " + rejectionReason);
@@ -263,97 +296,115 @@ const AdminQuotationDetail = () => {
           return acc;
         }, {}) || {},
       footer: {
-        transportation_freight: supplier?.transportationFreight || "Included in quote",
+        transportation_freight:
+          supplier?.transportationFreight || "Included in quote",
         packing_charges: supplier?.packagingCharges || "Extra as applicable",
         delivery_lead_time: supplier?.deliveryLeadTime || "As per agreement",
         warranty: supplier?.warranty || "Standard warranty",
         currency: supplier?.currency || "INR",
-        remarks_of_quotation: supplier?.termsConditions || "All terms as per RFQ",
+        remarks_of_quotation:
+          supplier?.termsConditions || "All terms as per RFQ",
       },
     })) || [];
 
-   // Add handlers for admin approval fields
-   const handleFinalSupplierChange = (itemId, field, value) => {
-     // Extract commodity type from the raw format (e.g., "CommodityType.PROVIDED_DATA" -> "PROVIDED_DATA")
-     const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-     const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
-     
-     console.log("=== handleFinalSupplierChange DEBUG ===");
-     console.log("itemId:", itemId);
-     console.log("field:", field);
-     console.log("value:", value);
-     console.log("commodityType:", commodityType);
-     console.log("Current adminApproval:", adminApproval);
-     console.log("quotationData suppliers:", quotationData?.suppliers);
+  // Add handlers for admin approval fields
+  const handleFinalSupplierChange = (itemId, field, value) => {
+    // Extract commodity type from the raw format (e.g., "CommodityType.PROVIDED_DATA" -> "PROVIDED_DATA")
+    const commodityTypeRaw =
+      quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+    const commodityType = commodityTypeRaw.includes(".")
+      ? commodityTypeRaw.split(".")[1]
+      : commodityTypeRaw;
 
-     // If selecting a vendor, automatically populate price and supplier details
-     if (field === 'vendorName' && value) {
-       const selectedSupplier = quotationData?.suppliers?.find(s => s?.name === value);
-       console.log("Selected supplier:", selectedSupplier);
-       
-       if (selectedSupplier) {
-         const supplierItem = selectedSupplier?.items?.find(item => item?.itemId === itemId);
-         console.log("Supplier item for this RFQ item:", supplierItem);
-         
-         const unitPrice = supplierItem?.unitPrice || 0;
-         const quantity = items?.find(i => i?.id === itemId)?.quantity || items?.find(i => i?.id === itemId)?.requiredQuantity || 1;
-         const totalPrice = unitPrice * quantity;
+    console.log("=== handleFinalSupplierChange DEBUG ===");
+    console.log("itemId:", itemId);
+    console.log("field:", field);
+    console.log("value:", value);
+    console.log("commodityType:", commodityType);
+    console.log("Current adminApproval:", adminApproval);
+    console.log("quotationData suppliers:", quotationData?.suppliers);
 
-         console.log("Calculated values:", { unitPrice, quantity, totalPrice });
+    // If selecting a vendor, automatically populate price and supplier details
+    if (field === "vendorName" && value) {
+      const selectedSupplier = quotationData?.suppliers?.find(
+        (s) => s?.name === value
+      );
+      console.log("Selected supplier:", selectedSupplier);
 
-         setAdminApproval((prev) => {
-           const newState = {
-             ...prev,
-             [commodityType]: {
-               ...prev?.[commodityType],
-               [itemId]: {
-                 ...prev?.[commodityType]?.[itemId],
-                 finalSupplier: {
-                   vendorCode: selectedSupplier?.id || "",
-                   vendorName: value,
-                   supplierId: selectedSupplier?.id,
-                   quotationId: null
-                 },
-                 finalPrice: unitPrice,
-                 totalPrice: totalPrice,
-               },
-             },
-           };
-           console.log("NEW STATE AFTER UPDATE:", newState);
-           return newState;
-         });
-       }
-     } else {
-       // Handle other fields
-       setAdminApproval((prev) => {
-         const newState = {
-           ...prev,
-           [commodityType]: {
-             ...prev?.[commodityType],
-             [itemId]: {
-               ...prev?.[commodityType]?.[itemId],
-               finalSupplier: {
-                 ...prev?.[commodityType]?.[itemId]?.finalSupplier,
-                 [field]: value,
-               },
-             },
-           },
-         };
-         console.log("NEW STATE (other field):", newState);
-         return newState;
-       });
-     }
-     console.log("=== END DEBUG ===");
-   };
+      if (selectedSupplier) {
+        const supplierItem = selectedSupplier?.items?.find(
+          (item) => item?.itemId === itemId
+        );
+        console.log("Supplier item for this RFQ item:", supplierItem);
+
+        const unitPrice = supplierItem?.unitPrice || 0;
+        const quantity =
+          items?.find((i) => i?.id === itemId)?.quantity ||
+          items?.find((i) => i?.id === itemId)?.requiredQuantity ||
+          1;
+        const totalPrice = unitPrice * quantity;
+
+        console.log("Calculated values:", { unitPrice, quantity, totalPrice });
+
+        setAdminApproval((prev) => {
+          const newState = {
+            ...prev,
+            [commodityType]: {
+              ...prev?.[commodityType],
+              [itemId]: {
+                ...prev?.[commodityType]?.[itemId],
+                finalSupplier: {
+                  vendorCode: selectedSupplier?.id || "",
+                  vendorName: value,
+                  supplierId: selectedSupplier?.id,
+                  quotationId: null,
+                },
+                finalPrice: unitPrice,
+                totalPrice: totalPrice,
+              },
+            },
+          };
+          console.log("NEW STATE AFTER UPDATE:", newState);
+          return newState;
+        });
+      }
+    } else {
+      // Handle other fields
+      setAdminApproval((prev) => {
+        const newState = {
+          ...prev,
+          [commodityType]: {
+            ...prev?.[commodityType],
+            [itemId]: {
+              ...prev?.[commodityType]?.[itemId],
+              finalSupplier: {
+                ...prev?.[commodityType]?.[itemId]?.finalSupplier,
+                [field]: value,
+              },
+            },
+          },
+        };
+        console.log("NEW STATE (other field):", newState);
+        return newState;
+      });
+    }
+    console.log("=== END DEBUG ===");
+  };
 
   const handleFinalPriceChange = (itemId, value) => {
     // Extract commodity type from the raw format (e.g., "CommodityType.PROVIDED_DATA" -> "PROVIDED_DATA")
-    const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-    const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
-    
-    const quantity = items?.find(i => i?.id === itemId)?.quantity || items?.find(i => i?.id === itemId)?.requiredQuantity || 1;
+    const commodityTypeRaw =
+      quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+    const commodityType = commodityTypeRaw.includes(".")
+      ? commodityTypeRaw.split(".")[1]
+      : commodityTypeRaw;
+
+    const quantity =
+      items?.find((i) => i?.id === itemId)?.quantity ||
+      items?.find((i) => i?.id === itemId)?.requiredQuantity ||
+      1;
     const unitPrice = parseFloat(value) / quantity; // Convert total price back to unit price
-    
+
     setAdminApproval((prev) => {
       const newState = {
         ...prev,
@@ -373,26 +424,31 @@ const AdminQuotationDetail = () => {
   // Check if all items have vendors selected
   const areAllVendorsSelected = () => {
     // Extract commodity type from the raw format (e.g., "CommodityType.PROVIDED_DATA" -> "PROVIDED_DATA")
-    const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-    const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
-    
+    const commodityTypeRaw =
+      quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+    const commodityType = commodityTypeRaw.includes(".")
+      ? commodityTypeRaw.split(".")[1]
+      : commodityTypeRaw;
+
     console.log("=== areAllVendorsSelected DEBUG ===");
     console.log("commodityTypeRaw:", commodityTypeRaw);
     console.log("commodityType:", commodityType);
     console.log("items:", items);
     console.log("adminApproval:", adminApproval);
-    
-    const result = items?.every(item => {
+
+    const result = items?.every((item) => {
       const itemApproval = adminApproval?.[commodityType]?.[item?.id];
-      const hasVendor = itemApproval?.finalSupplier?.vendorName && itemApproval?.finalSupplier?.vendorName.trim() !== "";
+      const hasVendor =
+        itemApproval?.finalSupplier?.vendorName &&
+        itemApproval?.finalSupplier?.vendorName.trim() !== "";
       console.log(`Item ${item?.id}:`, {
         itemApproval,
         vendorName: itemApproval?.finalSupplier?.vendorName,
-        hasVendor
+        hasVendor,
       });
       return hasVendor;
     });
-    
+
     console.log("Final result:", result);
     console.log("=== END areAllVendorsSelected DEBUG ===");
     return result;
@@ -401,8 +457,11 @@ const AdminQuotationDetail = () => {
   // Calculate sum amount based on total price
   const calculateSumAmount = (itemId, quantity) => {
     // Extract commodity type from the raw format (e.g., "CommodityType.PROVIDED_DATA" -> "PROVIDED_DATA")
-    const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-    const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
+    const commodityTypeRaw =
+      quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+    const commodityType = commodityTypeRaw.includes(".")
+      ? commodityTypeRaw.split(".")[1]
+      : commodityTypeRaw;
     const totalPrice =
       adminApproval?.[commodityType]?.[itemId]?.totalPrice || 0;
     return parseFloat(totalPrice)?.toFixed(2);
@@ -539,7 +598,11 @@ const AdminQuotationDetail = () => {
               <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-purple-100 rounded-lg">
-                    <AppIcon name="Package" size={20} className="text-purple-600" />
+                    <AppIcon
+                      name="Package"
+                      size={20}
+                      className="text-purple-600"
+                    />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
@@ -644,8 +707,8 @@ const AdminQuotationDetail = () => {
 
                   {/* Quote Files */}
                   {quotationData?.attachments?.quoteFiles &&
-                    Object.keys(quotationData.attachments.quoteFiles)
-                      .length > 0 && (
+                    Object.keys(quotationData.attachments.quoteFiles).length >
+                      0 && (
                       <div className="p-4 border border-border rounded-lg">
                         <div className="flex items-center space-x-2 mb-2">
                           <AppIcon
@@ -686,17 +749,22 @@ const AdminQuotationDetail = () => {
                 Same view as created by quotation requesting team
               </span>
             </div>
-             <AdminQuotationComparisonTable
-               suppliers={transformedSuppliers}
-               items={quotationData?.items}
-               quotes={transformedQuotes}
-               commodityType={quotationData?.commodityType}
-               commodityTypeKey={quotationData?.commodityTypeRaw?.includes(".") ? quotationData.commodityTypeRaw.split(".")[1] : quotationData?.commodityTypeRaw || "PROVIDED_DATA"}
-               adminApproval={adminApproval}
-               onFinalSupplierChange={handleFinalSupplierChange}
-               onFinalPriceChange={handleFinalPriceChange}
-               calculateSumAmount={calculateSumAmount}
-             />
+            <AdminQuotationComparisonTable
+              suppliers={transformedSuppliers}
+              items={quotationData?.items}
+              quotes={transformedQuotes}
+              commodityType={quotationData?.commodityType}
+              commodityTypeKey={
+                quotationData?.commodityTypeRaw?.includes(".")
+                  ? quotationData.commodityTypeRaw.split(".")[1]
+                  : quotationData?.commodityTypeRaw || "PROVIDED_DATA"
+              }
+              adminApproval={adminApproval}
+              onFinalSupplierChange={handleFinalSupplierChange}
+              onFinalPriceChange={handleFinalPriceChange}
+              calculateSumAmount={calculateSumAmount}
+              quotation={quotation}
+            />
           </div>
 
           {/* <div className="px-6 mb-6">
@@ -709,48 +777,67 @@ const AdminQuotationDetail = () => {
         </div> */}
 
           {/* Action Buttons */}
-          <div className="px-6">
-            <div className="sticky bottom-6 bg-card border border-border rounded-lg p-6 shadow-lg">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-center sm:text-left">
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    {areAllVendorsSelected() ? "Ready for Decision" : "Select Vendors for All Items"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {areAllVendorsSelected() 
-                      ? "All vendors selected. Review all quotation details above before making your decision"
-                       : `Please select vendors for ${items?.length - items?.filter(item => {
-                           const commodityTypeRaw = quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
-                           const commodityType = commodityTypeRaw.includes(".") ? commodityTypeRaw.split(".")[1] : commodityTypeRaw;
-                           const itemApproval = adminApproval?.[commodityType]?.[item?.id];
-                           return itemApproval?.finalSupplier?.vendorName && itemApproval?.finalSupplier?.vendorName.trim() !== "";
-                         }).length} remaining item(s)`
-                    }
-                  </p>
-                </div>
-               
-                <div className="flex items-center space-x-3">
-                  <Button
-                    variant="destructive"
-                    iconName="X"
-                    onClick={handleReject}
-                    className="px-8"
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    variant="default"
-                    iconName="Check"
-                    onClick={handleApprove}
-                    className="px-8"
-                    disabled={!areAllVendorsSelected()}
-                  >
-                    Approve
-                  </Button>
+          {quotation.finalDecisions[0]?.status == "APPROVED" ? (
+            <></>
+          ) : (
+            <div className="px-6">
+              <div className="sticky bottom-6 bg-card border border-border rounded-lg p-6 shadow-lg">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-center sm:text-left">
+                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                      {areAllVendorsSelected()
+                        ? "Ready for Decision"
+                        : "Select Vendors for All Items"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {areAllVendorsSelected()
+                        ? "All vendors selected. Review all quotation details above before making your decision"
+                        : `Please select vendors for ${
+                            items?.length -
+                            items?.filter((item) => {
+                              const commodityTypeRaw =
+                                quotationData?.commodityTypeRaw ||
+                                "CommodityType.PROVIDED_DATA";
+                              const commodityType = commodityTypeRaw.includes(
+                                "."
+                              )
+                                ? commodityTypeRaw.split(".")[1]
+                                : commodityTypeRaw;
+                              const itemApproval =
+                                adminApproval?.[commodityType]?.[item?.id];
+                              return (
+                                itemApproval?.finalSupplier?.vendorName &&
+                                itemApproval?.finalSupplier?.vendorName.trim() !==
+                                  ""
+                              );
+                            }).length
+                          } remaining item(s)`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="destructive"
+                      iconName="X"
+                      onClick={handleReject}
+                      className="px-8"
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      variant="default"
+                      iconName="Check"
+                      onClick={handleApprove}
+                      className="px-8"
+                      disabled={!areAllVendorsSelected()}
+                    >
+                      Approve
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

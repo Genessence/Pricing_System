@@ -466,24 +466,34 @@ def get_rfq(
             for final_decision in rfq.final_decisions:
                 decision_items = []
                 for item in final_decision.items:
-                    decision_items.append({
-                        "itemId": item.rfq_item_id,
-                        "finalUnitPrice": item.final_unit_price,
-                        "finalTotalPrice": item.final_total_price,
-                        "supplierCode": item.supplier_code,
-                        "supplierName": item.supplier_name,
-                        "decisionNotes": item.decision_notes,
-                    })
-                
-                final_decisions_for_frontend.append({
-                    "id": final_decision.id,
-                    "status": final_decision.status.value if final_decision.status else None,
-                    "totalApprovedAmount": final_decision.total_approved_amount,
-                    "approvalNotes": final_decision.approval_notes,
-                    "rejectionReason": final_decision.rejection_reason,
-                    "approvedAt": final_decision.approved_at.strftime("%Y-%m-%d %H:%M:%S") if final_decision.approved_at else None,
-                    "items": decision_items,
-                })
+                    decision_items.append(
+                        {
+                            "itemId": item.rfq_item_id,
+                            "finalUnitPrice": item.final_unit_price,
+                            "finalTotalPrice": item.final_total_price,
+                            "supplierCode": item.supplier_code,
+                            "supplierName": item.supplier_name,
+                            "decisionNotes": item.decision_notes,
+                        }
+                    )
+
+                final_decisions_for_frontend.append(
+                    {
+                        "id": final_decision.id,
+                        "status": (
+                            final_decision.status if final_decision.status else None
+                        ),
+                        "totalApprovedAmount": final_decision.total_approved_amount,
+                        "approvalNotes": final_decision.approval_notes,
+                        "rejectionReason": final_decision.rejection_reason,
+                        "approvedAt": (
+                            final_decision.approved_at.strftime("%Y-%m-%d %H:%M:%S")
+                            if final_decision.approved_at
+                            else None
+                        ),
+                        "items": decision_items,
+                    }
+                )
 
         payload = {
             "id": rfq.rfq_number,
@@ -628,7 +638,7 @@ def create_final_decision(
     current_user: User = Depends(get_admin_user),
 ):
     """Create final decision for RFQ approval (Admin only)."""
-    
+
     try:
         # Debug logging
         print(f"=== CREATE FINAL DECISION DEBUG ===")
@@ -644,42 +654,61 @@ def create_final_decision(
         print(f"Error in debug logging: {e}")
         print(f"Raw final_decision_data: {final_decision_data}")
         raise HTTPException(status_code=422, detail=f"Invalid request data: {str(e)}")
-    
+
     # Validate RFQ exists
     rfq = db.query(RFQ).filter(RFQ.id == rfq_id).first()
     if not rfq:
         raise HTTPException(status_code=404, detail="RFQ not found")
-    
+
     print(f"RFQ found: {rfq.id}, Status: {rfq.status}")
 
     # Check if RFQ can be processed
     if rfq.status not in [RFQStatus.PENDING]:
-        raise HTTPException(status_code=400, detail=f"Only pending RFQs can be processed for final decision. Current status: {rfq.status}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only pending RFQs can be processed for final decision. Current status: {rfq.status}",
+        )
 
     # Check if final decision already exists
-    existing_decision = db.query(FinalDecision).filter(FinalDecision.rfq_id == rfq_id).first()
+    existing_decision = (
+        db.query(FinalDecision).filter(FinalDecision.rfq_id == rfq_id).first()
+    )
     if existing_decision:
-        raise HTTPException(status_code=400, detail="Final decision already exists for this RFQ")
+        raise HTTPException(
+            status_code=400, detail="Final decision already exists for this RFQ"
+        )
 
     # Validate items exist
     if not final_decision_data.items:
-        raise HTTPException(status_code=400, detail="No items provided for final decision")
-    
+        raise HTTPException(
+            status_code=400, detail="No items provided for final decision"
+        )
+
     rfq_item_ids = [item.rfq_item_id for item in final_decision_data.items]
     existing_items = db.query(RFQItem).filter(RFQItem.id.in_(rfq_item_ids)).all()
     if len(existing_items) != len(rfq_item_ids):
         missing_ids = set(rfq_item_ids) - set([item.id for item in existing_items])
-        raise HTTPException(status_code=400, detail=f"RFQ items not found: {list(missing_ids)}")
-    
+        raise HTTPException(
+            status_code=400, detail=f"RFQ items not found: {list(missing_ids)}"
+        )
+
     # Validate item data
     for item in final_decision_data.items:
         if item.final_unit_price < 0:
-            raise HTTPException(status_code=400, detail=f"Invalid unit price for item {item.rfq_item_id}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid unit price for item {item.rfq_item_id}",
+            )
         if item.final_total_price < 0:
-            raise HTTPException(status_code=400, detail=f"Invalid total price for item {item.rfq_item_id}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid total price for item {item.rfq_item_id}",
+            )
 
     # Calculate total approved amount
-    total_approved_amount = sum(item.final_total_price for item in final_decision_data.items)
+    total_approved_amount = sum(
+        item.final_total_price for item in final_decision_data.items
+    )
 
     try:
         # Create final decision
@@ -691,13 +720,19 @@ def create_final_decision(
             currency=final_decision_data.currency,
             approval_notes=final_decision_data.approval_notes,
             rejection_reason=final_decision_data.rejection_reason,
-            approved_at=None if final_decision_data.status != "APPROVED" else db.query(func.now()).scalar(),
+            approved_at=(
+                None
+                if final_decision_data.status != "APPROVED"
+                else db.query(func.now()).scalar()
+            ),
         )
         db.add(final_decision)
         db.flush()  # Get the ID
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error creating final decision: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error creating final decision: {str(e)}"
+        )
 
     try:
         # Create final decision items
@@ -727,7 +762,9 @@ def create_final_decision(
         return final_decision
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error creating final decision items: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error creating final decision items: {str(e)}"
+        )
 
 
 @router.get("/{rfq_id}/final-decision", response_model=FinalDecisionWithDetails)
@@ -738,7 +775,7 @@ def get_final_decision(
 ):
     """Get final decision for RFQ."""
     from sqlalchemy.orm import joinedload
-    
+
     # Check RFQ exists and permissions
     rfq = db.query(RFQ).filter(RFQ.id == rfq_id).first()
     if not rfq:
@@ -767,7 +804,9 @@ def get_final_decision(
     # Build response with additional details
     response_data = {
         **final_decision.__dict__,
-        "approver_name": final_decision.approver.full_name if final_decision.approver else None,
+        "approver_name": (
+            final_decision.approver.full_name if final_decision.approver else None
+        ),
         "rfq_number": rfq.rfq_number,
         "rfq_title": rfq.title,
     }
@@ -783,9 +822,11 @@ def update_final_decision(
     current_user: User = Depends(get_admin_user),
 ):
     """Update final decision for RFQ (Admin only)."""
-    
+
     # Get existing final decision
-    final_decision = db.query(FinalDecision).filter(FinalDecision.rfq_id == rfq_id).first()
+    final_decision = (
+        db.query(FinalDecision).filter(FinalDecision.rfq_id == rfq_id).first()
+    )
     if not final_decision:
         raise HTTPException(status_code=404, detail="Final decision not found")
 
@@ -808,5 +849,3 @@ def update_final_decision(
     db.refresh(final_decision)
 
     return final_decision
-
-

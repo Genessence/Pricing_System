@@ -506,7 +506,7 @@ const AdminApprovalScreen = () => {
                        <td className="px-6 py-5">
                          <div className="space-y-1">
                            <p className="text-sm font-bold text-foreground">₹{(quotation.total_value || 0).toLocaleString()}</p>
-                           <p className="text-xs text-muted-foreground">{quotation.quotations?.length || 0} supplier{(quotation.quotations?.length || 0) !== 1 ? 's' : ''}</p>
+                      {/*     <p className="text-xs text-muted-foreground">{quotation.quotations?.length || 0} supplier{(quotation.quotations?.length || 0) !== 1 ? 's' : ''}</p> */}
                          </div>
                        </td>
                        <td className="px-6 py-5">

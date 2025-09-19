@@ -13,36 +13,6 @@ const AdminApprovalScreen = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Mock user data
-  const currentUser = {
-    id: 1,
-    name: "Admin User",
-    email: "admin@company.com",
-    role: "Administrator",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-  };
-
-  // Mock notifications
-  const notifications = [
-    {
-      id: 1,
-      type: "info",
-      title: "New Quotation Request",
-      message: "RFQ-2024-008 requires your approval",
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-      read: false,
-    },
-    {
-      id: 2,
-      type: "warning",
-      title: "High Value Transaction",
-      message: "Quotation exceeds $200K threshold",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-      read: false,
-    },
-  ];
-
   // Get quotation requests from backend API
   const [quotationRequests, setQuotationRequests] = useState([]);
   const [loading, setLoading] = useState(true);

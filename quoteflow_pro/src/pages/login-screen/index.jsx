@@ -1,96 +1,106 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
-import Icon from '../../components/AppIcon';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Select from "../../components/ui/Select";
+import Icon from "../../components/AppIcon";
 
 const LoginScreen = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
-  
+
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    userType: 'user'
+    username: "",
+    password: "",
+    userType: "user",
   });
-  
+
   const [errors, setErrors] = useState({});
-  const [loginError, setLoginError] = useState('');
+  const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const userTypeOptions = [
-    { value: 'user', label: 'User' },
-    { value: 'admin', label: 'Administrator' }
+    { value: "user", label: "User" },
+    { value: "admin", label: "Administrator" },
+    { value: "super_admin", label: "Super Admin" },
+    { value: "pricing_team", label: "Pricing Team" },
   ];
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
+
     // Clear field-specific error
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: ''
+        [field]: "",
       }));
     }
-    
+
     // Clear general login error
     if (loginError) {
-      setLoginError('');
+      setLoginError("");
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = "Username is required";
     }
-    
+
     if (!formData.password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
-    
+
     if (!formData.userType) {
-      newErrors.userType = 'Please select user type';
+      newErrors.userType = "Please select user type";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoggingIn(true);
-    setLoginError('');
-    
+    setLoginError("");
+
     try {
-      const result = await login(formData.username, formData.password, formData.userType);
-      
-             if (result.success) {
-         // Redirect based on user type
-         if (formData.userType === 'admin') {
-           navigate('/procurement-dashboard');
-         } else {
-           navigate('/user-dashboard');
-         }
+      const result = await login(
+        formData.username,
+        formData.password,
+        formData.userType
+      );
+
+      if (result.success) {
+        console.log("Login successful", result);
+        // Redirect based on user type
+        if (
+          formData.userType === "admin" ||
+          formData.userType === "super_admin"
+        ) {
+          navigate("/procurement-dashboard");
+        } else {
+          navigate("/user-dashboard");
+        }
       } else {
         setLoginError(result.error);
       }
     } catch (error) {
-      setLoginError('Login failed. Please try again.');
+      setLoginError("Login failed. Please try again.");
     } finally {
       setIsLoggingIn(false);
     }
@@ -98,49 +108,54 @@ const LoginScreen = () => {
 
   const handleDemoLogin = async (type) => {
     setIsLoggingIn(true);
-    setLoginError('');
-    
+    setLoginError("");
+
     try {
-      const credentials = type === 'admin' 
-        ? { username: 'admin', password: 'admin123' }
-        : { username: 'user', password: 'user123' };
-      
-      console.log('🚀 Demo login attempt:', { type, credentials });
-      const result = await login(credentials.username, credentials.password, type);
-      console.log('🚀 Demo login result:', result);
-      
+      const credentials =
+        type === "admin"
+          ? { username: "admin", password: "admin123" }
+          : { username: "user", password: "user123" };
+
+      console.log("🚀 Demo login attempt:", { type, credentials });
+      const result = await login(
+        credentials.username,
+        credentials.password,
+        type
+      );
+      console.log("🚀 Demo login result:", result);
+
       if (result.success) {
-        if (type === 'admin') {
-          navigate('/procurement-dashboard');
+        if (type === "admin") {
+          navigate("/procurement-dashboard");
         } else {
-          navigate('/user-dashboard');
+          navigate("/user-dashboard");
         }
       } else {
         setLoginError(result.error);
       }
     } catch (error) {
-      console.error('Demo login failed:', error);
-      setLoginError('Demo login failed. Please try again.');
+      console.error("Demo login failed:", error);
+      setLoginError("Demo login failed. Please try again.");
     } finally {
       setIsLoggingIn(false);
     }
   };
 
   const testAuth = () => {
-    console.log('🧪 Testing authentication...');
-    console.log('Form data:', formData);
-    console.log('Form errors:', errors);
-    console.log('User type options:', userTypeOptions);
-    
+    console.log("🧪 Testing authentication...");
+    console.log("Form data:", formData);
+    console.log("Form errors:", errors);
+    console.log("User type options:", userTypeOptions);
+
     // Test the exact credentials
-    console.log('🧪 Testing admin credentials: admin/admin123');
-    console.log('🧪 Testing user credentials: user/user123');
-    
+    console.log("🧪 Testing admin credentials: admin/admin123");
+    console.log("🧪 Testing user credentials: user/user123");
+
     // Test localStorage
-    console.log('🧪 localStorage test:');
-    console.log('user:', localStorage.getItem('user'));
-    console.log('userType:', localStorage.getItem('userType'));
-    console.log('isAuthenticated:', localStorage.getItem('isAuthenticated'));
+    console.log("🧪 localStorage test:");
+    console.log("user:", localStorage.getItem("user"));
+    console.log("userType:", localStorage.getItem("userType"));
+    console.log("isAuthenticated:", localStorage.getItem("isAuthenticated"));
   };
 
   return (
@@ -162,7 +177,7 @@ const LoginScreen = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="max-w-md w-full space-y-8">
             {/* Login Header */}
@@ -189,12 +204,14 @@ const LoginScreen = () => {
                   <Select
                     options={userTypeOptions}
                     value={formData.userType}
-                    onChange={(value) => handleInputChange('userType', value)}
+                    onChange={(value) => handleInputChange("userType", value)}
                     placeholder="Select user type"
                     className="w-full"
                   />
                   {errors.userType && (
-                    <p className="mt-1 text-sm text-red-600">{errors.userType}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.userType}
+                    </p>
                   )}
                 </div>
 
@@ -206,13 +223,17 @@ const LoginScreen = () => {
                   <Input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("username", e.target.value)
+                    }
                     placeholder="Enter your username"
                     className="w-full"
                     error={errors.username}
                   />
                   {errors.username && (
-                    <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.username}
+                    </p>
                   )}
                 </div>
 
@@ -224,13 +245,17 @@ const LoginScreen = () => {
                   <Input
                     type="password"
                     value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("password", e.target.value)
+                    }
                     placeholder="Enter your password"
                     className="w-full"
                     error={errors.password}
                   />
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
 
@@ -238,7 +263,11 @@ const LoginScreen = () => {
                 {loginError && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <Icon name="AlertCircle" size={16} className="text-red-600" />
+                      <Icon
+                        name="AlertCircle"
+                        size={16}
+                        className="text-red-600"
+                      />
                       <p className="text-sm text-red-800">{loginError}</p>
                     </div>
                   </div>
@@ -253,7 +282,7 @@ const LoginScreen = () => {
                   iconName={isLoggingIn ? "Loader" : "LogIn"}
                   iconPosition="left"
                 >
-                  {isLoggingIn ? 'Signing In...' : 'Sign In'}
+                  {isLoggingIn ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
 
@@ -265,7 +294,7 @@ const LoginScreen = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant="outline"
-                    onClick={() => handleDemoLogin('user')}
+                    onClick={() => handleDemoLogin("user")}
                     disabled={isLoggingIn}
                     className="text-sm"
                   >
@@ -273,7 +302,7 @@ const LoginScreen = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => handleDemoLogin('admin')}
+                    onClick={() => handleDemoLogin("admin")}
                     disabled={isLoggingIn}
                     className="text-sm"
                   >
@@ -294,14 +323,23 @@ const LoginScreen = () => {
               {/* Demo Credentials Info */}
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <Icon name="Info" size={16} className="text-blue-600 mt-0.5" />
+                  <Icon
+                    name="Info"
+                    size={16}
+                    className="text-blue-600 mt-0.5"
+                  />
                   <div>
                     <p className="text-sm font-medium text-blue-800 mb-1">
                       Demo Credentials
                     </p>
                     <div className="text-xs text-blue-700 space-y-1">
-                      <p><strong>User:</strong> username: user, password: user123</p>
-                      <p><strong>Admin:</strong> username: admin, password: admin123</p>
+                      <p>
+                        <strong>User:</strong> username: user, password: user123
+                      </p>
+                      <p>
+                        <strong>Admin:</strong> username: admin, password:
+                        admin123
+                      </p>
                     </div>
                   </div>
                 </div>

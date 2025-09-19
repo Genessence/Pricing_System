@@ -1,11 +1,11 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
-const ProtectedRoute = ({ 
-  children, 
-  allowedUserTypes = ['user', 'admin'], 
-  redirectTo = '/login' 
+const ProtectedRoute = ({
+  children,
+  allowedUserTypes = ["user", "admin"],
+  redirectTo = "/login",
 }) => {
   const { isAuthenticated, userType, isLoading } = useAuth();
   const location = useLocation();
@@ -30,7 +30,10 @@ const ProtectedRoute = ({
   // Check if user type is allowed
   if (!allowedUserTypes.includes(userType)) {
     // Redirect to appropriate dashboard based on user type
-    const redirectPath = userType === 'admin' ? '/procurement-dashboard' : '/user-dashboard';
+    let redirectPath = "/user-dashboard"; // default
+    if (userType === "admin" || userType === "super_admin") {
+      redirectPath = "/procurement-dashboard";
+    }
     return <Navigate to={redirectPath} replace />;
   }
 

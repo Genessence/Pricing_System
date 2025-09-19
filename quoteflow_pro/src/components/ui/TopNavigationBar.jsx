@@ -1,48 +1,57 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import Icon from '../AppIcon';
-import UserProfileDropdown from './UserProfileDropdown';
-import NotificationCenter from './NotificationCenter';
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import Icon from "../AppIcon";
+import UserProfileDropdown from "./UserProfileDropdown";
+import NotificationCenter from "./NotificationCenter";
 
-const TopNavigationBar = ({ user, notifications = [], onLogout, onNotificationRead, onNotificationClear }) => {
+const TopNavigationBar = ({
+  user,
+  notifications = [],
+  onLogout,
+  onNotificationRead,
+  onNotificationClear,
+}) => {
   const { userType, logout, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
-  const navigationItems = userType === 'admin' ? [
-    {
-      label: 'Dashboard',
-      path: '/procurement-dashboard',
-      icon: 'BarChart3',
-      tooltip: 'RFQ overview and metrics'
-    },
-    {
-      label: 'Quotations',
-      path: '/quotation-comparison-table',
-      icon: 'Table',
-      tooltip: 'Compare and analyze quotes'
-    },
-    {
-      label: 'Admin',
-      path: '/admin-approval-screen',
-      icon: 'Shield',
-      tooltip: 'Review and approve quotations'
-    }
-  ] : [
-    {
-      label: 'Dashboard',
-      path: '/user-dashboard',
-      icon: 'BarChart3',
-      tooltip: 'View your quotation status'
-    },
-    {
-      label: 'Quotations',
-      path: '/quotation-comparison-table',
-      icon: 'Table',
-      tooltip: 'Create and submit quotations'
-    }
-  ];
+  const navigationItems =
+    userType === "admin" || userType === "super_admin"
+      ? [
+          {
+            label: "Dashboard",
+            path: "/procurement-dashboard",
+            icon: "BarChart3",
+            tooltip: "RFQ overview and metrics",
+          },
+          {
+            label: "Quotations",
+            path: "/quotation-comparison-table",
+            icon: "Table",
+            tooltip: "Compare and analyze quotes",
+          },
+          {
+            label: "Admin",
+            path: "/admin-approval-screen",
+            icon: "Shield",
+            tooltip: "Review and approve quotations",
+          },
+        ]
+      : [
+          {
+            label: "Dashboard",
+            path: "/user-dashboard",
+            icon: "BarChart3",
+            tooltip: "View your quotation status",
+          },
+          {
+            label: "Quotations",
+            path: "/quotation-comparison-table",
+            icon: "Table",
+            tooltip: "Create and submit quotations",
+          },
+        ];
 
   const isActivePath = (path) => {
     return location?.pathname === path || location?.pathname?.startsWith(path);
@@ -57,7 +66,16 @@ const TopNavigationBar = ({ user, notifications = [], onLogout, onNotificationRe
       <div className="px-6 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-                     <Link to={isAuthenticated ? (userType === 'admin' ? "/procurement-dashboard" : "/user-dashboard") : "/login"} className="flex items-center space-x-3">
+          <Link
+            to={
+              isAuthenticated
+                ? userType === "admin" || userType === "super_admin"
+                  ? "/procurement-dashboard"
+                  : "/user-dashboard"
+                : "/login"
+            }
+            className="flex items-center space-x-3"
+          >
             <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg">
               <Icon name="Zap" size={24} color="white" strokeWidth={2.5} />
             </div>
@@ -80,9 +98,10 @@ const TopNavigationBar = ({ user, notifications = [], onLogout, onNotificationRe
                   to={item?.path}
                   className={`
                     flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-smooth
-                    ${isActivePath(item?.path)
-                      ? 'bg-primary text-primary-foreground shadow-soft'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    ${
+                      isActivePath(item?.path)
+                        ? "bg-primary text-primary-foreground shadow-soft"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }
                   `}
                   title={item?.tooltip}
@@ -97,20 +116,20 @@ const TopNavigationBar = ({ user, notifications = [], onLogout, onNotificationRe
           {/* Right Side Actions - Only show when authenticated */}
           {isAuthenticated && (
             <div className="flex items-center space-x-3">
-              <NotificationCenter 
+              <NotificationCenter
                 notifications={notifications}
                 onNotificationRead={onNotificationRead}
                 onNotificationClear={onNotificationClear}
               />
               <UserProfileDropdown user={user} onLogout={logout} />
-              
+
               {/* Mobile Menu Button */}
               <button
                 onClick={toggleMobileMenu}
                 className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
                 aria-label="Toggle mobile menu"
               >
-                <Icon name={isMobileMenuOpen ? 'X' : 'Menu'} size={20} />
+                <Icon name={isMobileMenuOpen ? "X" : "Menu"} size={20} />
               </button>
             </div>
           )}
@@ -127,9 +146,10 @@ const TopNavigationBar = ({ user, notifications = [], onLogout, onNotificationRe
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`
                     flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-smooth
-                    ${isActivePath(item?.path)
-                      ? 'bg-primary text-primary-foreground shadow-soft'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    ${
+                      isActivePath(item?.path)
+                        ? "bg-primary text-primary-foreground shadow-soft"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }
                   `}
                 >

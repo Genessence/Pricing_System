@@ -30,7 +30,7 @@ const ProcurementDashboard = () => {
     dateRange: "",
     category: "",
   });
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -42,11 +42,11 @@ const ProcurementDashboard = () => {
   const loadRFQs = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Loading RFQs from API...');
+      console.log("🔍 Loading RFQs from API...");
       const rfqsData = await apiService.getRFQs();
-      console.log('🔍 RFQs loaded from API:', {
+      console.log("🔍 RFQs loaded from API:", {
         count: rfqsData?.length || 0,
-        data: rfqsData
+        data: rfqsData,
       });
       setRfqs(rfqsData);
     } catch (error) {
@@ -180,25 +180,40 @@ const ProcurementDashboard = () => {
       rfq?.rfq_number?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
       rfq?.title?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
       rfq?.description?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.commodity_type?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.user?.username?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.user?.full_name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      rfq?.site?.site_name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.commodity_type
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.user?.username
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.user?.full_name
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLowerCase()) ||
+      rfq?.site?.site_name
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLowerCase()) ||
       rfq?.site?.site_code?.toLowerCase()?.includes(searchQuery?.toLowerCase());
 
     const matchesStatus = !filters?.status || rfq?.status === filters?.status;
-    
+
     // Fix supplier filter - check if any quotation has the matching supplier
     // Note: RFQ list endpoint doesn't include quotations, so supplier filter won't work
     // This is a limitation of the current backend API design
-    const matchesSupplier = !filters?.supplier || 
-      (rfq?.quotations && rfq?.quotations?.length > 0 && rfq?.quotations?.some(quote => {
-        const supplierName = quote?.supplier?.company_name || quote?.supplier?.name;
-        const supplierValue = supplierName?.toLowerCase()?.replace(/\s+/g, '-');
-        return supplierValue === filters?.supplier;
-      }));
-    
-    const matchesCategory = !filters?.category || rfq?.commodity_type === filters?.category;
+    const matchesSupplier =
+      !filters?.supplier ||
+      (rfq?.quotations &&
+        rfq?.quotations?.length > 0 &&
+        rfq?.quotations?.some((quote) => {
+          const supplierName =
+            quote?.supplier?.company_name || quote?.supplier?.name;
+          const supplierValue = supplierName
+            ?.toLowerCase()
+            ?.replace(/\s+/g, "-");
+          return supplierValue === filters?.supplier;
+        }));
+
+    const matchesCategory =
+      !filters?.category || rfq?.commodity_type === filters?.category;
 
     return matchesSearch && matchesStatus && matchesSupplier && matchesCategory;
   });
@@ -220,11 +235,12 @@ const ProcurementDashboard = () => {
   // This is a limitation of the current backend API design
   const uniqueSuppliers = React.useMemo(() => {
     const suppliers = new Set();
-    rfqs?.forEach(rfq => {
+    rfqs?.forEach((rfq) => {
       if (rfq?.quotations && rfq?.quotations?.length > 0) {
-        rfq?.quotations?.forEach(quote => {
+        rfq?.quotations?.forEach((quote) => {
           if (quote?.supplier) {
-            const supplierName = quote?.supplier?.company_name || quote?.supplier?.name;
+            const supplierName =
+              quote?.supplier?.company_name || quote?.supplier?.name;
             if (supplierName) {
               suppliers.add(supplierName);
             }
@@ -232,10 +248,10 @@ const ProcurementDashboard = () => {
         });
       }
     });
-    
-    return Array.from(suppliers).map(supplierName => ({
-      value: supplierName.toLowerCase().replace(/\s+/g, '-'),
-      label: supplierName
+
+    return Array.from(suppliers).map((supplierName) => ({
+      value: supplierName.toLowerCase().replace(/\s+/g, "-"),
+      label: supplierName,
     }));
   }, [rfqs]);
 
@@ -257,7 +273,7 @@ const ProcurementDashboard = () => {
 
   // Debug logging for filtering
   React.useEffect(() => {
-    console.log('🔍 RFQ Filtering Debug:', {
+    console.log("🔍 RFQ Filtering Debug:", {
       totalRFQs: rfqs?.length || 0,
       filteredRFQs: filteredRFQs?.length || 0,
       paginatedRFQs: paginatedRFQs?.length || 0,
@@ -266,21 +282,31 @@ const ProcurementDashboard = () => {
       totalPages,
       filters,
       searchQuery,
-      uniqueSuppliers: uniqueSuppliers?.length || 0
+      uniqueSuppliers: uniqueSuppliers?.length || 0,
     });
-    
+
     // Log first RFQ structure to understand data format
     if (rfqs && rfqs.length > 0) {
-      console.log('🔍 First RFQ Data Structure:', {
+      console.log("🔍 First RFQ Data Structure:", {
         rfq: rfqs[0],
         user: rfqs[0]?.user,
         site: rfqs[0]?.site,
         quotations: rfqs[0]?.quotations,
         status: rfqs[0]?.status,
-        commodity_type: rfqs[0]?.commodity_type
+        commodity_type: rfqs[0]?.commodity_type,
       });
     }
-  }, [rfqs, filteredRFQs, paginatedRFQs, currentPage, itemsPerPage, totalPages, filters, searchQuery, uniqueSuppliers]);
+  }, [
+    rfqs,
+    filteredRFQs,
+    paginatedRFQs,
+    currentPage,
+    itemsPerPage,
+    totalPages,
+    filters,
+    searchQuery,
+    uniqueSuppliers,
+  ]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -469,14 +495,14 @@ const ProcurementDashboard = () => {
                   <Button variant="outline" size="sm" iconName="Download">
                     Export
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="default"
                     size="sm"
                     iconName="Plus"
                     onClick={() => navigate("/admin-approval-screen")}
                   >
                     View All
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </div>
@@ -548,7 +574,9 @@ const ProcurementDashboard = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                          {rfq?.user?.full_name || rfq?.user?.username || "Unknown"}
+                          {rfq?.user?.full_name ||
+                            rfq?.user?.username ||
+                            "Unknown"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
@@ -608,7 +636,7 @@ const ProcurementDashboard = () => {
                 </tbody>
               </table>
             </div>
-            
+
             {/* Pagination Controls */}
             {totalItems > 0 && (
               <div className="px-6 py-4 border-t border-border bg-muted/20">
@@ -629,58 +657,70 @@ const ProcurementDashboard = () => {
                       <option value={20}>20</option>
                       <option value={50}>50</option>
                     </select>
-                    <span className="text-sm text-muted-foreground">per page</span>
+                    <span className="text-sm text-muted-foreground">
+                      per page
+                    </span>
                   </div>
-                  
+
                   {/* Pagination info */}
                   <div className="text-sm text-muted-foreground">
-                    Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} results
+                    Showing {startIndex + 1} to {Math.min(endIndex, totalItems)}{" "}
+                    of {totalItems} results
                   </div>
-                  
+
                   {/* Pagination buttons */}
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                       iconName="ChevronLeft"
                     >
                       Previous
                     </Button>
-                    
+
                     {/* Page numbers */}
                     <div className="flex items-center space-x-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                currentPage === pageNum ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
                         }
-                        
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className="w-8 h-8 p-0"
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
+                      )}
                     </div>
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                       iconName="ChevronRight"
                     >

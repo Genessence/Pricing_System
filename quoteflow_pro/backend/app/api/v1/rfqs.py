@@ -1,3 +1,4 @@
+git add .
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -327,8 +328,18 @@ def get_rfqs(
     query = db.query(RFQ).options(joinedload(RFQ.user), joinedload(RFQ.site))
 
     # Apply role-based filtering
-    if str(current_user.role) == UserRole.USER.value:
+    if current_user.role == UserRole.USER:
         query = query.filter(RFQ.user_id == current_user.id)
+    elif current_user.role == UserRole.SUPER_ADMIN:
+        # Super admin: Only show approved RFQs with final decisions > 2 lakh
+        query = query.join(FinalDecision, RFQ.id == FinalDecision.rfq_id)
+        query = query.filter(
+            and_(
+                RFQ.status == RFQStatus.APPROVED,
+                FinalDecision.status == "APPROVED",
+                FinalDecision.total_approved_amount > 200000,
+            )
+        )
 
     # Apply filters
     if status:
@@ -752,9 +763,17 @@ def create_final_decision(
 
             # ✅ Update RFQItem last_buying_price & last_vendor if APPROVED
             if final_decision_data.status == "APPROVED":
-                rfq_item = db.query(RFQItem).filter(RFQItem.id == item_data.rfq_item_id).first()
+                rfq_item = (
+                    db.query(RFQItem)
+                    .filter(RFQItem.id == item_data.rfq_item_id)
+                    .first()
+                )
                 if rfq_item and rfq_item.erp_item_id:
-                    erp_item = db.query(ERPItem).filter(ERPItem.id == rfq_item.erp_item_id).first()
+                    erp_item = (
+                        db.query(ERPItem)
+                        .filter(ERPItem.id == rfq_item.erp_item_id)
+                        .first()
+                    )
                     if erp_item:
                         erp_item.last_buying_price = item_data.final_unit_price
                         erp_item.last_vendor = item_data.supplier_name

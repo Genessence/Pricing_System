@@ -98,11 +98,25 @@ class RFQService:
         commodity_type: Optional[str] = None,
     ) -> List[RFQ]:
         """Get RFQs with role-based filtering"""
+        from app.models.final_decision import FinalDecision
+        from app.models.rfq import RFQStatus
+        from sqlalchemy import and_
+
         query = db.query(RFQ).options(joinedload(RFQ.user), joinedload(RFQ.site))
 
         # Apply role-based filtering
         if current_user.role == UserRole.USER:
             query = query.filter(RFQ.user_id == current_user.id)
+        elif current_user.role == UserRole.SUPER_ADMIN:
+            # Super admin: Only show approved RFQs with final decisions > 2 lakh
+            query = query.join(FinalDecision, RFQ.id == FinalDecision.rfq_id)
+            query = query.filter(
+                and_(
+                    RFQ.status == RFQStatus.APPROVED,
+                    FinalDecision.status == "APPROVED",
+                    FinalDecision.total_approved_amount > 200000,
+                )
+            )
 
         # Apply filters
         if status:

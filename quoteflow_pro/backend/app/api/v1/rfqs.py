@@ -368,11 +368,11 @@ def get_rfqs(
                         FinalDecision.total_approved_amount <= 200000,
                     ),
                     # Case 3: Any other commodity type + ADMIN_APPROVED
-                    and_(
-                        RFQ.commodity_type != CommodityType.PROVIDED_DATA,
-                        RFQ.status == RFQStatus.ADMIN_APPROVED,
-                        FinalDecision.status == "APPROVED",
-                    ),
+                    # and_(
+                    #     RFQ.commodity_type != CommodityType.PROVIDED_DATA,
+                    #     RFQ.status == RFQStatus.ADMIN_APPROVED,
+                    #     FinalDecision.status == "APPROVED",
+                    # ),
                 )
             )
         )

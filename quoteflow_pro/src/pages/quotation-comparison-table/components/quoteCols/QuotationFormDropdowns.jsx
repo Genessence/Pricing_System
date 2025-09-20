@@ -11,9 +11,12 @@ const QuotationFormDropdowns = ({
 }) => {
   // Dropdown options
   const commodityOptions = [
-    { value: "provided_data", label: "Provided Data" },
-    { value: "service", label: "Service" },
-    { value: "transport", label: "Transport" },
+    { value: "provided_data", label: "Indent Items" },
+    {
+      value: "service",
+      label: "Service Request ( Repair, Civil , Fabrication etc)",
+    },
+    { value: "transport", label: "Transport Request" },
   ];
 
   const productTypeOptions = [

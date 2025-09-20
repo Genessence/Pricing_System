@@ -723,7 +723,7 @@ const AdminQuotationDetail = () => {
                 <Button
                   variant="outline"
                   iconName="ArrowLeft"
-                  onClick={() => navigate("/procurement-dashboard")}
+                  onClick={() => navigate("/admin-approval-screen")}
                 >
                   Back to Requests
                 </Button>

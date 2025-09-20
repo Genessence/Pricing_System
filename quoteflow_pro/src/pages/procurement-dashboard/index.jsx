@@ -12,6 +12,7 @@ import Button from "../../components/ui/Button";
 import Icon from "../../components/AppIcon";
 import { cn } from "../../utils/cn";
 import apiService from "../../services/api";
+import DashboardCharts from "./components/DashboardCharts";
 
 const ProcurementDashboard = () => {
   const navigate = useNavigate();
@@ -391,14 +392,15 @@ const ProcurementDashboard = () => {
     }
   };
 
-  const tabs = userType === "admin" || userType === "super_admin" ? [
-    { id: "overview", label: "Overview", icon: "BarChart3" },
-    { id: "users", label: "User Management", icon: "Users" },
-    { id: "analytics", label: "Advanced Analytics", icon: "TrendingUp" },
-    { id: "reports", label: "Reports", icon: "FileText" },
-  ] : [
-    { id: "overview", label: "Overview", icon: "BarChart3" },
-  ];
+  const tabs =
+    userType === "admin" || userType === "super_admin"
+      ? [
+          { id: "overview", label: "Overview", icon: "BarChart3" },
+          { id: "users", label: "User Management", icon: "Users" },
+          { id: "analytics", label: "Advanced Analytics", icon: "TrendingUp" },
+          { id: "reports", label: "Reports", icon: "FileText" },
+        ]
+      : [{ id: "overview", label: "Overview", icon: "BarChart3" }];
 
   if (loading) {
     return (
@@ -457,12 +459,11 @@ const ProcurementDashboard = () => {
           color="primary"
         />
       </div>
-
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Main Content Area */}
         <div className="xl:col-span-3 space-y-6">
           {/* Filter Controls */}
-          <FilterControls
+          {/* <FilterControls
             filters={filters}
             onFilterChange={handleFilterChange}
             onSearch={handleSearch}
@@ -470,10 +471,10 @@ const ProcurementDashboard = () => {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             supplierOptions={uniqueSuppliers}
-          />
+          /> */}
 
           {/* Enhanced RFQ Table */}
-          <div className="bg-card border border-border rounded-lg shadow-sm">
+          {/* <div className="bg-card border border-border rounded-lg shadow-sm">
             <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
                 <div>
@@ -504,7 +505,7 @@ const ProcurementDashboard = () => {
                     onClick={() => navigate("/admin-approval-screen")}
                   >
                     View All
-                  </Button> */}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -527,9 +528,9 @@ const ProcurementDashboard = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Commodity Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Amount
-                    </th>
+                    </th> 
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Status
                     </th>
@@ -602,9 +603,9 @@ const ProcurementDashboard = () => {
                               : rfq.commodity_type || "N/A"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {formatCurrency(calculateTotalAmount(rfq))}
-                        </td>
+                        </td> 
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={cn(
@@ -648,12 +649,9 @@ const ProcurementDashboard = () => {
                 </tbody>
               </table>
             </div>
-
-            {/* Pagination Controls */}
             {totalItems > 0 && (
               <div className="px-6 py-4 border-t border-border bg-muted/20">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  {/* Items per page selector */}
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-muted-foreground">Show:</span>
                     <select
@@ -674,13 +672,11 @@ const ProcurementDashboard = () => {
                     </span>
                   </div>
 
-                  {/* Pagination info */}
                   <div className="text-sm text-muted-foreground">
                     Showing {startIndex + 1} to {Math.min(endIndex, totalItems)}{" "}
                     of {totalItems} results
                   </div>
 
-                  {/* Pagination buttons */}
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
@@ -694,7 +690,6 @@ const ProcurementDashboard = () => {
                       Previous
                     </Button>
 
-                    {/* Page numbers */}
                     <div className="flex items-center space-x-1">
                       {Array.from(
                         { length: Math.min(5, totalPages) },
@@ -742,10 +737,10 @@ const ProcurementDashboard = () => {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Performance Charts */}
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-foreground">
                 Performance Analytics
@@ -755,7 +750,7 @@ const ProcurementDashboard = () => {
               </Button>
             </div>
             <PerformanceCharts />
-          </div>
+          </div> */}
         </div>
 
         {/* Sidebar */}
@@ -763,6 +758,8 @@ const ProcurementDashboard = () => {
           <QuickActions pendingApprovals={pendingRFQs} draftRFQs={draftRFQs} />
         </div>
       </div>
+      {/* Add charts here */}
+      <DashboardCharts />
     </>
   );
 
@@ -1114,8 +1111,10 @@ const ProcurementDashboard = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                {userType === "admin" || userType === "super_admin"
+                {userType === "admin"
                   ? "Admin Dashboard"
+                  : userType === "super_admin"
+                  ? "Super Admin Dashboard"
                   : "Pricing Team Dashboard"}
               </h1>
               <p className="text-muted-foreground">

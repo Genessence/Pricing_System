@@ -80,7 +80,7 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
         </div>
       </div> */}
       {/* Notifications & Alerts */}
-      <div className="bg-card border border-border rounded-lg p-6">
+      {/* <div className="bg-card border border-border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">
           Notifications & Alerts
         </h3>
@@ -135,9 +135,9 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
       {/* Recent Activity */}
-      <div className="bg-card border border-border rounded-lg p-6">
+      {/* <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-foreground">
             Recent Activity
@@ -181,7 +181,7 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

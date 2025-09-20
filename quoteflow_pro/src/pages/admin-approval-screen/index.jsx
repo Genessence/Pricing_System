@@ -279,13 +279,15 @@ const AdminApprovalScreen = () => {
               >
                 Clear Data
               </Button>
-              <Button
-                variant="outline"
-                iconName="ArrowLeft"
-                onClick={() => navigate("/procurement-dashboard")}
-              >
-                Back to Dashboard
-              </Button>
+              {userType !== "pricing_team" && (
+                <Button
+                  variant="outline"
+                  iconName="ArrowLeft"
+                  onClick={() => navigate("/procurement-dashboard")}
+                >
+                  Back to Dashboard
+                </Button>
+              )}
             </div>
           </div>
 

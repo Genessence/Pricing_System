@@ -90,10 +90,12 @@ const LoginScreen = () => {
         // Redirect based on user type
         if (
           formData.userType === "admin" ||
-          formData.userType === "super_admin" ||
-          formData.userType === "pricing_team"
+          formData.userType === "super_admin"
         ) {
           navigate("/procurement-dashboard");
+        }
+        if (formData.userType === "pricing_team") {
+          navigate("/admin-approval-screen");
         } else {
           navigate("/user-dashboard");
         }
@@ -128,6 +130,8 @@ const LoginScreen = () => {
       if (result.success) {
         if (type === "admin") {
           navigate("/procurement-dashboard");
+        } else if (type === "pricing_team") {
+          navigate("/admin-approval-screen");
         } else {
           navigate("/user-dashboard");
         }
@@ -165,15 +169,19 @@ const LoginScreen = () => {
         {/* Simple Header */}
         <div className="px-6 py-4">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg">
-              <Icon name="Zap" size={24} className="text-white" />
+            <div className="flex items-center justify-center w-50 h-10 rounded-lg overflow-hidden">
+              <img
+                src="/assets/images/Amber.jpg"
+                alt="Amber Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-semibold text-foreground tracking-tight">
-                QuoteFlow Pro
+                Amber General Purchase
               </span>
               <span className="text-xs text-muted-foreground font-medium">
-                Enterprise Procurement
+                Procurement Channel{" "}
               </span>
             </div>
           </div>

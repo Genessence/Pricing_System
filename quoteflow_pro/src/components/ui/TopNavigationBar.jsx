@@ -38,7 +38,8 @@ const TopNavigationBar = ({
             tooltip: "Review and approve quotations",
           },
         ]
-      : userType === "user" ? [
+      : userType === "user"
+      ? [
           {
             label: "Dashboard",
             path: "/user-dashboard",
@@ -51,7 +52,15 @@ const TopNavigationBar = ({
             icon: "Table",
             tooltip: "Create and submit quotations",
           },
-        ] : [];
+        ]
+      : [
+          {
+            label: "Dashboard",
+            path: "/admin-approval-screen",
+            icon: "Shield",
+            tooltip: "Review and add APD numbers to quotations",
+          },
+        ];
 
   const isActivePath = (path) => {
     return location?.pathname === path || location?.pathname?.startsWith(path);
@@ -76,15 +85,19 @@ const TopNavigationBar = ({
             }
             className="flex items-center space-x-3"
           >
-            <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg">
-              <Icon name="Zap" size={24} color="white" strokeWidth={2.5} />
+            <div className="flex items-center justify-center w-50 h-10 rounded-lg overflow-hidden">
+              <img
+                src="/assets/images/Amber.jpg"
+                alt="Amber Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-semibold text-foreground tracking-tight">
-                QuoteFlow Pro
+                Amber General Purchase
               </span>
               <span className="text-xs text-muted-foreground font-medium">
-                Enterprise Procurement
+                Procurement Channel
               </span>
             </div>
           </Link>

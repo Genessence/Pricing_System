@@ -695,6 +695,7 @@ const AdminQuotationComparisonTable = ({
                     disabled={
                       // Admin: disabled if admin approved
                       // Super Admin: only disabled if super admin approved
+                      userType === "pricing_team" ||
                       (userType === "admin" &&
                         (quotation.finalDecisions?.[0]?.status ===
                           "ADMIN_APPROVED" ||
@@ -978,6 +979,7 @@ const AdminQuotationComparisonTable = ({
                     disabled={
                       // Admin: disabled if admin approved
                       // Super Admin: only disabled if super admin approved
+                      userType === "pricing_team" ||
                       (userType === "admin" &&
                         (quotation.finalDecisions?.[0]?.status ===
                           "ADMIN_APPROVED" ||

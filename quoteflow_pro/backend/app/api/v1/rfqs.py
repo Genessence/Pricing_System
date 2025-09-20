@@ -12,6 +12,7 @@ from app.schemas.rfq import (
     RFQList,
     RFQItemCreate,
     QuoteData,
+    RFQAPDUpdate,
 )
 from app.schemas.quotation import QuotationCreate, QuotationItemCreate
 from app.schemas.final_decision import (
@@ -532,6 +533,7 @@ def get_rfq(
             "commodityTypeRaw": commodity_type_raw,
             "totalValue": rfq.total_value,
             "currency": rfq.currency,
+            "apd_number": rfq.apd_number,  # Include APD number in frontend response
             "items": items_for_frontend,
             "suppliers": suppliers_list,
             "finalDecisions": final_decisions_for_frontend,
@@ -548,6 +550,7 @@ def get_rfq(
         commodity_type=rfq.commodity_type,
         total_value=rfq.total_value,
         currency=rfq.currency,
+        apd_number=rfq.apd_number,  # Include APD number in response
         status=rfq.status,
         user_id=rfq.user_id,
         site_id=rfq.site_id,
@@ -600,6 +603,34 @@ def update_rfq(
     # Update fields
     for field, value in rfq_data.dict(exclude_unset=True).items():
         setattr(rfq, field, value)
+
+    db.commit()
+    db.refresh(rfq)
+
+    return rfq
+
+
+@router.put("/{rfq_id}/apd", response_model=RFQResponse)
+def update_rfq_apd(
+    rfq_id: int,
+    apd_data: RFQAPDUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Update RFQ APD number (Pricing Team only)."""
+    rfq = db.query(RFQ).filter(RFQ.id == rfq_id).first()
+
+    if not rfq:
+        raise HTTPException(status_code=404, detail="RFQ not found")
+
+    # Check permissions - only pricing team can update APD
+    if current_user.role != UserRole.PRICING_TEAM:
+        raise HTTPException(
+            status_code=403, detail="Only pricing team members can update APD numbers"
+        )
+
+    # Update APD number
+    rfq.apd_number = apd_data.apd_number
 
     db.commit()
     db.refresh(rfq)

@@ -18,13 +18,13 @@ const StatusIndicator = ({ status, submissionTime }) => {
           icon: "Check",
           iconColor: "text-green-600",
         };
-      case "admin_approved":
+      case "Admin Approved":
         return {
           color: "bg-orange-100 text-orange-800 border-orange-300",
           icon: "UserCheck",
           iconColor: "text-orange-600",
         };
-      case "super_admin_approved":
+      case "Super Admin Approved":
         return {
           color: "bg-green-100 text-green-800 border-green-300",
           icon: "Shield",

@@ -90,7 +90,8 @@ const LoginScreen = () => {
         // Redirect based on user type
         if (
           formData.userType === "admin" ||
-          formData.userType === "super_admin"
+          formData.userType === "super_admin" ||
+          formData.userType === "pricing_team"
         ) {
           navigate("/procurement-dashboard");
         } else {

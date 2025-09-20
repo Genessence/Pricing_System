@@ -49,7 +49,12 @@ const Routes = () => {
             path="/quotation-comparison-table"
             element={
               <ProtectedRoute
-                allowedUserTypes={["user", "admin", "super_admin"]}
+                allowedUserTypes={[
+                  "user",
+                  "admin",
+                  "super_admin",
+                  "pricing_team",
+                ]}
               >
                 <QuotationComparisonTable />
               </ProtectedRoute>
@@ -60,7 +65,9 @@ const Routes = () => {
           <Route
             path="/procurement-dashboard"
             element={
-              <ProtectedRoute allowedUserTypes={["admin", "super_admin"]}>
+              <ProtectedRoute
+                allowedUserTypes={["admin", "super_admin", "pricing_team"]}
+              >
                 <ProcurementDashboard />
               </ProtectedRoute>
             }
@@ -68,7 +75,9 @@ const Routes = () => {
           <Route
             path="/admin-approval-screen"
             element={
-              <ProtectedRoute allowedUserTypes={["admin", "super_admin"]}>
+              <ProtectedRoute
+                allowedUserTypes={["admin", "super_admin", "pricing_team"]}
+              >
                 <AdminApprovalScreen />
               </ProtectedRoute>
             }
@@ -76,7 +85,9 @@ const Routes = () => {
           <Route
             path="/admin-approval-screen/:quotationId"
             element={
-              <ProtectedRoute allowedUserTypes={["admin", "super_admin"]}>
+              <ProtectedRoute
+                allowedUserTypes={["admin", "super_admin", "pricing_team"]}
+              >
                 <AdminQuotationDetail />
               </ProtectedRoute>
             }

@@ -33,6 +33,7 @@ class RFQ(Base):
     status = Column(Enum(RFQStatus), default=RFQStatus.DRAFT)
     total_value = Column(Float, default=0.0)
     currency = Column(String(3), default="INR")
+    apd_number = Column(String(50), default="")
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     site_id = Column(Integer, ForeignKey("sites.id"), nullable=False)
     created_at = Column(

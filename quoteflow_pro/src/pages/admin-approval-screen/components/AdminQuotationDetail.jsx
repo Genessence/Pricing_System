@@ -30,6 +30,10 @@ const AdminQuotationDetail = () => {
     TRANSPORT: {},
   });
 
+  // Add APD state for pricing team
+  const [apdNumber, setApdNumber] = useState("");
+  const [isUpdatingAPD, setIsUpdatingAPD] = useState(false);
+
   // Use authenticated user data
   const currentUser = user;
 
@@ -183,8 +187,10 @@ const AdminQuotationDetail = () => {
       "quotationData?.commodityTypeRaw:",
       quotationData?.commodityTypeRaw
     );
+    console.log("quotationData?.apd_number:", quotationData?.apd_number);
+    console.log("userType:", userType);
     console.log("=== END COMPONENT DATA DEBUG ===");
-  }, [adminApproval, quotationData, items]);
+  }, [adminApproval, quotationData, items, userType]);
 
   const handleApprove = () => {
     setIsApproveRejectModalOpen(true);
@@ -331,6 +337,36 @@ const AdminQuotationDetail = () => {
 
   const handleLogout = () => {
     navigate("/login-screen");
+  };
+
+  // Handle APD number update for pricing team
+  const handleAPDAttach = async () => {
+    if (!apdNumber.trim()) {
+      alert("Please enter an APD number");
+      return;
+    }
+
+    setIsUpdatingAPD(true);
+    try {
+      const response = await apiService.updateRFQAPD(
+        parseInt(quotationId),
+        apdNumber.trim()
+      );
+      console.log("APD update response:", response);
+      alert("APD number attached successfully!");
+
+      // Update the quotation state with the response data
+      setQuotation(response);
+      setApdNumber(""); // Clear the input
+
+      console.log("Updated quotation data:", response);
+      console.log("APD number in response:", response?.apd_number);
+    } catch (error) {
+      console.error("Error updating APD:", error);
+      alert("Error updating APD number. Please try again.");
+    } finally {
+      setIsUpdatingAPD(false);
+    }
   };
 
   const totalEstimatedValue =
@@ -1052,6 +1088,74 @@ const AdminQuotationDetail = () => {
                 }
               }
 
+              // Pricing Team user logic
+              if (userType === "pricing_team") {
+                console.log("=== PRICING TEAM STATUS DEBUG ===");
+                console.log(
+                  "quotationData?.apd_number:",
+                  quotationData?.apd_number
+                );
+                console.log(
+                  "APD check result:",
+                  !quotationData?.apd_number || quotationData.apd_number === ""
+                );
+                console.log("=== END PRICING TEAM STATUS DEBUG ===");
+
+                if (
+                  !quotationData?.apd_number ||
+                  quotationData.apd_number === ""
+                ) {
+                  return (
+                    <div className="px-6 mt-6">
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 shadow-md">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-orange-100">
+                            <AppIcon
+                              name="FileText"
+                              size={20}
+                              className="text-orange-600"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-orange-700">
+                              APD Number Not Assigned
+                            </h3>
+                            <p className="text-sm text-orange-600">
+                              Please assign an APD number to this RFQ.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="px-6 mt-6">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-6 shadow-md">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100">
+                            <AppIcon
+                              name="CheckCircle"
+                              size={20}
+                              className="text-green-600"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-green-700">
+                              APD Number Assigned
+                            </h3>
+                            <p className="text-sm text-green-600">
+                              APD Number:{" "}
+                              <strong>{quotationData.apd_number}</strong>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+              }
+
               // Rejected status for both user types
               if (quotation.finalDecisions?.[0]?.status === "REJECTED") {
                 return (
@@ -1105,66 +1209,120 @@ const AdminQuotationDetail = () => {
               return quotation.status === "Admin Approved";
             }
 
+            // Pricing Team user logic
+            if (userType === "pricing_team") {
+              // Show APD input only if APD is not assigned
+              const shouldShowAPDInput =
+                !quotationData?.apd_number || quotationData.apd_number === "";
+              console.log("=== PRICING TEAM ACTION DEBUG ===");
+              console.log(
+                "quotationData?.apd_number:",
+                quotationData?.apd_number
+              );
+              console.log("shouldShowAPDInput:", shouldShowAPDInput);
+              console.log("=== END PRICING TEAM ACTION DEBUG ===");
+              return shouldShowAPDInput;
+            }
+
             return false;
           })() && (
             <div className="px-6">
               <div className="sticky bottom-6 bg-card border border-border rounded-lg p-6 shadow-lg">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-center sm:text-left">
-                    <h3 className="text-lg font-semibold text-foreground mb-1">
-                      {quotation.status == "admin_approved" &&
-                      userType === "super_admin"
-                        ? areAllVendorsSelected()
-                          ? "Ready for Super Admin Decision"
-                          : "Review and Select Final Vendors"
-                        : areAllVendorsSelected()
-                        ? "Ready for Decision"
-                        : "Select Vendors for All Items"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {areAllVendorsSelected()
-                        ? "All vendors selected. Review all quotation details above before making your decision"
-                        : `Please select vendors for ${
-                            items?.length -
-                            items?.filter((item) => {
-                              const commodityTypeRaw =
-                                quotationData?.commodityTypeRaw ||
-                                "CommodityType.PROVIDED_DATA";
-                              const commodityType = commodityTypeRaw.includes(
-                                "."
-                              )
-                                ? commodityTypeRaw.split(".")[1]
-                                : commodityTypeRaw;
-                              const itemApproval =
-                                adminApproval?.[commodityType]?.[item?.id];
-                              return (
-                                itemApproval?.finalSupplier?.vendorName &&
-                                itemApproval?.finalSupplier?.vendorName.trim() !==
-                                  ""
-                              );
-                            }).length
-                          } remaining item(s)`}
-                    </p>
+                    {userType === "pricing_team" ? (
+                      <>
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
+                          Assign APD Number
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Enter the APD number for this RFQ to complete the
+                          process.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
+                          {quotation.status == "admin_approved" &&
+                          userType === "super_admin"
+                            ? areAllVendorsSelected()
+                              ? "Ready for Super Admin Decision"
+                              : "Review and Select Final Vendors"
+                            : areAllVendorsSelected()
+                            ? "Ready for Decision"
+                            : "Select Vendors for All Items"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {areAllVendorsSelected()
+                            ? "All vendors selected. Review all quotation details above before making your decision"
+                            : `Please select vendors for ${
+                                items?.length -
+                                items?.filter((item) => {
+                                  const commodityTypeRaw =
+                                    quotationData?.commodityTypeRaw ||
+                                    "CommodityType.PROVIDED_DATA";
+                                  const commodityType =
+                                    commodityTypeRaw.includes(".")
+                                      ? commodityTypeRaw.split(".")[1]
+                                      : commodityTypeRaw;
+                                  const itemApproval =
+                                    adminApproval?.[commodityType]?.[item?.id];
+                                  return (
+                                    itemApproval?.finalSupplier?.vendorName &&
+                                    itemApproval?.finalSupplier?.vendorName.trim() !==
+                                      ""
+                                  );
+                                }).length
+                              } remaining item(s)`}
+                        </p>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <Button
-                      variant="destructive"
-                      iconName="X"
-                      onClick={handleReject}
-                      className="px-8"
-                    >
-                      Reject
-                    </Button>
-                    <Button
-                      variant="default"
-                      iconName="Check"
-                      onClick={handleApprove}
-                      className="px-8"
-                      disabled={!areAllVendorsSelected()}
-                    >
-                      Approve
-                    </Button>
+                    {userType === "pricing_team" ? (
+                      <>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={apdNumber}
+                            onChange={(e) => setApdNumber(e.target.value)}
+                            placeholder="Enter APD Number"
+                            className="px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            maxLength={50}
+                          />
+                          <Button
+                            variant="default"
+                            iconName="Paperclip"
+                            onClick={handleAPDAttach}
+                            className="px-6"
+                            disabled={isUpdatingAPD || !apdNumber.trim()}
+                          >
+                            {isUpdatingAPD ? "Attaching..." : "Attach APD"}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="destructive"
+                          iconName="X"
+                          onClick={handleReject}
+                          className="px-8"
+                        >
+                          Reject
+                        </Button>
+                        <Button
+                          variant="default"
+                          iconName="Check"
+                          onClick={handleApprove}
+                          className="px-8"
+                          disabled={!areAllVendorsSelected()}
+                        >
+                          Approve
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

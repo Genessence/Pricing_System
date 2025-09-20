@@ -51,6 +51,7 @@ class RFQBase(BaseModel):
     commodity_type: CommodityType
     total_value: float = Field(..., gt=0)
     currency: str = Field(default="INR", min_length=3, max_length=3)
+    apd_number: Optional[str] = Field(default="", max_length=50)
 
     @validator("currency")
     def validate_currency(cls, v):
@@ -94,7 +95,12 @@ class RFQUpdate(BaseModel):
     commodity_type: Optional[CommodityType] = None
     total_value: Optional[float] = Field(None, gt=0)
     currency: Optional[str] = Field(None, min_length=3, max_length=3)
+    apd_number: Optional[str] = Field(None, max_length=50)
     status: Optional[RFQStatus] = None
+
+
+class RFQAPDUpdate(BaseModel):
+    apd_number: str = Field(..., min_length=1, max_length=50)
 
 
 class RFQResponse(RFQBase):

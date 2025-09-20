@@ -196,6 +196,13 @@ class ApiService {
     });
   }
 
+  async updateRFQAPD(rfqId, apdNumber) {
+    return await this.request(`/rfqs/${rfqId}/apd`, {
+      method: "PUT",
+      body: JSON.stringify({ apd_number: apdNumber }),
+    });
+  }
+
   async deleteRFQ(rfqId) {
     return await this.request(`/rfqs/${rfqId}`, {
       method: "DELETE",

@@ -7,19 +7,16 @@
    ```
    git clone
    ```
-
 2. **Navigate to backend folder**
 
    ```bash
    cd backend
    ```
-
 3. **Create virtual environment**
 
    ```bash
    python -m venv venv
    ```
-
 4. **Activate virtual environment**
 
    - On Windows:
@@ -30,13 +27,11 @@
      ```bash
      source venv/bin/activate
      ```
-
 5. **Install dependencies**
 
    ```bash
    pip install -r requirements.txt
    ```
-
 6. **Run the server**
 
    ```bash

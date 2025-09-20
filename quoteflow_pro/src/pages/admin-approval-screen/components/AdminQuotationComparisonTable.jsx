@@ -287,14 +287,14 @@ const AdminQuotationComparisonTable = ({
                     disabled={
                       // Admin: disabled if admin approved
                       // Super Admin: only disabled if super admin approved
+                      userType === "pricing_team" ||
+                      quotation.finalDecisions?.[0]?.status ===
+                        "SUPER_ADMIN_APPROVED" ||
+                      quotation.status === "Super Admin Approved" ||
                       (userType === "admin" &&
                         (quotation.finalDecisions?.[0]?.status ===
                           "ADMIN_APPROVED" ||
-                          quotation.status === "Admin Approved")) ||
-                      (userType === "super_admin" &&
-                        (quotation.finalDecisions?.[0]?.status ===
-                          "SUPER_ADMIN_APPROVED" ||
-                          quotation.status === "super_admin_approved"))
+                          quotation.status === "Admin Approved"))
                     }
                     onChange={(e) => {
                       onFinalSupplierChange(

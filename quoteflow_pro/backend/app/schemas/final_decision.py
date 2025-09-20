@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+
 class FinalDecisionItemBase(BaseModel):
     rfq_item_id: int
     selected_supplier_id: Optional[int] = None
@@ -12,17 +13,20 @@ class FinalDecisionItemBase(BaseModel):
     supplier_name: Optional[str] = None
     decision_notes: Optional[str] = None
 
+
 class FinalDecisionItemCreate(FinalDecisionItemBase):
     pass
+
 
 class FinalDecisionItemResponse(FinalDecisionItemBase):
     id: int
     final_decision_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-    
+
     class Config:
         from_attributes = True
+
 
 class FinalDecisionBase(BaseModel):
     rfq_id: int
@@ -32,14 +36,18 @@ class FinalDecisionBase(BaseModel):
     approval_notes: Optional[str] = None
     rejection_reason: Optional[str] = None
 
+
 class FinalDecisionCreate(FinalDecisionBase):
     items: List[FinalDecisionItemCreate] = []
+
 
 class FinalDecisionUpdate(BaseModel):
     status: Optional[str] = None
     total_approved_amount: Optional[float] = None
     approval_notes: Optional[str] = None
     rejection_reason: Optional[str] = None
+    items: Optional[List[FinalDecisionItemCreate]] = None  # ✅ Add this
+
 
 class FinalDecisionResponse(FinalDecisionBase):
     id: int
@@ -48,9 +56,10 @@ class FinalDecisionResponse(FinalDecisionBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     items: List[FinalDecisionItemResponse] = []
-    
+
     class Config:
         from_attributes = True
+
 
 class FinalDecisionWithDetails(FinalDecisionResponse):
     approver_name: Optional[str] = None

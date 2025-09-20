@@ -14,6 +14,7 @@ const AdminApprovalScreen = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [notifications, setNotifications] = useState([]);
 
   // Get quotation requests from backend API
   const [quotationRequests, setQuotationRequests] = useState([]);
@@ -91,6 +92,20 @@ const AdminApprovalScreen = () => {
       localStorage.removeItem("quotationRequests");
       setQuotationRequests([]);
     }
+  };
+
+  const handleNotificationRead = (notificationId) => {
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === notificationId
+          ? { ...notification, read: true }
+          : notification
+      )
+    );
+  };
+
+  const handleNotificationClear = () => {
+    setNotifications([]);
   };
 
   const getStatusColor = (status) => {
@@ -205,8 +220,8 @@ const AdminApprovalScreen = () => {
           user={user}
           notifications={notifications}
           onLogout={handleLogout}
-          onNotificationRead={() => {}}
-          onNotificationClear={() => {}}
+          onNotificationRead={handleNotificationRead}
+          onNotificationClear={handleNotificationClear}
         />
         <BreadcrumbTrail />
         <div className="flex items-center justify-center h-screen">
@@ -231,8 +246,8 @@ const AdminApprovalScreen = () => {
         user={user}
         notifications={notifications}
         onLogout={handleLogout}
-        onNotificationRead={() => {}}
-        onNotificationClear={() => {}}
+        onNotificationRead={handleNotificationRead}
+        onNotificationClear={handleNotificationClear}
       />
       <BreadcrumbTrail />
       <div className="pt-20 pb-8">

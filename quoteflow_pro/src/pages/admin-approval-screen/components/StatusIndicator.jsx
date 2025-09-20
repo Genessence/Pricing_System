@@ -1,43 +1,58 @@
-import React from 'react';
-import Icon from '../../../components/AppIcon';
+import React from "react";
+import Icon from "../../../components/AppIcon";
 
 const StatusIndicator = ({ status, submissionTime }) => {
   const getStatusConfig = (status) => {
     switch (status) {
-      case 'Pending Approval':
+      case "Pending Approval":
+      case "pending":
         return {
-          color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-          icon: 'Clock',
-          iconColor: 'text-yellow-600'
+          color: "bg-yellow-100 text-yellow-800 border-yellow-300",
+          icon: "Clock",
+          iconColor: "text-yellow-600",
         };
-      case 'Approved':
+      case "Approved":
+      case "approved":
         return {
-          color: 'bg-green-100 text-green-800 border-green-300',
-          icon: 'Check',
-          iconColor: 'text-green-600'
+          color: "bg-green-100 text-green-800 border-green-300",
+          icon: "Check",
+          iconColor: "text-green-600",
         };
-      case 'Rejected':
+      case "admin_approved":
         return {
-          color: 'bg-red-100 text-red-800 border-red-300',
-          icon: 'X',
-          iconColor: 'text-red-600'
+          color: "bg-orange-100 text-orange-800 border-orange-300",
+          icon: "UserCheck",
+          iconColor: "text-orange-600",
+        };
+      case "super_admin_approved":
+        return {
+          color: "bg-green-100 text-green-800 border-green-300",
+          icon: "Shield",
+          iconColor: "text-green-600",
+        };
+      case "Rejected":
+      case "rejected":
+        return {
+          color: "bg-red-100 text-red-800 border-red-300",
+          icon: "X",
+          iconColor: "text-red-600",
         };
       default:
         return {
-          color: 'bg-gray-100 text-gray-800 border-gray-300',
-          icon: 'FileText',
-          iconColor: 'text-gray-600'
+          color: "bg-gray-100 text-gray-800 border-gray-300",
+          icon: "FileText",
+          iconColor: "text-gray-600",
         };
     }
   };
 
   const formatDateTime = (dateTime) => {
-    return new Date(dateTime)?.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateTime)?.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -50,11 +65,11 @@ const StatusIndicator = ({ status, submissionTime }) => {
     const diffMinutes = Math.floor(diffTime / (1000 * 60));
 
     if (diffDays > 0) {
-      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
     } else if (diffHours > 0) {
-      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
     } else {
-      return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+      return `${diffMinutes} minute${diffMinutes > 1 ? "s" : ""} ago`;
     }
   };
 
@@ -89,7 +104,6 @@ const StatusIndicator = ({ status, submissionTime }) => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

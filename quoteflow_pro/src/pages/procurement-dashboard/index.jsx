@@ -601,7 +601,9 @@ const ProcurementDashboard = () => {
                           <span
                             className={cn(
                               "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                              rfq.status === "approved"
+                              rfq.status === "super_admin_approved"
+                                ? "bg-green-100 text-green-800 border border-green-200"
+                                : rfq.status === "admin_approved"
                                 ? "bg-green-100 text-green-800 border border-green-200"
                                 : rfq.status === "pending"
                                 ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
@@ -612,8 +614,10 @@ const ProcurementDashboard = () => {
                           >
                             {rfq.status === "pending"
                               ? "Pending Review"
-                              : rfq.status === "approved"
-                              ? "Approved"
+                              : rfq.status === "super_admin_approved"
+                              ? "Super Admin Approved"
+                              : rfq.status === "admin_approved"
+                              ? "Admin Approved"
                               : rfq.status === "rejected"
                               ? "Rejected"
                               : "Draft"}

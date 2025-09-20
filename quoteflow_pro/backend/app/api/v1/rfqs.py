@@ -1,4 +1,3 @@
-git add .
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -22,17 +21,17 @@ from app.schemas.final_decision import (
     FinalDecisionWithDetails,
     FinalDecisionItemCreate,
 )
-from app.models.rfq import RFQ, RFQStatus
+from app.models.rfq import RFQ, RFQStatus, CommodityType
 from app.models.rfq_item import RFQItem
 from app.models.erp_item import ERPItem
 from app.models.transport_item import TransportItem
 from app.models.quotation import Quotation
 from app.models.quotation_item import QuotationItem
+from app.models.final_decision import FinalDecision
+from app.models.final_decision_item import FinalDecisionItem
 from app.models.user import User, UserRole
 from app.models.site import Site
 from app.models.supplier import Supplier
-from app.models.final_decision import FinalDecision
-from app.models.final_decision_item import FinalDecisionItem
 from app.core.exceptions import PermissionDenied, ResourceNotFound, ValidationError
 from sqlalchemy import and_, func
 
@@ -331,11 +330,12 @@ def get_rfqs(
     if current_user.role == UserRole.USER:
         query = query.filter(RFQ.user_id == current_user.id)
     elif current_user.role == UserRole.SUPER_ADMIN:
-        # Super admin: Only show approved RFQs with final decisions > 2 lakh
+        # Super admin: Only show admin-approved RFQs with PROVIDED_DATA commodity type and value > 2 lakh
         query = query.join(FinalDecision, RFQ.id == FinalDecision.rfq_id)
         query = query.filter(
             and_(
-                RFQ.status == RFQStatus.APPROVED,
+                RFQ.status == RFQStatus.ADMIN_APPROVED,
+                RFQ.commodity_type == CommodityType.PROVIDED_DATA,
                 FinalDecision.status == "APPROVED",
                 FinalDecision.total_approved_amount > 200000,
             )
@@ -391,6 +391,8 @@ def get_rfq(
         "RFQStatus.DRAFT": "Draft",
         "RFQStatus.PENDING": "Pending",
         "RFQStatus.APPROVED": "Approved",
+        "RFQStatus.ADMIN_APPROVED": "Admin Approved",
+        "RFQStatus.SUPER_ADMIN_APPROVED": "Super Admin Approved",
         "RFQStatus.REJECTED": "Rejected",
         "RFQStatus.CANCELLED": "Cancelled",
     }.get(rfq_status_raw, rfq_status_raw.title())
@@ -779,9 +781,13 @@ def create_final_decision(
                         erp_item.last_vendor = item_data.supplier_name
                         db.add(erp_item)
 
-        # Update RFQ status based on final decision
+        # Update RFQ status based on final decision and amount
         if final_decision_data.status == "APPROVED":
-            rfq.status = RFQStatus.APPROVED.value  # type: ignore
+            # Check if amount > 2 lakh for super admin approval
+            if final_decision.total_approved_amount > 200000:
+                rfq.status = RFQStatus.ADMIN_APPROVED.value  # type: ignore
+            else:
+                rfq.status = RFQStatus.APPROVED.value  # type: ignore
         elif final_decision_data.status == "REJECTED":
             rfq.status = RFQStatus.REJECTED.value  # type: ignore
 
@@ -850,7 +856,7 @@ def update_final_decision(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user),
 ):
-    """Update final decision for RFQ (Admin only)."""
+    """Update final decision for RFQ (Admin and Super Admin)."""
 
     # Get existing final decision
     final_decision = (
@@ -859,20 +865,177 @@ def update_final_decision(
     if not final_decision:
         raise HTTPException(status_code=404, detail="Final decision not found")
 
+    # Get RFQ to check status
+    rfq = db.query(RFQ).filter(RFQ.id == rfq_id).first()
+    if not rfq:
+        raise HTTPException(status_code=404, detail="RFQ not found")
+
+    # Check permissions based on user role and RFQ status
+    if current_user.role == UserRole.SUPER_ADMIN:
+        # Super admin can only update admin_approved RFQs
+        if rfq.status != RFQStatus.ADMIN_APPROVED:
+            raise HTTPException(
+                status_code=403,
+                detail="Super admin can only update admin-approved RFQs",
+            )
+    else:
+        # Regular admin can only update pending RFQs
+        if rfq.status != RFQStatus.PENDING:
+            raise HTTPException(
+                status_code=403, detail="Admin can only update pending RFQs"
+            )
+
     # Update fields
     for field, value in final_decision_update.dict(exclude_unset=True).items():
-        setattr(final_decision, field, value)
+        if field != "items":  # Handle items separately
+            setattr(final_decision, field, value)
 
     # Update approved_at timestamp if status changed to approved
     if final_decision_update.status == "APPROVED":
         final_decision.approved_at = db.query(func.now()).scalar()
 
-    # Update RFQ status based on final decision
-    rfq = db.query(RFQ).filter(RFQ.id == rfq_id).first()
+    # Handle supplier changes (items update)
+    if final_decision_update.items:
+        # Delete existing items
+        db.query(FinalDecisionItem).filter(
+            FinalDecisionItem.final_decision_id == final_decision.id
+        ).delete()
+
+        # Create new items with updated supplier selections
+        for item_data in final_decision_update.items:
+            final_decision_item = FinalDecisionItem(
+                final_decision_id=final_decision.id,
+                rfq_item_id=item_data.rfq_item_id,
+                selected_supplier_id=item_data.selected_supplier_id,
+                selected_quotation_id=item_data.selected_quotation_id,
+                final_unit_price=item_data.final_unit_price,
+                final_total_price=item_data.final_total_price,
+                supplier_code=item_data.supplier_code,
+                supplier_name=item_data.supplier_name,
+                decision_notes=item_data.decision_notes,
+            )
+            db.add(final_decision_item)
+
+            # Update ERP item with new supplier info if approved
+            if final_decision_update.status == "APPROVED":
+                rfq_item = (
+                    db.query(RFQItem)
+                    .filter(RFQItem.id == item_data.rfq_item_id)
+                    .first()
+                )
+                if rfq_item and rfq_item.erp_item_id:
+                    erp_item = (
+                        db.query(ERPItem)
+                        .filter(ERPItem.id == rfq_item.erp_item_id)
+                        .first()
+                    )
+                    if erp_item:
+                        erp_item.last_buying_price = item_data.final_unit_price
+                        erp_item.last_vendor = item_data.supplier_name
+                        db.add(erp_item)
+
+    # Update RFQ status based on final decision and user role
     if final_decision_update.status == "APPROVED":
-        rfq.status = RFQStatus.APPROVED.value  # type: ignore
+        if current_user.role == UserRole.SUPER_ADMIN:
+            # Super admin approval -> final approval
+            rfq.status = RFQStatus.SUPER_ADMIN_APPROVED.value  # type: ignore
+        else:
+            # Admin approval -> check if needs super admin approval
+            if final_decision.total_approved_amount > 200000:
+                rfq.status = RFQStatus.ADMIN_APPROVED.value  # type: ignore
+            else:
+                rfq.status = RFQStatus.APPROVED.value  # type: ignore
     elif final_decision_update.status == "REJECTED":
         rfq.status = RFQStatus.REJECTED.value  # type: ignore
+
+    db.commit()
+    db.refresh(final_decision)
+
+    return final_decision
+
+
+@router.post("/{rfq_id}/super-admin-approval", response_model=FinalDecisionResponse)
+def super_admin_approval(
+    rfq_id: int,
+    final_decision_update: FinalDecisionUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user),  # Only super_admin can access
+):
+    """Super admin approval for high-value RFQs with supplier override capability."""
+
+    # Check if user is super_admin
+    if current_user.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Super admin access required")
+
+    # Get RFQ and validate status
+    rfq = db.query(RFQ).filter(RFQ.id == rfq_id).first()
+    if not rfq:
+        raise HTTPException(status_code=404, detail="RFQ not found")
+
+    if rfq.status != RFQStatus.ADMIN_APPROVED:
+        raise HTTPException(
+            status_code=400,
+            detail="Only admin-approved RFQs can be processed by super admin",
+        )
+
+    # Get existing final decision
+    final_decision = (
+        db.query(FinalDecision).filter(FinalDecision.rfq_id == rfq_id).first()
+    )
+    if not final_decision:
+        raise HTTPException(status_code=404, detail="Final decision not found")
+
+    # Update final decision with super admin changes
+    for field, value in final_decision_update.dict(exclude_unset=True).items():
+        setattr(final_decision, field, value)
+
+    # Update approved_at timestamp
+    if final_decision_update.status == "APPROVED":
+        final_decision.approved_at = db.query(func.now()).scalar()
+        # Update RFQ status to super admin approved
+        rfq.status = RFQStatus.SUPER_ADMIN_APPROVED.value  # type: ignore
+    elif final_decision_update.status == "REJECTED":
+        rfq.status = RFQStatus.REJECTED.value  # type: ignore
+
+    # If supplier was changed, update final decision items
+    if final_decision_update.items:
+        # Delete existing items
+        db.query(FinalDecisionItem).filter(
+            FinalDecisionItem.final_decision_id == final_decision.id
+        ).delete()
+
+        # Create new items with updated supplier selections
+        for item_data in final_decision_update.items:
+            final_decision_item = FinalDecisionItem(
+                final_decision_id=final_decision.id,
+                rfq_item_id=item_data.rfq_item_id,
+                selected_supplier_id=item_data.selected_supplier_id,
+                selected_quotation_id=item_data.selected_quotation_id,
+                final_unit_price=item_data.final_unit_price,
+                final_total_price=item_data.final_total_price,
+                supplier_code=item_data.supplier_code,
+                supplier_name=item_data.supplier_name,
+                decision_notes=item_data.decision_notes,
+            )
+            db.add(final_decision_item)
+
+            # Update ERP item with new supplier info if approved
+            if final_decision_update.status == "APPROVED":
+                rfq_item = (
+                    db.query(RFQItem)
+                    .filter(RFQItem.id == item_data.rfq_item_id)
+                    .first()
+                )
+                if rfq_item and rfq_item.erp_item_id:
+                    erp_item = (
+                        db.query(ERPItem)
+                        .filter(ERPItem.id == rfq_item.erp_item_id)
+                        .first()
+                    )
+                    if erp_item:
+                        erp_item.last_buying_price = item_data.final_unit_price
+                        erp_item.last_vendor = item_data.supplier_name
+                        db.add(erp_item)
 
     db.commit()
     db.refresh(final_decision)

@@ -16,7 +16,7 @@ import { Icon } from "lucide-react";
 const AdminQuotationDetail = () => {
   const navigate = useNavigate();
   const { quotationId } = useParams();
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
   const [isApproveRejectModalOpen, setIsApproveRejectModalOpen] =
     useState(false);
   const [approveRejectModalMode, setapproveRejectModalMode] = useState("");
@@ -39,6 +39,10 @@ const AdminQuotationDetail = () => {
       case "pending":
         return "bg-yellow-100 text-yellow-800 border border-yellow-200";
       case "approved":
+        return "bg-green-100 text-green-800 border border-green-200";
+      case "admin_approved":
+        return "bg-orange-100 text-orange-800 border border-orange-200";
+      case "super_admin_approved":
         return "bg-green-100 text-green-800 border border-green-200";
       case "rejected":
         return "bg-red-100 text-red-800 border border-red-200";
@@ -122,6 +126,7 @@ const AdminQuotationDetail = () => {
           }
           decisionState[commodityType][item.itemId] = {
             finalPrice: item.finalUnitPrice,
+            totalPrice: item.finalTotalPrice,
             finalSupplier: {
               vendorCode: item.supplierCode,
               vendorName: item.supplierName,
@@ -133,6 +138,38 @@ const AdminQuotationDetail = () => {
         console.log("Loading existing final decisions:", decisionState);
         setAdminApproval(decisionState);
       }
+    } else if (quotationData?.items) {
+      // If no finalDecisions, initialize adminApproval with empty state for all items
+      const commodityTypeRaw =
+        quotationData?.commodityTypeRaw || "CommodityType.PROVIDED_DATA";
+      const commodityType = commodityTypeRaw.includes(".")
+        ? commodityTypeRaw.split(".")[1]
+        : commodityTypeRaw;
+
+      const decisionState = {
+        PROVIDED_DATA: {},
+        SERVICE: {},
+        TRANSPORT: {},
+      };
+
+      quotationData.items.forEach((item) => {
+        if (!decisionState[commodityType]) {
+          decisionState[commodityType] = {};
+        }
+        decisionState[commodityType][item.id] = {
+          finalPrice: 0,
+          totalPrice: 0,
+          finalSupplier: {
+            vendorCode: "",
+            vendorName: "",
+            supplierId: null,
+            quotationId: null,
+          },
+        };
+      });
+
+      console.log("Initializing adminApproval for new items:", decisionState);
+      setAdminApproval(decisionState);
     }
   }, [quotationData]);
 
@@ -208,11 +245,24 @@ const AdminQuotationDetail = () => {
       console.log("Final decision data being sent:", finalDecisionData);
       console.log("Items being sent:", finalDecisionData.items);
 
-      // Call API to create final decision
-      const response = await apiService.createFinalDecision(
-        parseInt(quotationId),
-        finalDecisionData
-      );
+      // Call appropriate API based on user type and RFQ status
+      let response;
+      if (
+        userType === "super_admin" &&
+        quotationData?.status === "admin_approved"
+      ) {
+        // Use super admin approval API for high-value RFQs
+        response = await apiService.superAdminApproval(
+          parseInt(quotationId),
+          finalDecisionData
+        );
+      } else {
+        // Use regular final decision API for admin approval
+        response = await apiService.createFinalDecision(
+          parseInt(quotationId),
+          finalDecisionData
+        );
+      }
 
       console.log("Final decision created:", response);
       alert("Quotation has been approved successfully!");
@@ -250,11 +300,24 @@ const AdminQuotationDetail = () => {
           })) || [],
       };
 
-      // Call API to create final decision
-      const response = await apiService.createFinalDecision(
-        parseInt(quotationId),
-        finalDecisionData
-      );
+      // Call appropriate API based on user type and RFQ status
+      let response;
+      if (
+        userType === "super_admin" &&
+        quotationData?.status === "admin_approved"
+      ) {
+        // Use super admin approval API for high-value RFQs
+        response = await apiService.superAdminApproval(
+          parseInt(quotationId),
+          finalDecisionData
+        );
+      } else {
+        // Use regular final decision API for admin approval
+        response = await apiService.createFinalDecision(
+          parseInt(quotationId),
+          finalDecisionData
+        );
+      }
 
       console.log("Final decision created:", response);
       setIsApproveRejectModalOpen(false);
@@ -394,6 +457,15 @@ const AdminQuotationDetail = () => {
           },
         };
         console.log("NEW STATE (other field):", newState);
+
+        // Auto-save changes for super admin
+        if (
+          userType === "super_admin" &&
+          quotation.status === "admin_approved"
+        ) {
+          saveSupplierChanges(newState);
+        }
+
         return newState;
       });
     }
@@ -426,8 +498,46 @@ const AdminQuotationDetail = () => {
           },
         },
       };
+
+      // Auto-save changes for super admin
+      if (userType === "super_admin" && quotation.status === "admin_approved") {
+        saveSupplierChanges(newState);
+      }
+
       return newState;
     });
+  };
+
+  // Save supplier changes to backend for super admin
+  const saveSupplierChanges = async (updatedAdminApproval) => {
+    try {
+      const items = Object.values(updatedAdminApproval).flatMap(
+        (commodityItems) =>
+          Object.entries(commodityItems).map(([itemId, itemData]) => ({
+            rfq_item_id: parseInt(itemId),
+            selected_supplier_id: itemData.finalSupplier?.supplierId || null,
+            selected_quotation_id: itemData.finalSupplier?.quotationId || null,
+            final_unit_price: itemData.finalPrice || 0,
+            final_total_price: itemData.totalPrice || 0,
+            supplier_code: itemData.finalSupplier?.vendorCode?.toString() || "",
+            supplier_name: itemData.finalSupplier?.vendorName || "",
+            decision_notes: `Updated by super admin: ${
+              itemData.finalSupplier?.vendorName || "No supplier selected"
+            }`,
+          }))
+      );
+
+      const updateData = {
+        items: items,
+      };
+
+      console.log("Saving supplier changes:", updateData);
+      await apiService.updateFinalDecision(parseInt(quotationId), updateData);
+      console.log("Supplier changes saved successfully");
+    } catch (error) {
+      console.error("Error saving supplier changes:", error);
+      // Don't show alert for auto-save errors to avoid interrupting user
+    }
   };
 
   // Check if all items have vendors selected
@@ -584,7 +694,6 @@ const AdminQuotationDetail = () => {
               </div>
             </div>
           </div>
-
           {/* Quotation Overview */}
           <div className="px-6 mb-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -655,7 +764,6 @@ const AdminQuotationDetail = () => {
               </div>
             </div>
           </div>
-
           {/* Status Indicator */}
           <div className="px-6 mb-6">
             <StatusIndicator
@@ -663,7 +771,6 @@ const AdminQuotationDetail = () => {
               submissionTime={quotationData?.submissionTime}
             />
           </div>
-
           {/* Attached Documents Section */}
           {(quotationData?.attachments?.boqFile ||
             quotationData?.attachments?.drawingFile ||
@@ -747,7 +854,6 @@ const AdminQuotationDetail = () => {
               </div>
             </div>
           )}
-
           {/* Quotation Comparison Table */}
           <div className="px-6 mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -773,9 +879,9 @@ const AdminQuotationDetail = () => {
               onFinalPriceChange={handleFinalPriceChange}
               calculateSumAmount={calculateSumAmount}
               quotation={quotation}
+              userType={userType}
             />
           </div>
-
           {/* <div className="px-6 mb-6">
           <SummaryMetrics 
             lowestQuote={lowestQuote}
@@ -784,61 +890,234 @@ const AdminQuotationDetail = () => {
             suppliersCount={mockQuotationData?.suppliers?.length}
           />
         </div> */}
+          <div className="mb-6">
+            {" "}
+            {/* Status Display Based on User Type and Approval Status */}
+            {(() => {
+              // Admin user logic
+              if (userType === "admin") {
+                if (quotation.status === "Pending") {
+                  return (
+                    <div className="px-6 mt-6">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 shadow-md">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-100">
+                            <AppIcon
+                              name="Clock"
+                              size={20}
+                              className="text-blue-600"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-blue-700">
+                              Pending for Approval from Admin
+                            </h3>
+                            <p className="text-sm text-blue-600">
+                              This RFQ is waiting for your approval decision.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } else if (quotation.status === "Admin Approved") {
+                  return (
+                    <div className="px-6 mt-6">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-6 shadow-md">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100">
+                            <AppIcon
+                              name="CheckCircle"
+                              size={20}
+                              className="text-green-600"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-green-700">
+                              Approved by Admin
+                            </h3>
+                            <p className="text-sm text-green-600">
+                              This RFQ has been approved by you and is pending
+                              super admin review.
+                            </p>
+                          </div>
+                        </div>
+                        {/* Comment Section */}
+                        {quotation.finalDecisions?.[0]?.approvalNotes && (
+                          <div className="bg-muted rounded-lg p-4 border border-border mt-4">
+                            <p className="text-sm text-foreground whitespace-pre-line">
+                              {quotation.finalDecisions?.[0]?.approvalNotes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                } else if (quotation.status === "super_admin_approved") {
+                  return (
+                    <div className="px-6 mt-6">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-6 shadow-md">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100">
+                            <AppIcon
+                              name="CheckCircle"
+                              size={20}
+                              className="text-green-600"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-green-700">
+                              Approved by Super Admin as well
+                            </h3>
+                            <p className="text-sm text-green-600">
+                              This RFQ has been approved by both admin and super
+                              admin.
+                            </p>
+                          </div>
+                        </div>
+                        {/* Comment Section */}
+                        {quotation.finalDecisions?.[0]?.approvalNotes && (
+                          <div className="bg-muted rounded-lg p-4 border border-border mt-4">
+                            <p className="text-sm text-foreground whitespace-pre-line">
+                              {quotation.finalDecisions?.[0]?.approvalNotes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+              }
 
-          {/* Decision Comments */}
-          {quotation.status !== "Pending" && (
-            <div className="px-6 mt-6">
-              <div className="bg-card border border-border rounded-lg p-6 shadow-md">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      quotation.finalDecisions?.[0]?.status === "APPROVED"
-                        ? "bg-green-100"
-                        : "bg-red-100"
-                    }`}
-                  >
-                    <StatusIcon
-                      status={quotation?.finalDecisions?.[0]?.status}
-                    />
-                  </div>
-                  <div>
-                    <h3
-                      className={`text-lg font-semibold ${
-                        quotation.finalDecisions?.[0]?.status === "APPROVED"
-                          ? "text-green-700"
-                          : "text-red-700"
-                      }`}
-                    >
-                      {quotation.finalDecisions?.[0]?.status === "APPROVED"
-                        ? "Quotation Approved"
-                        : "Quotation Rejected"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Decision and notes provided by the approver
-                    </p>
-                  </div>
-                </div>
+              // Super Admin user logic
+              if (userType === "super_admin") {
+                if (quotation.status === "Admin Approved") {
+                  return (
+                    <div className="px-6 mt-6">
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 shadow-md">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-yellow-100">
+                            <AppIcon
+                              name="Clock"
+                              size={20}
+                              className="text-yellow-600"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-yellow-700">
+                              Waiting for Final Approval
+                            </h3>
+                            <p className="text-sm text-yellow-600">
+                              This RFQ has been approved by admin and is waiting
+                              for your final approval.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } else if (quotation.status === "super_admin_approved") {
+                  return (
+                    <div className="px-6 mt-6">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-6 shadow-md">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100">
+                            <AppIcon
+                              name="CheckCircle"
+                              size={20}
+                              className="text-green-600"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-green-700">
+                              Approved by Super Admin as well
+                            </h3>
+                            <p className="text-sm text-green-600">
+                              This RFQ has been approved by both admin and super
+                              admin.
+                            </p>
+                          </div>
+                        </div>
+                        {/* Comment Section */}
+                        {quotation.finalDecisions?.[0]?.approvalNotes && (
+                          <div className="bg-muted rounded-lg p-4 border border-border mt-4">
+                            <p className="text-sm text-foreground whitespace-pre-line">
+                              {quotation.finalDecisions?.[0]?.approvalNotes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+              }
 
-                {/* Comment Section */}
-                <div className="bg-muted rounded-lg p-4 border border-border">
-                  <p className="text-sm text-foreground whitespace-pre-line">
-                    {quotation.finalDecisions?.[0]?.approvalNotes ||
-                      quotation.finalDecisions?.[0]?.rejectionReason ||
-                      "No notes provided."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+              // Rejected status for both user types
+              if (quotation.finalDecisions?.[0]?.status === "REJECTED") {
+                return (
+                  <div className="px-6 mt-6">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6 shadow-md">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-red-100">
+                          <AppIcon
+                            name="XCircle"
+                            size={20}
+                            className="text-red-600"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-red-700">
+                            Quotation Rejected
+                          </h3>
+                          <p className="text-sm text-red-600">
+                            This RFQ has been rejected.
+                          </p>
+                        </div>
+                      </div>
+                      {/* Comment Section */}
+                      {quotation.finalDecisions?.[0]?.rejectionReason && (
+                        <div className="bg-muted rounded-lg p-4 border border-border mt-4">
+                          <p className="text-sm text-foreground whitespace-pre-line">
+                            {quotation.finalDecisions?.[0]?.rejectionReason}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+          </div>
 
           {/* Action Buttons */}
-          {quotation.status == "Pending" && (
+          {(() => {
+            // Admin user logic
+            if (userType === "admin") {
+              // Show buttons only for pending status
+              return quotation.status === "Pending";
+            }
+
+            // Super Admin user logic
+            if (userType === "super_admin") {
+              // Show buttons only for admin approved status
+              return quotation.status === "Admin Approved";
+            }
+
+            return false;
+          })() && (
             <div className="px-6">
               <div className="sticky bottom-6 bg-card border border-border rounded-lg p-6 shadow-lg">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-center sm:text-left">
                     <h3 className="text-lg font-semibold text-foreground mb-1">
-                      {areAllVendorsSelected()
+                      {quotation.status == "admin_approved" &&
+                      userType === "super_admin"
+                        ? areAllVendorsSelected()
+                          ? "Ready for Super Admin Decision"
+                          : "Review and Select Final Vendors"
+                        : areAllVendorsSelected()
                         ? "Ready for Decision"
                         : "Select Vendors for All Items"}
                     </h3>

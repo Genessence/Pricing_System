@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import TopNavigationBar from "../../components/ui/TopNavigationBar";
 import BreadcrumbTrail from "../../components/ui/BreadcrumbTrail";
 import Button from "../../components/ui/Button";
@@ -8,6 +9,7 @@ import apiService from "../../services/api";
 
 const AdminApprovalScreen = () => {
   const navigate = useNavigate();
+  const { user, userType } = useAuth();
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -200,7 +202,7 @@ const AdminApprovalScreen = () => {
     return (
       <div className="min-h-screen bg-background">
         <TopNavigationBar
-          user={currentUser}
+          user={user}
           notifications={notifications}
           onLogout={handleLogout}
           onNotificationRead={() => {}}
@@ -226,7 +228,7 @@ const AdminApprovalScreen = () => {
   return (
     <div className="min-h-screen bg-background">
       <TopNavigationBar
-        user={currentUser}
+        user={user}
         notifications={notifications}
         onLogout={handleLogout}
         onNotificationRead={() => {}}
@@ -523,20 +525,28 @@ const AdminApprovalScreen = () => {
                       <td className="px-6 py-5">
                         <div className="flex items-center space-x-2">
                           {(quotation.status === "Pending Approval" ||
-                            quotation.status === "pending") && (
+                            quotation.status === "pending" ||
+                            (userType === "super_admin" &&
+                              quotation.status === "admin_approved")) && (
                             <Button
                               variant="default"
                               size="sm"
                               onClick={() => handleViewQuotation(quotation.id)}
                               className="px-4 py-2 text-sm font-medium"
                             >
-                              Review & Approve
+                              {userType === "super_admin" &&
+                              quotation.status === "admin_approved"
+                                ? "Super Admin Review"
+                                : "Review & Approve"}
                             </Button>
                           )}
                           {(quotation.status === "Approved" ||
                             quotation.status === "approved" ||
+                            quotation.status === "super_admin_approved" ||
                             quotation.status === "Rejected" ||
-                            quotation.status === "rejected") && (
+                            quotation.status === "rejected" ||
+                            (quotation.status === "admin_approved" &&
+                              userType !== "super_admin")) && (
                             <Button
                               variant="outline"
                               size="sm"

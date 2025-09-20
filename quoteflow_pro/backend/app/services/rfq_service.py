@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
-from app.models.rfq import RFQ, RFQStatus
+from app.models.rfq import RFQ, RFQStatus, CommodityType
 from app.models.rfq_item import RFQItem
 from app.models.user import User, UserRole
 from app.models.site import Site
@@ -108,11 +108,12 @@ class RFQService:
         if current_user.role == UserRole.USER:
             query = query.filter(RFQ.user_id == current_user.id)
         elif current_user.role == UserRole.SUPER_ADMIN:
-            # Super admin: Only show approved RFQs with final decisions > 2 lakh
+            # Super admin: Only show admin-approved RFQs with PROVIDED_DATA commodity type and value > 2 lakh
             query = query.join(FinalDecision, RFQ.id == FinalDecision.rfq_id)
             query = query.filter(
                 and_(
-                    RFQ.status == RFQStatus.APPROVED,
+                    RFQ.status == RFQStatus.ADMIN_APPROVED,
+                    RFQ.commodity_type == CommodityType.PROVIDED_DATA,
                     FinalDecision.status == "APPROVED",
                     FinalDecision.total_approved_amount > 200000,
                 )

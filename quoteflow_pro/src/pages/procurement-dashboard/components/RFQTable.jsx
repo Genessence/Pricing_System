@@ -1,39 +1,41 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Icon from '../../../components/AppIcon';
-import Button from '../../../components/ui/Button';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Icon from "../../../components/AppIcon";
+import Button from "../../../components/ui/Button";
 
 const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
   const navigate = useNavigate();
-  const [sortField, setSortField] = useState('rfqId');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [sortField, setSortField] = useState("rfqId");
+  const [sortDirection, setSortDirection] = useState("asc");
 
   const getStatusColor = (status) => {
     const colors = {
-      'Draft': 'bg-muted text-muted-foreground',
-      'Pending': 'bg-warning/10 text-warning border border-warning/20',
-      'In Review': 'bg-primary/10 text-primary border border-primary/20',
-      'Approved': 'bg-success/10 text-success border border-success/20',
-      'Rejected': 'bg-error/10 text-error border border-error/20',
-      'Completed': 'bg-success text-success-foreground'
+      Draft: "bg-muted text-muted-foreground",
+      Pending: "bg-warning/10 text-warning border border-warning/20",
+      "In Review": "bg-primary/10 text-primary border border-primary/20",
+      Approved: "bg-success/10 text-success border border-success/20",
+      "Admin Approved": "bg-blue/10 text-blue border border-blue/20",
+      "Super Admin Approved": "bg-green/10 text-green border border-green/20",
+      Rejected: "bg-error/10 text-error border border-error/20",
+      Completed: "bg-success text-success-foreground",
     };
-    return colors?.[status] || colors?.['Draft'];
+    return colors?.[status] || colors?.["Draft"];
   };
 
   const handleSort = (field) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
   const sortedRFQs = [...rfqs]?.sort((a, b) => {
     const aValue = a?.[sortField];
     const bValue = b?.[sortField];
-    
-    if (sortDirection === 'asc') {
+
+    if (sortDirection === "asc") {
       return aValue > bValue ? 1 : -1;
     } else {
       return aValue < bValue ? 1 : -1;
@@ -42,7 +44,7 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      onSelectionChange(rfqs?.map(rfq => rfq?.id));
+      onSelectionChange(rfqs?.map((rfq) => rfq?.id));
     } else {
       onSelectionChange([]);
     }
@@ -52,19 +54,23 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
     if (checked) {
       onSelectionChange([...selectedRFQs, rfqId]);
     } else {
-      onSelectionChange(selectedRFQs?.filter(id => id !== rfqId));
+      onSelectionChange(selectedRFQs?.filter((id) => id !== rfqId));
     }
   };
 
-  const isAllSelected = selectedRFQs?.length === rfqs?.length && rfqs?.length > 0;
-  const isPartiallySelected = selectedRFQs?.length > 0 && selectedRFQs?.length < rfqs?.length;
+  const isAllSelected =
+    selectedRFQs?.length === rfqs?.length && rfqs?.length > 0;
+  const isPartiallySelected =
+    selectedRFQs?.length > 0 && selectedRFQs?.length < rfqs?.length;
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       {/* Table Header */}
       <div className="px-6 py-4 border-b border-border bg-muted/30">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-foreground">RFQ Management</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            RFQ Management
+          </h3>
           {selectedRFQs?.length > 0 && (
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">
@@ -74,7 +80,7 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                 variant="outline"
                 size="sm"
                 iconName="Check"
-                onClick={() => onBulkAction('approve')}
+                onClick={() => onBulkAction("approve")}
               >
                 Bulk Approve
               </Button>
@@ -82,7 +88,7 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                 variant="destructive"
                 size="sm"
                 iconName="X"
-                onClick={() => onBulkAction('reject')}
+                onClick={() => onBulkAction("reject")}
               >
                 Bulk Reject
               </Button>
@@ -99,61 +105,78 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                 <input
                   type="checkbox"
                   checked={isAllSelected}
-                  ref={input => {
+                  ref={(input) => {
                     if (input) input.indeterminate = isPartiallySelected;
                   }}
                   onChange={(e) => handleSelectAll(e?.target?.checked)}
                   className="rounded border-border"
                 />
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
-                onClick={() => handleSort('rfqId')}
+                onClick={() => handleSort("rfqId")}
               >
                 <div className="flex items-center space-x-1">
                   <span>RFQ ID</span>
-                  <Icon 
-                    name={sortField === 'rfqId' && sortDirection === 'desc' ? 'ChevronDown' : 'ChevronUp'} 
-                    size={14} 
+                  <Icon
+                    name={
+                      sortField === "rfqId" && sortDirection === "desc"
+                        ? "ChevronDown"
+                        : "ChevronUp"
+                    }
+                    size={14}
                   />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
-                onClick={() => handleSort('subjectFromPlant')}
+                onClick={() => handleSort("subjectFromPlant")}
               >
                 <div className="flex items-center space-x-1">
                   <span>Subject From Plant</span>
-                  <Icon 
-                    name={sortField === 'subjectFromPlant' && sortDirection === 'desc' ? 'ChevronDown' : 'ChevronUp'} 
-                    size={14} 
+                  <Icon
+                    name={
+                      sortField === "subjectFromPlant" &&
+                      sortDirection === "desc"
+                        ? "ChevronDown"
+                        : "ChevronUp"
+                    }
+                    size={14}
                   />
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Total Amount
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
-                onClick={() => handleSort('status')}
+                onClick={() => handleSort("status")}
               >
                 <div className="flex items-center space-x-1">
                   <span>Status</span>
-                  <Icon 
-                    name={sortField === 'status' && sortDirection === 'desc' ? 'ChevronDown' : 'ChevronUp'} 
-                    size={14} 
+                  <Icon
+                    name={
+                      sortField === "status" && sortDirection === "desc"
+                        ? "ChevronDown"
+                        : "ChevronUp"
+                    }
+                    size={14}
                   />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
-                onClick={() => handleSort('createdDate')}
+                onClick={() => handleSort("createdDate")}
               >
                 <div className="flex items-center space-x-1">
                   <span>Created</span>
-                  <Icon 
-                    name={sortField === 'createdDate' && sortDirection === 'desc' ? 'ChevronDown' : 'ChevronUp'} 
-                    size={14} 
+                  <Icon
+                    name={
+                      sortField === "createdDate" && sortDirection === "desc"
+                        ? "ChevronDown"
+                        : "ChevronUp"
+                    }
+                    size={14}
                   />
                 </div>
               </th>
@@ -169,17 +192,25 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                   <input
                     type="checkbox"
                     checked={selectedRFQs?.includes(rfq?.id)}
-                    onChange={(e) => handleSelectRFQ(rfq?.id, e?.target?.checked)}
+                    onChange={(e) =>
+                      handleSelectRFQ(rfq?.id, e?.target?.checked)
+                    }
                     className="rounded border-border"
                   />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm font-medium text-primary">{rfq?.rfqId}</span>
+                  <span className="text-sm font-medium text-primary">
+                    {rfq?.rfqId}
+                  </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="max-w-xs">
-                    <p className="text-sm font-medium text-foreground truncate">{rfq?.subjectFromPlant}</p>
-                    <p className="text-xs text-muted-foreground">{rfq?.category}</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {rfq?.subjectFromPlant}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {rfq?.category}
+                    </p>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -188,12 +219,18 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(rfq?.status)}`}>
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                      rfq?.status
+                    )}`}
+                  >
                     {rfq?.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm text-muted-foreground">{rfq?.createdDate}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {rfq?.createdDate}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-2">
@@ -201,7 +238,9 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                       variant="ghost"
                       size="sm"
                       iconName="Eye"
-                      onClick={() => navigate(`/rfq-creation-wizard?id=${rfq?.id}`)}
+                      onClick={() =>
+                        navigate(`/rfq-creation-wizard?id=${rfq?.id}`)
+                      }
                     >
                       View
                     </Button>
@@ -209,7 +248,9 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                       variant="ghost"
                       size="sm"
                       iconName="Edit"
-                      onClick={() => navigate(`/rfq-creation-wizard?id=${rfq?.id}&mode=edit`)}
+                      onClick={() =>
+                        navigate(`/rfq-creation-wizard?id=${rfq?.id}&mode=edit`)
+                      }
                     >
                       Edit
                     </Button>
@@ -217,7 +258,9 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
                       variant="ghost"
                       size="sm"
                       iconName="BarChart3"
-                      onClick={() => navigate(`/quotation-comparison-table?rfqId=${rfq?.id}`)}
+                      onClick={() =>
+                        navigate(`/quotation-comparison-table?rfqId=${rfq?.id}`)
+                      }
                     >
                       Compare
                     </Button>
@@ -230,13 +273,21 @@ const RFQTable = ({ rfqs, onBulkAction, selectedRFQs, onSelectionChange }) => {
       </div>
       {rfqs?.length === 0 && (
         <div className="px-6 py-12 text-center">
-          <Icon name="FileText" size={48} className="text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No RFQs Found</h3>
-          <p className="text-muted-foreground mb-4">Get started by creating your first RFQ</p>
+          <Icon
+            name="FileText"
+            size={48}
+            className="text-muted-foreground mx-auto mb-4"
+          />
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            No RFQs Found
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Get started by creating your first RFQ
+          </p>
           <Button
             variant="primary"
             iconName="Plus"
-            onClick={() => navigate('/rfq-creation-wizard')}
+            onClick={() => navigate("/rfq-creation-wizard")}
           >
             Create New RFQ
           </Button>

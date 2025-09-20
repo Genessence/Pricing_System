@@ -1,5 +1,6 @@
 import React from "react";
 import AppIcon from "../../../components/AppIcon";
+import { useAuth } from "contexts/AuthContext";
 
 const AdminQuotationComparisonTable = ({
   suppliers = [],
@@ -13,6 +14,7 @@ const AdminQuotationComparisonTable = ({
   calculateSumAmount,
   quotation,
 }) => {
+  const { user, userType } = useAuth();
   const getSupplierName = (supplierId) => {
     const supplier = suppliers?.find((s) => s?.id === supplierId);
     return supplier ? supplier?.name : "Unknown Supplier";
@@ -256,15 +258,12 @@ const AdminQuotationComparisonTable = ({
                     Final Total Price (₹)
                   </label>
                   <input
-                    disabled={quotation.finalDecisions[0]?.status == "APPROVED"}
+                    disabled={true}
                     type="number"
                     value={
-                      quotation.finalDecisions[0]?.items[itemIndex]
-                        .finalTotalPrice
-                        ? quotation.finalDecisions[0].items[itemIndex]
-                            .finalTotalPrice
-                        : adminApproval?.[commodityTypeKey]?.[item?.id]
-                            ?.totalPrice || ""
+                      // Always use adminApproval data for total price
+                      adminApproval?.[commodityTypeKey]?.[item?.id]
+                        ?.totalPrice || ""
                     }
                     onChange={(e) =>
                       onFinalPriceChange(item?.id, e.target.value)
@@ -281,13 +280,22 @@ const AdminQuotationComparisonTable = ({
                   </label>
                   <select
                     value={
-                      quotation.finalDecisions[0]?.items[itemIndex].supplierName
-                        ? quotation.finalDecisions[0].items[itemIndex]
-                            .supplierName
-                        : adminApproval?.[commodityTypeKey]?.[item?.id]
-                            ?.finalSupplier?.vendorName || ""
+                      // Always use adminApproval data for supplier selection
+                      adminApproval?.[commodityTypeKey]?.[item?.id]
+                        ?.finalSupplier?.vendorName || ""
                     }
-                    disabled={quotation.finalDecisions[0]?.status == "APPROVED"}
+                    disabled={
+                      // Admin: disabled if admin approved
+                      // Super Admin: only disabled if super admin approved
+                      (userType === "admin" &&
+                        (quotation.finalDecisions?.[0]?.status ===
+                          "ADMIN_APPROVED" ||
+                          quotation.status === "Admin Approved")) ||
+                      (userType === "super_admin" &&
+                        (quotation.finalDecisions?.[0]?.status ===
+                          "SUPER_ADMIN_APPROVED" ||
+                          quotation.status === "super_admin_approved"))
+                    }
                     onChange={(e) => {
                       onFinalSupplierChange(
                         item?.id,
@@ -308,12 +316,12 @@ const AdminQuotationComparisonTable = ({
                     ))}
                   </select>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                {/* <div className="text-xs text-muted-foreground">
                   Total: ₹
                   {calculateSumAmount
                     ? calculateSumAmount(item?.id, item?.quantity)
                     : "0"}
-                </div>
+                </div> */}
               </div>
             </td>
           </tr>
@@ -498,8 +506,7 @@ const AdminQuotationComparisonTable = ({
                   const typeKey =
                     commodityType?.toLowerCase() === "provided data"
                       ? "PROVIDED_DATA"
-                      : 
-                      commodityType?.toLowerCase();
+                      : commodityType?.toLowerCase();
                   const finalPrice =
                     adminApproval?.[typeKey]?.[item?.id]?.finalPrice || 0;
                   return total + (parseFloat(finalPrice) * item?.quantity || 0);
@@ -659,15 +666,12 @@ const AdminQuotationComparisonTable = ({
                     Final Total Price (₹)
                   </label>
                   <input
-                    disabled={quotation.finalDecisions[0]?.status == "APPROVED"}
+                    disabled={true}
                     type="number"
                     value={
-                      quotation.finalDecisions[0]?.items[itemIndex]
-                        .finalTotalPrice
-                        ? quotation.finalDecisions[0].items[itemIndex]
-                            .finalTotalPrice
-                        : adminApproval?.[commodityTypeKey]?.[item?.id]
-                            ?.totalPrice || ""
+                      // Always use adminApproval data for total price
+                      adminApproval?.[commodityTypeKey]?.[item?.id]
+                        ?.totalPrice || ""
                     }
                     onChange={(e) =>
                       onFinalPriceChange(item?.id, e.target.value)
@@ -684,13 +688,22 @@ const AdminQuotationComparisonTable = ({
                   </label>
                   <select
                     value={
-                      quotation.finalDecisions[0]?.items[itemIndex].supplierName
-                        ? quotation.finalDecisions[0].items[itemIndex]
-                            .supplierName
-                        : adminApproval?.[commodityTypeKey]?.[item?.id]
-                            ?.finalSupplier?.vendorName || ""
+                      // Always use adminApproval data for supplier selection
+                      adminApproval?.[commodityTypeKey]?.[item?.id]
+                        ?.finalSupplier?.vendorName || ""
                     }
-                    disabled={quotation.finalDecisions[0]?.status == "APPROVED"}
+                    disabled={
+                      // Admin: disabled if admin approved
+                      // Super Admin: only disabled if super admin approved
+                      (userType === "admin" &&
+                        (quotation.finalDecisions?.[0]?.status ===
+                          "ADMIN_APPROVED" ||
+                          quotation.status === "Admin Approved")) ||
+                      (userType === "super_admin" &&
+                        (quotation.finalDecisions?.[0]?.status ===
+                          "SUPER_ADMIN_APPROVED" ||
+                          quotation.status === "super_admin_approved"))
+                    }
                     onChange={(e) => {
                       console.log(
                         "Service dropdown changed for item",
@@ -936,15 +949,12 @@ const AdminQuotationComparisonTable = ({
                     Final Total Price (₹)
                   </label>
                   <input
-                    disabled={quotation.finalDecisions[0]?.status == "APPROVED"}
+                    disabled={true}
                     type="number"
                     value={
-                      quotation.finalDecisions[0]?.items[itemIndex]
-                        .finalTotalPrice
-                        ? quotation.finalDecisions[0].items[itemIndex]
-                            .finalTotalPrice
-                        : adminApproval?.[commodityTypeKey]?.[item?.id]
-                            ?.totalPrice || ""
+                      // Always use adminApproval data for total price
+                      adminApproval?.[commodityTypeKey]?.[item?.id]
+                        ?.totalPrice || ""
                     }
                     onChange={(e) =>
                       onFinalPriceChange(item?.id, e.target.value)
@@ -961,13 +971,22 @@ const AdminQuotationComparisonTable = ({
                   </label>
                   <select
                     value={
-                      quotation.finalDecisions[0]?.items[itemIndex].supplierName
-                        ? quotation.finalDecisions[0].items[itemIndex]
-                            .supplierName
-                        : adminApproval?.[commodityTypeKey]?.[item?.id]
-                            ?.finalSupplier?.vendorName || ""
+                      // Always use adminApproval data for supplier selection
+                      adminApproval?.[commodityTypeKey]?.[item?.id]
+                        ?.finalSupplier?.vendorName || ""
                     }
-                    disabled={quotation.finalDecisions[0]?.status == "APPROVED"}
+                    disabled={
+                      // Admin: disabled if admin approved
+                      // Super Admin: only disabled if super admin approved
+                      (userType === "admin" &&
+                        (quotation.finalDecisions?.[0]?.status ===
+                          "ADMIN_APPROVED" ||
+                          quotation.status === "Admin Approved")) ||
+                      (userType === "super_admin" &&
+                        (quotation.finalDecisions?.[0]?.status ===
+                          "SUPER_ADMIN_APPROVED" ||
+                          quotation.status === "super_admin_approved"))
+                    }
                     onChange={(e) => {
                       console.log(
                         "Transport dropdown changed for item",

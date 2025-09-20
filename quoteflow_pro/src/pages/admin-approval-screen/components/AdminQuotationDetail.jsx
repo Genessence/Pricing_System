@@ -953,7 +953,7 @@ const AdminQuotationDetail = () => {
                       </div>
                     </div>
                   );
-                } else if (quotation.status === "super_admin_approved") {
+                } else if (quotation.status === "Super Admin Approved") {
                   return (
                     <div className="px-6 mt-6">
                       <div className="bg-green-50 border border-green-200 rounded-lg p-6 shadow-md">

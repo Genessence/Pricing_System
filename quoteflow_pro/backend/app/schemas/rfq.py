@@ -140,6 +140,7 @@ class RFQList(BaseModel):
     status: RFQStatus
     total_value: float
     currency: str
+    apd_number: Optional[str] = None
     user_id: int
     site_id: int
     created_at: datetime

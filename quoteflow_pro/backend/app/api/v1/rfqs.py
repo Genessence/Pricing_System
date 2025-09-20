@@ -344,6 +344,38 @@ def get_rfqs(
                 FinalDecision.total_approved_amount > 200000,
             )
         )
+    elif current_user.role == UserRole.PRICING_TEAM:
+        # Pricing team: 3 specific cases
+        # 1. PROVIDED_DATA + amount > 2 lakh + SUPER_ADMIN_APPROVED
+        # 2. PROVIDED_DATA + amount ≤ 2 lakh + ADMIN_APPROVED
+        # 3. Any other commodity type + ADMIN_APPROVED
+        query = query.join(FinalDecision, RFQ.id == FinalDecision.rfq_id)
+        query = query.filter(
+            and_(
+                or_(
+                    # Case 1: PROVIDED_DATA + amount > 2 lakh + SUPER_ADMIN_APPROVED
+                    and_(
+                        RFQ.commodity_type == CommodityType.PROVIDED_DATA,
+                        RFQ.status == RFQStatus.SUPER_ADMIN_APPROVED,
+                        FinalDecision.status == "APPROVED",
+                        FinalDecision.total_approved_amount > 200000,
+                    ),
+                    # Case 2: PROVIDED_DATA + amount ≤ 2 lakh + ADMIN_APPROVED
+                    and_(
+                        RFQ.commodity_type == CommodityType.PROVIDED_DATA,
+                        RFQ.status == RFQStatus.ADMIN_APPROVED,
+                        FinalDecision.status == "APPROVED",
+                        FinalDecision.total_approved_amount <= 200000,
+                    ),
+                    # Case 3: Any other commodity type + ADMIN_APPROVED
+                    and_(
+                        RFQ.commodity_type != CommodityType.PROVIDED_DATA,
+                        RFQ.status == RFQStatus.ADMIN_APPROVED,
+                        FinalDecision.status == "APPROVED",
+                    ),
+                )
+            )
+        )
 
     # Apply filters
     if status:

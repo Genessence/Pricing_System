@@ -38,7 +38,7 @@ const TopNavigationBar = ({
             tooltip: "Review and approve quotations",
           },
         ]
-      : [
+      : userType === "user" ? [
           {
             label: "Dashboard",
             path: "/user-dashboard",
@@ -51,7 +51,7 @@ const TopNavigationBar = ({
             icon: "Table",
             tooltip: "Create and submit quotations",
           },
-        ];
+        ] : [];
 
   const isActivePath = (path) => {
     return location?.pathname === path || location?.pathname?.startsWith(path);

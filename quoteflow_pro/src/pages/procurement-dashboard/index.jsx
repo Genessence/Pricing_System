@@ -15,7 +15,7 @@ import apiService from "../../services/api";
 
 const ProcurementDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedRFQs, setSelectedRFQs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -514,6 +514,9 @@ const ProcurementDashboard = () => {
                       RFQ ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      APD NO
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Subject
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -561,7 +564,10 @@ const ProcurementDashboard = () => {
                         className="hover:bg-muted/30 transition-colors"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                          {rfq.rfq_number || rfq.id}
+                          {rfq.rfq_number}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                          {rfq.apd_number || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           <div>
@@ -1106,14 +1112,16 @@ const ProcurementDashboard = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Admin Dashboard
+                {userType === "admin" || userType === "super_admin"
+                  ? "Admin Dashboard"
+                  : "Pricing Team Dashboard"}
               </h1>
               <p className="text-muted-foreground">
                 Comprehensive procurement management and analytics for
                 administrators
               </p>
             </div>
-            <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+            {/* <div className="flex items-center space-x-3 mt-4 lg:mt-0">
               <Button
                 variant="outline"
                 iconName="Shield"
@@ -1128,7 +1136,7 @@ const ProcurementDashboard = () => {
               >
                 View Quotations
               </Button>
-            </div>
+            </div> */}
           </div>
 
           {/* Tab Navigation */}

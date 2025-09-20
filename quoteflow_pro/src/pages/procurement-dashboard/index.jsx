@@ -391,11 +391,13 @@ const ProcurementDashboard = () => {
     }
   };
 
-  const tabs = [
+  const tabs = userType === "admin" || userType === "super_admin" ? [
     { id: "overview", label: "Overview", icon: "BarChart3" },
     { id: "users", label: "User Management", icon: "Users" },
     { id: "analytics", label: "Advanced Analytics", icon: "TrendingUp" },
     { id: "reports", label: "Reports", icon: "FileText" },
+  ] : [
+    { id: "overview", label: "Overview", icon: "BarChart3" },
   ];
 
   if (loading) {
@@ -1118,7 +1120,9 @@ const ProcurementDashboard = () => {
               </h1>
               <p className="text-muted-foreground">
                 Comprehensive procurement management and analytics for
-                administrators
+                {userType === "admin" || userType === "super_admin"
+                  ? " administrators"
+                  : " pricing team"}
               </p>
             </div>
             {/* <div className="flex items-center space-x-3 mt-4 lg:mt-0">

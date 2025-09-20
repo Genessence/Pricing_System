@@ -1,56 +1,56 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Button from '../../../components/ui/Button';
-import Icon from '../../../components/AppIcon';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import Button from "../../../components/ui/Button";
+import Icon from "../../../components/AppIcon";
 
 const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
   const navigate = useNavigate();
 
   const quickActionItems = [
     {
-      title: 'Create New RFQ',
-      description: 'Start a new request for quotation',
-      icon: 'Plus',
-      color: 'primary',
-      action: () => navigate('/rfq-creation-wizard'),
-      variant: 'default'
+      title: "Create New RFQ",
+      description: "Start a new request for quotation",
+      icon: "Plus",
+      color: "primary",
+      action: () => navigate("/rfq-creation-wizard"),
+      variant: "default",
     },
 
     {
-      title: 'Compare Quotations',
-      description: 'Analyze and compare received quotes',
-      icon: 'BarChart3',
-      color: 'accent',
-      action: () => navigate('/quotation-comparison-table'),
-      variant: 'outline'
-    }
+      title: "Compare Quotations",
+      description: "Analyze and compare received quotes",
+      icon: "BarChart3",
+      color: "accent",
+      action: () => navigate("/quotation-comparison-table"),
+      variant: "outline",
+    },
   ];
 
   const notificationItems = [
     {
-      title: 'Pending Approvals',
+      title: "Pending Approvals",
       count: pendingApprovals,
-      description: 'RFQs awaiting your approval',
-      icon: 'Clock',
-      color: 'warning',
-      action: () => navigate('/procurement-dashboard?filter=pending'),
-      urgent: pendingApprovals > 0
+      description: "RFQs awaiting your approval",
+      icon: "Clock",
+      color: "warning",
+      action: () => navigate("/procurement-dashboard?filter=pending"),
+      urgent: pendingApprovals > 0,
     },
     {
-      title: 'Draft RFQs',
+      title: "Draft RFQs",
       count: draftRFQs,
-      description: 'Incomplete RFQs to finish',
-      icon: 'FileText',
-      color: 'muted',
-      action: () => navigate('/procurement-dashboard?filter=draft'),
-      urgent: false
-    }
+      description: "Incomplete RFQs to finish",
+      icon: "FileText",
+      color: "muted",
+      action: () => navigate("/procurement-dashboard?filter=draft"),
+      urgent: false,
+    },
   ];
 
   return (
     <div className="space-y-6">
       {/* Quick Actions */}
-    {/* <div className="bg-card border border-border rounded-lg p-6">
+      {/* <div className="bg-card border border-border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {quickActionItems?.map((item, index) => (
@@ -81,40 +81,57 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
       </div> */}
       {/* Notifications & Alerts */}
       <div className="bg-card border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Notifications & Alerts</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">
+          Notifications & Alerts
+        </h3>
         <div className="space-y-3">
           {notificationItems?.map((item, index) => (
             <div
               key={index}
               className={`flex items-center justify-between p-3 rounded-lg border transition-smooth cursor-pointer ${
-                item?.urgent 
-                  ? 'border-warning/50 bg-warning/5 hover:border-warning hover:bg-warning/10' :'border-border hover:border-primary/50 hover:bg-muted/30'
+                item?.urgent
+                  ? "border-warning/50 bg-warning/5 hover:border-warning hover:bg-warning/10"
+                  : "border-border hover:border-primary/50 hover:bg-muted/30"
               }`}
               onClick={item?.action}
             >
               <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${
-                  item?.color === 'warning' ? 'bg-warning/10 text-warning' : 'bg-muted text-muted-foreground'
-                }`}>
+                <div
+                  className={`p-2 rounded-lg ${
+                    item?.color === "warning"
+                      ? "bg-warning/10 text-warning"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
                   <Icon name={item?.icon} size={16} strokeWidth={2} />
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h4 className="text-sm font-medium text-foreground">{item?.title}</h4>
+                    <h4 className="text-sm font-medium text-foreground">
+                      {item?.title}
+                    </h4>
                     {item?.count > 0 && (
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        item?.urgent 
-                          ? 'bg-warning text-warning-foreground' 
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                          item?.urgent
+                            ? "bg-warning text-warning-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
                         {item?.count}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">{item?.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item?.description}
+                  </p>
                 </div>
               </div>
-              <Icon name="ChevronRight" size={16} className="text-muted-foreground" />
+              <Icon
+                name="ChevronRight"
+                size={16}
+                className="text-muted-foreground"
+              />
             </div>
           ))}
         </div>
@@ -122,7 +139,9 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
       {/* Recent Activity */}
       <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">Recent Activity</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Recent Activity
+          </h3>
           <Button variant="ghost" size="sm" iconName="ExternalLink">
             View All
           </Button>
@@ -133,7 +152,9 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
               <Icon name="Check" size={12} strokeWidth={2} />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-foreground">RFQ-2024-001 approved by Finance Team</p>
+              <p className="text-sm text-foreground">
+                RFQ-2024-001 approved by Finance Team
+              </p>
               <p className="text-xs text-muted-foreground">2 hours ago</p>
             </div>
           </div>
@@ -142,7 +163,9 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
               <Icon name="FileText" size={12} strokeWidth={2} />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-foreground">New quotation received for Industrial Pumps</p>
+              <p className="text-sm text-foreground">
+                New quotation received for Industrial Pumps
+              </p>
               <p className="text-xs text-muted-foreground">4 hours ago</p>
             </div>
           </div>
@@ -151,7 +174,9 @@ const QuickActions = ({ pendingApprovals = 0, draftRFQs = 0 }) => {
               <Icon name="Clock" size={12} strokeWidth={2} />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-foreground">RFQ-2024-003 deadline approaching (2 days left)</p>
+              <p className="text-sm text-foreground">
+                RFQ-2024-003 deadline approaching (2 days left)
+              </p>
               <p className="text-xs text-muted-foreground">6 hours ago</p>
             </div>
           </div>

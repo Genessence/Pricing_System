@@ -135,6 +135,7 @@ const QuotationComparisonTable = () => {
   });
 
   const [serviceProjectName, setServiceProjectName] = useState("");
+  const [userRemarks, setUserRemarks] = useState("");
 
   const [quotes, setQuotes] = useState([]);
 
@@ -502,6 +503,7 @@ const QuotationComparisonTable = () => {
         site_id: 1, // Default to site A001 (ID: 1) - in production this should be user-selectable
         items: rfqItems,
         quotes: validQuotes,
+        user_comments: userRemarks || "",
       };
 
       console.log(rfqData);
@@ -856,6 +858,36 @@ const QuotationComparisonTable = () => {
               onProductTypeChange={handleProductTypeChange}
               onWorkTypeChange={handleWorkTypeChange}
             />
+
+            {/* User Remarks Section - Show when any form is selected */}
+            {showAnyForm && (
+              <div className="mt-6 bg-card border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Additional Remarks
+                </h3>
+                <div className="max-w-4xl">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    <Icon
+                      name="MessageSquare"
+                      size={16}
+                      className="inline mr-2 text-blue-600"
+                    />
+                    User Remarks (Optional)
+                  </label>
+                  <textarea
+                    placeholder="Enter any additional remarks or special requirements for this quotation..."
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-vertical min-h-[80px]"
+                    value={userRemarks || ""}
+                    onChange={(e) => setUserRemarks(e.target.value)}
+                    maxLength={1000}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    These remarks will be attached to the RFQ and visible to all
+                    stakeholders ({userRemarks?.length || 0}/1000 characters)
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Search and Filters - Only show when current form is visible */}
             {showProvidedDataForm && (

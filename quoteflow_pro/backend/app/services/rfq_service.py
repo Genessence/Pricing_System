@@ -61,9 +61,11 @@ class RFQService:
             commodity_type=rfq_data.commodity_type,
             total_value=rfq_data.total_value,
             currency=rfq_data.currency,
+            apd_number=rfq_data.apd_number or "",
+            user_comments=rfq_data.user_comments or "",
             user_id=user_id,
             site_id=rfq_data.site_id,
-            status=RFQStatus.DRAFT,
+            status=RFQStatus.PENDING,
         )
         db.add(db_rfq)
         db.commit()

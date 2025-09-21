@@ -141,38 +141,47 @@ const AdminApprovalScreen = () => {
   };
 
   // Filter quotations based on search and status
-  const filteredQuotations = allQuotationRequests.filter((quotation) => {
-    const matchesSearch =
-      !searchTerm ||
-      quotation.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.rfq_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.user?.full_name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      quotation.user?.username
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      quotation.site?.site_name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      quotation.site?.site_code
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      quotation.commodity_type
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      quotation.description?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredQuotations = allQuotationRequests
+    .filter((quotation) => {
+      const matchesSearch =
+        !searchTerm ||
+        quotation.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quotation.rfq_number
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        quotation.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quotation.user?.full_name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        quotation.user?.username
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        quotation.site?.site_name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        quotation.site?.site_code
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        quotation.commodity_type
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        quotation.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus =
-      statusFilter === "all" ||
-      quotation.status === statusFilter ||
-      (statusFilter === "Pending Approval" && quotation.status === "pending") ||
-      (statusFilter === "Approved" && quotation.status === "approved") ||
-      (statusFilter === "Rejected" && quotation.status === "rejected");
+      const matchesStatus =
+        statusFilter === "all" ||
+        quotation.status === statusFilter ||
+        (statusFilter === "Pending Approval" &&
+          quotation.status === "pending") ||
+        (statusFilter === "Approved" && quotation.status === "approved") ||
+        (statusFilter === "Rejected" && quotation.status === "rejected");
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at || a.submittedAt || 0);
+      const dateB = new Date(b.created_at || b.submittedAt || 0);
+      return dateB - dateA; // Newest first (descending order)
+    });
 
   const pendingCount = allQuotationRequests.filter(
     (q) => q.status === "Pending Approval" || q.status === "pending"
@@ -456,7 +465,7 @@ const AdminApprovalScreen = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredQuotations.reverse().map((quotation) => (
+                  {filteredQuotations.map((quotation) => (
                     <tr
                       key={quotation.id}
                       className="hover:bg-muted/50 transition-colors duration-200"

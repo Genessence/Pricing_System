@@ -121,6 +121,7 @@ def create_rfq(
         commodity_type=rfq_data.commodity_type,
         total_value=rfq_data.total_value,
         currency=rfq_data.currency,
+        user_comments=rfq_data.user_comments or "",
         user_id=current_user.id,
         site_id=rfq_data.site_id,
         status=RFQStatus.PENDING,
@@ -566,6 +567,7 @@ def get_rfq(
             "totalValue": rfq.total_value,
             "currency": rfq.currency,
             "apd_number": rfq.apd_number,  # Include APD number in frontend response
+            "user_remarks": rfq.user_comments,  # Include user comments in frontend response
             "items": items_for_frontend,
             "suppliers": suppliers_list,
             "finalDecisions": final_decisions_for_frontend,
@@ -583,6 +585,7 @@ def get_rfq(
         total_value=rfq.total_value,
         currency=rfq.currency,
         apd_number=rfq.apd_number,  # Include APD number in response
+        user_comments=rfq.user_comments,  # Include user comments in response
         status=rfq.status,
         user_id=rfq.user_id,
         site_id=rfq.site_id,
@@ -604,6 +607,7 @@ def get_rfq(
         ),
         commodity_type_raw=commodity_type_raw,
         suppliers=suppliers_list,
+        user_remarks=rfq.user_comments,
     )
 
     return rfq_response

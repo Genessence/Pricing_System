@@ -25,16 +25,16 @@ const TopNavigationBar = ({
             icon: "BarChart3",
             tooltip: "RFQ overview and metrics",
           },
+          // {
+          //   label: "Quotations",
+          //   path: "/quotation-comparison-table",
+          //   icon: "Table",
+          //   tooltip: "Compare and analyze quotes",
+          // },
           {
-            label: "Quotations",
-            path: "/quotation-comparison-table",
-            icon: "Table",
-            tooltip: "Compare and analyze quotes",
-          },
-          {
-            label: "Admin",
+            label: "Approvals",
             path: "/admin-approval-screen",
-            icon: "Shield",
+            icon: "Check",
             tooltip: "Review and approve quotations",
           },
         ]

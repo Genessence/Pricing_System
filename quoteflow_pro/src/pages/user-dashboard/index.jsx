@@ -50,11 +50,14 @@ const UserDashboard = () => {
   const startIndex = (safeCurrentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
 
-  // Get current page data (reversed for newest first)
-  const currentPageData = userQuotations
-    .slice()
-    .reverse()
-    .slice(startIndex, endIndex);
+  // Get current page data (sorted by created_at, newest first)
+  const sortedQuotations = userQuotations.slice().sort((a, b) => {
+    const dateA = new Date(a.created_at || a.submittedAt || 0);
+    const dateB = new Date(b.created_at || b.submittedAt || 0);
+    return dateB - dateA; // Newest first (descending order)
+  });
+
+  const currentPageData = sortedQuotations.slice(startIndex, endIndex);
 
   // Pagination handlers
   const handlePageChange = (page) => {

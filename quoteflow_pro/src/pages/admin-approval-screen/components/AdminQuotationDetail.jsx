@@ -807,6 +807,39 @@ const AdminQuotationDetail = () => {
               submissionTime={quotationData?.submissionTime}
             />
           </div>
+
+          {/* User Remarks Section */}
+          <div className="px-6 mb-6">
+            <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <AppIcon
+                    name="MessageSquare"
+                    size={20}
+                    className="text-blue-600"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    User Remarks
+                  </p>
+                  <div className="mt-2">
+                    {quotationData?.user_remarks &&
+                    quotationData.user_remarks.trim() !== "" ? (
+                      <p className="text-sm text-foreground whitespace-pre-line">
+                        {quotationData.user_remarks}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">
+                        No user remarks was attached to the quotation
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Attached Documents Section */}
           {(quotationData?.attachments?.boqFile ||
             quotationData?.attachments?.drawingFile ||

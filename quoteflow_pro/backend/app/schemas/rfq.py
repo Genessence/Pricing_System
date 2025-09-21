@@ -52,6 +52,7 @@ class RFQBase(BaseModel):
     total_value: float = Field(..., gt=0)
     currency: str = Field(default="INR", min_length=3, max_length=3)
     apd_number: Optional[str] = Field(default="", max_length=50)
+    user_comments: Optional[str] = Field(default="", max_length=1000)
 
     @validator("currency")
     def validate_currency(cls, v):
@@ -96,6 +97,7 @@ class RFQUpdate(BaseModel):
     total_value: Optional[float] = Field(None, gt=0)
     currency: Optional[str] = Field(None, min_length=3, max_length=3)
     apd_number: Optional[str] = Field(None, max_length=50)
+    user_comments: Optional[str] = Field(None, max_length=1000)
     status: Optional[RFQStatus] = None
 
 
@@ -126,6 +128,7 @@ class RFQResponse(RFQBase):
     submission_time: Optional[str] = None
     commodity_type_raw: Optional[str] = None
     suppliers: List[dict] = []
+    user_remarks: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -141,6 +144,7 @@ class RFQList(BaseModel):
     total_value: float
     currency: str
     apd_number: Optional[str] = None
+    user_comments: Optional[str] = None
     user_id: int
     site_id: int
     created_at: datetime

@@ -975,6 +975,34 @@ const UserQuotationDetail = () => {
              </div>
            </div> */}
 
+          {/* User Remarks Section */}
+          <div className="bg-card border border-border rounded-lg p-6 shadow-sm mb-8">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Icon
+                  name="MessageSquare"
+                  size={20}
+                  className="text-blue-600"
+                />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-foreground">
+                  Your Remarks
+                </h2>
+                <p className="text-muted-foreground mt-1">
+                  Comments you added when submitting this quotation
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border">
+              <p className="text-foreground whitespace-pre-line">
+                {quotation.user_remarks && quotation.user_remarks.trim() !== ""
+                  ? quotation.user_remarks
+                  : "You didn't add any comment to the quotation"}
+              </p>
+            </div>
+          </div>
+
           {/* Attached Documents */}
           {(quotation.attachments?.boqFile ||
             quotation.attachments?.drawingFile ||

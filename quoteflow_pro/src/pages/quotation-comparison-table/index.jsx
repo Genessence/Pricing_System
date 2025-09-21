@@ -163,6 +163,9 @@ const QuotationComparisonTable = () => {
   const [quotationsConfirmed, setQuotationsConfirmed] = useState(false);
   const [showQuotationDetails, setShowQuotationDetails] = useState(false);
 
+  // Global warranty state for auto-filling all quotations
+  const [globalWarranty, setGlobalWarranty] = useState("");
+
   // Footer row configurations
   const footerRows = [
     {
@@ -225,7 +228,9 @@ const QuotationComparisonTable = () => {
         id: Date.now(),
         supplierId: "",
         rates: {},
-        footer: {},
+        footer: {
+          warranty: globalWarranty || "",
+        },
       };
       setQuotes([...quotes, newQuote]);
     }
@@ -284,6 +289,21 @@ const QuotationComparisonTable = () => {
       updatedQuotes[quoteIndex].footer = {};
     }
     updatedQuotes[quoteIndex].footer[field] = value;
+    setQuotes(updatedQuotes);
+  };
+
+  // Handle global warranty change and auto-fill all quotations
+  const handleGlobalWarrantyChange = (value) => {
+    setGlobalWarranty(value);
+
+    // Auto-fill warranty for all existing quotations
+    const updatedQuotes = quotes.map((quote) => ({
+      ...quote,
+      footer: {
+        ...quote.footer,
+        warranty: value,
+      },
+    }));
     setQuotes(updatedQuotes);
   };
 
@@ -1005,6 +1025,8 @@ const QuotationComparisonTable = () => {
                             onFooterUpdate={handleFooterUpdate}
                             options={footerRow?.options}
                             footerUpdateKey={footerRow?.footerUpdateKey}
+                            globalWarranty={globalWarranty}
+                            onGlobalWarrantyChange={handleGlobalWarrantyChange}
                           />
                         ))}
                     </tbody>
@@ -1023,6 +1045,48 @@ const QuotationComparisonTable = () => {
                     </h3>
                     <div className="text-sm text-muted-foreground">
                       Complete the quotation details before confirming
+                    </div>
+                  </div>
+
+                  {/* Global Warranty Input */}
+                  <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+                          <Icon
+                            name="Shield"
+                            size={16}
+                            className="inline mr-2"
+                          />
+                          Global Warranty (Years)
+                        </label>
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="number"
+                            placeholder="Enter warranty period..."
+                            className="flex-1 px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-md bg-white dark:bg-gray-800 text-blue-900 dark:text-blue-100 placeholder:text-blue-500 dark:placeholder:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={globalWarranty}
+                            onChange={(e) =>
+                              handleGlobalWarrantyChange(e.target.value)
+                            }
+                            min="0"
+                            step="0.5"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleGlobalWarrantyChange("")}
+                            className="text-blue-600 border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                          This warranty period will be automatically applied to
+                          all quotations. You can still modify individual
+                          warranty values below.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -1058,6 +1122,8 @@ const QuotationComparisonTable = () => {
                             onFooterUpdate={handleFooterUpdate}
                             options={footerRow?.options}
                             footerUpdateKey={footerRow?.footerUpdateKey}
+                            globalWarranty={globalWarranty}
+                            onGlobalWarrantyChange={handleGlobalWarrantyChange}
                           />
                         ))}
                       </tbody>

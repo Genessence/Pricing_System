@@ -9,9 +9,17 @@ const FooterRow = ({
   onFooterUpdate,
   options = [],
   footerUpdateKey,
+  globalWarranty = "",
+  onGlobalWarrantyChange,
 }) => {
   const handleValueChange = (quoteIndex, value) => {
-    onFooterUpdate(quoteIndex, footerUpdateKey, value);
+    // For warranty field, update global warranty and apply to all quotations
+    if (footerUpdateKey === "warranty" && onGlobalWarrantyChange) {
+      onGlobalWarrantyChange(value);
+    } else {
+      // For non-warranty fields, update individual quote
+      onFooterUpdate(quoteIndex, footerUpdateKey, value);
+    }
   };
 
   const renderCell = (quote, quoteIndex) => {
@@ -29,7 +37,16 @@ const FooterRow = ({
       }
       return "";
     };
-    const currentValue = getFooterValue(quote?.footer, footerUpdateKey);
+
+    // For warranty field, use global warranty if available, otherwise use individual value
+    let currentValue;
+    if (footerUpdateKey === "warranty") {
+      // Always use global warranty for warranty field if it's set, otherwise use individual value
+      currentValue =
+        globalWarranty || getFooterValue(quote?.footer, footerUpdateKey);
+    } else {
+      currentValue = getFooterValue(quote?.footer, footerUpdateKey);
+    }
 
     switch (type) {
       case "select":

@@ -107,7 +107,7 @@ function TopExpenseChart() {
   return (
     <Box sx={{ width: "100%", overflowX: "auto", p: 2 }}>
       <Stack spacing={2} alignItems="center">
-        <Typography variant="h5" component="h1" gutterBottom>
+        <Typography variant="h6" component="h4" gutterBottom fontWeight="bold">
           Monthly Top 10 Expenses by Manufacturing Plant
         </Typography>
         <BarChart
@@ -118,7 +118,7 @@ function TopExpenseChart() {
           width={900} // Increased width to accommodate all series
           margin={{ left: 80, right: 20, top: 40, bottom: 60 }}
           slotProps={{
-            legend: {
+            legend: {   
               direction: "column",
               position: { vertical: "middle", horizontal: "right" },
               itemMarkWidth: 10,

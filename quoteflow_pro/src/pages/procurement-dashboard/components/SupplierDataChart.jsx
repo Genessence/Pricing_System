@@ -42,100 +42,109 @@ const getArcLabel = (params, total) => {
 
 export default function SupplierDataChart() {
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center">
-        Supplier Data Spread Comparison
-      </Typography>
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={4}
-        justifyContent="center"
-        alignItems="center"
-        sx={{ width: "100%" }}
-      >
-        {/* Indent Items Chart */}
-        <Box sx={{ width: 300, height: 350, textAlign: "center" }}>
-          <Typography variant="h6" component="h2" gutterBottom>
-            Indent Items
-          </Typography>
-          <PieChart
-            series={[
-              {
-                outerRadius: 100,
-                data: indentItemsData,
-                arcLabel: (params) => getArcLabel(params, totalIndentItems),
-              },
-            ]}
-            sx={{
-              [`& .${pieArcLabelClasses.root}`]: {
-                fill: "white",
-                fontSize: 14,
-              },
-            }}
-            width={300}
-            height={250}
-            hideLegend
-          />
-        </Box>
-
-        {/* Service Request Chart */}
-        <Box sx={{ width: 300, height: 350, textAlign: "center" }}>
-          <Typography variant="h6" component="h2" gutterBottom>
-            Service Request
-          </Typography>
-          <PieChart
-            series={[
-              {
-                outerRadius: 100,
-                data: serviceRequestData,
-                arcLabel: (params) => getArcLabel(params, totalServiceRequest),
-              },
-            ]}
-            sx={{
-              [`& .${pieArcLabelClasses.root}`]: {
-                fill: "white",
-                fontSize: 14,
-              },
-            }}
-            width={300}
-            height={250}
-            slotProps={{
-              legend: {
-                direction: "horizontal",
-                position: {
-                  vertical: "bottom",
-                  horizontal: "center",
+    <Box sx={{ flexGrow: 1, width: "100%", p: 2, height: "100%" }}>
+      <Stack spacing={2} alignItems="center" sx={{ height: "100%" }}>
+        <Typography
+          variant="h6"
+          component="h2"
+          gutterBottom
+          align="center"
+          fontWeight="bold"
+        >
+          Supplier Data Spread Comparison
+        </Typography>
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={4}
+          justifyContent="center"
+          alignItems="center"
+          sx={{ width: "100%", height: "100%" }}
+        >
+          {/* Indent Items Chart */}
+          <Box sx={{ width: 300, height: 350, textAlign: "center" }}>
+            <Typography variant="h6" component="h2" gutterBottom>
+              Indent Items
+            </Typography>
+            <PieChart
+              series={[
+                {
+                  outerRadius: 100,
+                  data: indentItemsData,
+                  arcLabel: (params) => getArcLabel(params, totalIndentItems),
                 },
-              },
-            }}
-          />
-        </Box>
+              ]}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fill: "white",
+                  fontSize: 14,
+                },
+              }}
+              width={300}
+              height={250}
+              hideLegend
+            />
+          </Box>
 
-        {/* Transport Request Chart */}
-        <Box sx={{ width: 300, height: 350, textAlign: "center" }}>
-          <Typography variant="h6" component="h2" gutterBottom>
-            Transport Request
-          </Typography>
-          <PieChart
-            series={[
-              {
-                outerRadius: 100,
-                data: transportRequestData,
-                arcLabel: (params) =>
-                  getArcLabel(params, totalTransportRequest),
-              },
-            ]}
-            sx={{
-              [`& .${pieArcLabelClasses.root}`]: {
-                fill: "white",
-                fontSize: 14,
-              },
-            }}
-            width={300}
-            height={250}
-            hideLegend
-          />
-        </Box>
+          {/* Service Request Chart */}
+          <Box sx={{ width: 300, height: 350, textAlign: "center" }}>
+            <Typography variant="h6" component="h2" gutterBottom>
+              Service Request
+            </Typography>
+            <PieChart
+              series={[
+                {
+                  outerRadius: 100,
+                  data: serviceRequestData,
+                  arcLabel: (params) =>
+                    getArcLabel(params, totalServiceRequest),
+                },
+              ]}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fill: "white",
+                  fontSize: 14,
+                },
+              }}
+              width={300}
+              height={250}
+              slotProps={{
+                legend: {
+                  direction: "horizontal",
+                  position: {
+                    vertical: "bottom",
+                    horizontal: "center",
+                  },
+                },
+              }}
+            />
+          </Box>
+
+          {/* Transport Request Chart */}
+          <Box sx={{ width: 300, height: 350, textAlign: "center" }}>
+            <Typography variant="h6" component="h2" gutterBottom>
+              Transport Request
+            </Typography>
+            <PieChart
+              series={[
+                {
+                  outerRadius: 100,
+                  data: transportRequestData,
+                  arcLabel: (params) =>
+                    getArcLabel(params, totalTransportRequest),
+                },
+              ]}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fill: "white",
+                  fontSize: 14,
+                },
+              }}
+              width={300}
+              height={250}
+              hideLegend
+            />
+          </Box>
+        </Stack>
       </Stack>
     </Box>
   );

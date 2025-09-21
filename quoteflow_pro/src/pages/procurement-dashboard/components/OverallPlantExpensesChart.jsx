@@ -47,32 +47,40 @@ const series = plantNames.map((plant) => ({
 
 function OverallPlantExpensesChart() {
   return (
-    <Stack sx={{ width: "100%", height: 500, p: 2 }}>
-      <Typography variant="h6" component="h2" textAlign="center" gutterBottom>
-        Monthly Expenses by Manufacturing Plant
-      </Typography>
-      <Box sx={{ flexGrow: 1 }}>
-        <BarChart
-          series={series}
-          xAxis={[
-            {
-              data: xLabels,
-              scaleType: "band",
-              label: "Timeline (Months & Year)",
-            },
-          ]}
-          yAxis={[{ label: "Expenses" }]}
-          height={400}
-          margin={{ left: 70, right: 70, top: 50, bottom: 50 }}
-          slotProps={{
-            legend: {
-              position: { vertical: "bottom", horizontal: "middle" },
-              padding: { top: 20 },
-            },
-          }}
-        />
-      </Box>
-    </Stack>
+    <Box sx={{ width: "100%", p: 2 }}>
+      <Stack spacing={2} alignItems="center">
+        <Typography
+          variant="h6"
+          component="h4"
+          textAlign="center"
+          gutterBottom
+          fontWeight="bold"
+        >
+          Monthly Expenses by Manufacturing Plant
+        </Typography>
+        <Box sx={{ flexGrow: 1 }}>
+          <BarChart
+            series={series}
+            xAxis={[
+              {
+                data: xLabels,
+                scaleType: "band",
+                label: "Timeline (Months & Year)",
+              },
+            ]}
+            yAxis={[{ label: "Expenses" }]}
+            height={400}
+            margin={{ left: 70, right: 70, top: 50, bottom: 50 }}
+            slotProps={{
+              legend: {
+                position: { vertical: "bottom", horizontal: "middle" },
+                padding: { top: 20 },
+              },
+            }}
+          />
+        </Box>
+      </Stack>
+    </Box>
   );
 }
 

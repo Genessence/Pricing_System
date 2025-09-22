@@ -1,5 +1,6 @@
 import React from "react";
 import Select from "../../../../components/ui/Select";
+import PdfUploadSection from "./PdfUploadSection";
 
 const QuotationFormDropdowns = ({
   selectedCommodity,
@@ -8,6 +9,9 @@ const QuotationFormDropdowns = ({
   onCommodityChange,
   onProductTypeChange,
   onWorkTypeChange,
+  urgentWorkPdf,
+  onPdfUpload,
+  onPdfRemove,
 }) => {
   // Dropdown options
   const commodityOptions = [
@@ -112,6 +116,15 @@ const QuotationFormDropdowns = ({
           </div>
         )}
       </div>
+
+      {/* PDF Upload Section - Only show for urgent work */}
+      {selectedWorkType === "urgent" && selectedCommodity !== "transport" && (
+        <PdfUploadSection
+          urgentWorkPdf={urgentWorkPdf}
+          onPdfUpload={onPdfUpload}
+          onPdfRemove={onPdfRemove}
+        />
+      )}
 
       {/* Transport Notice */}
       {selectedCommodity === "transport" && (

@@ -103,6 +103,9 @@ const QuotationComparisonTable = () => {
   const [selectedCommodity, setSelectedCommodity] = useState("");
   const [selectedProductType, setSelectedProductType] = useState("standard");
   const [selectedWorkType, setSelectedWorkType] = useState("normal");
+  
+  // PDF attachment state for urgent work
+  const [urgentWorkPdf, setUrgentWorkPdf] = useState(null);
 
   // Initialize with one default empty row for user to start with
   const [items, setItems] = useState([
@@ -373,6 +376,12 @@ const QuotationComparisonTable = () => {
         setIsSubmitting(false);
         return;
       }
+
+      // Validate urgent work PDF requirement
+      if (!validateUrgentWork()) {
+        setIsSubmitting(false);
+        return;
+      }
       // Calculate total value based on form data
       let totalValue = 0;
       if (selectedCommodity === "provided_data") {
@@ -528,6 +537,16 @@ const QuotationComparisonTable = () => {
 
       console.log(rfqData);
       // console.log('RFQ data:', rfqData);
+      
+      // Log PDF information if urgent work
+      if (selectedWorkType === "urgent" && urgentWorkPdf) {
+        console.log("📄 Urgent work PDF attached:", {
+          fileName: urgentWorkPdf.name,
+          fileSize: urgentWorkPdf.size,
+          fileType: urgentWorkPdf.type
+        });
+      }
+      
       // Submit to backend
       const createdRFQ = await apiService.createRFQ(rfqData);
 
@@ -535,6 +554,9 @@ const QuotationComparisonTable = () => {
       setShowSuccessMessage(true);
       setIsSubmitting(false);
 
+      // Clear PDF after successful submission
+      setUrgentWorkPdf(null);
+      
       // Navigate to user dashboard after 3 seconds so user can see their submission
       setTimeout(() => {
         navigate("/user-dashboard");
@@ -683,7 +705,34 @@ const QuotationComparisonTable = () => {
     // Show approval notice for urgent work
     if (value === "urgent") {
       console.log("Urgent work requires Plant Head approval");
+    } else {
+      // Clear PDF when switching away from urgent
+      setUrgentWorkPdf(null);
     }
+  };
+
+  // PDF upload handlers
+  const handlePdfUpload = (file) => {
+    if (file && file.type === "application/pdf") {
+      setUrgentWorkPdf(file);
+      console.log("PDF uploaded for urgent work:", file.name);
+    } else {
+      alert("Please select a valid PDF file.");
+    }
+  };
+
+  const handlePdfRemove = () => {
+    setUrgentWorkPdf(null);
+    console.log("PDF removed for urgent work");
+  };
+
+  // Validation function for urgent work
+  const validateUrgentWork = () => {
+    if (selectedWorkType === "urgent" && !urgentWorkPdf) {
+      alert("Please upload a PDF document for urgent work approval before submitting.");
+      return false;
+    }
+    return true;
   };
 
   // Determine which form to show
@@ -877,6 +926,9 @@ const QuotationComparisonTable = () => {
               onCommodityChange={handleCommodityChange}
               onProductTypeChange={handleProductTypeChange}
               onWorkTypeChange={handleWorkTypeChange}
+              urgentWorkPdf={urgentWorkPdf}
+              onPdfUpload={handlePdfUpload}
+              onPdfRemove={handlePdfRemove}
             />
 
             {/* User Remarks Section - Show when any form is selected */}

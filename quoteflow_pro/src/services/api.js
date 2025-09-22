@@ -1,5 +1,5 @@
 // API service for QuoteFlow Pro Backend
-const API_BASE_URL = "https://pricing-system-d999.onrender.com";
+const API_BASE_URL = "https://pricing-system-d999.onrender.com/v1";
 
 class ApiService {
   constructor() {

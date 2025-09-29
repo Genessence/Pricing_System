@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Button from '../../../components/ui/Button';
 import Icon from '../../../components/AppIcon';
+import apiService from '../../../services/api';
 
 const ItemSelectionStep = ({ selectedItems, onItemsChange, errors }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,54 +16,45 @@ const ItemSelectionStep = ({ selectedItems, onItemsChange, errors }) => {
     category: ''
   });
 
-  // Mock ERP items data
-  const erpItems = [
-    {
-      id: 'ERP-001',
-      description: 'Industrial Grade Steel Pipes',
-      specifications: 'ASTM A106 Grade B, 6 inch diameter, 20 feet length',
-      uom: 'Pieces',
-      category: 'Raw Materials',
-      lastBuyingPrice: 245.50,
-      lastVendor: 'Steel Corp Industries'
-    },
-    {
-      id: 'ERP-002',
-      description: 'High-Performance Ball Bearings',
-      specifications: 'SKF 6205-2RS1, Deep groove, Sealed, 25mm bore',
-      uom: 'Pieces',
-      category: 'Mechanical Parts',
-      lastBuyingPrice: 18.75,
-      lastVendor: 'Bearing Solutions Ltd'
-    },
-    {
-      id: 'ERP-003',
-      description: 'Industrial Safety Helmets',
-      specifications: 'ANSI Z89.1 Type I Class E, White, Adjustable',
-      uom: 'Pieces',
-      category: 'Safety Equipment',
-      lastBuyingPrice: 32.90,
-      lastVendor: 'SafetyFirst Equipment'
-    },
-    {
-      id: 'ERP-004',
-      description: 'Hydraulic Fluid ISO 46',
-      specifications: 'Anti-wear hydraulic oil, 208L drum, ISO VG 46',
-      uom: 'Drums',
-      category: 'Fluids & Lubricants',
-      lastBuyingPrice: 189.00,
-      lastVendor: 'Industrial Oils Co'
-    },
-    {
-      id: 'ERP-005',
-      description: 'Stainless Steel Bolts M12x50',
-      specifications: 'Grade 316, Hex head, Full thread, Metric',
-      uom: 'Pieces',
-      category: 'Fasteners',
-      lastBuyingPrice: 2.45,
-      lastVendor: 'Fastener World Inc'
-    }
-  ];
+  // Real ERP items from API
+  const [erpItems, setErpItems] = useState([]);
+  const [erpItemsLoading, setErpItemsLoading] = useState(true);
+
+  // Load ERP items from backend
+  useEffect(() => {
+    const loadERPItems = async () => {
+      try {
+        const items = await apiService.getERPItems();
+        setErpItems(items);
+      } catch (error) {
+        console.error('Error loading ERP items:', error);
+        setErpItems([]);
+      } finally {
+        setErpItemsLoading(false);
+      }
+    };
+
+    loadERPItems();
+  }, []);
+
+  // Transform backend ERP items to match frontend format
+  const transformedERPItems = erpItems.map(item => ({
+    id: item.item_code,
+    description: item.description,
+    specifications: item.specifications || 'N/A',
+    uom: item.unit_of_measure,
+    category: item.category || 'General',
+    lastBuyingPrice: 0, // Will be updated when we have historical data
+    lastVendor: 'N/A' // Will be updated when we have historical data
+  }));
+
+  // Filter ERP items based on search term
+  const filteredERPItems = transformedERPItems.filter(item =>
+    item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.specifications.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const categoryOptions = [
     { value: 'raw-materials', label: 'Raw Materials' },
@@ -84,11 +76,6 @@ const ItemSelectionStep = ({ selectedItems, onItemsChange, errors }) => {
     { value: 'sets', label: 'Sets' }
   ];
 
-  const filteredItems = erpItems?.filter(item =>
-    item?.description?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-    item?.specifications?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-    item?.id?.toLowerCase()?.includes(searchTerm?.toLowerCase())
-  );
 
   const handleAddErpItem = (erpItem) => {
     const newSelectedItem = {
@@ -211,8 +198,14 @@ const ItemSelectionStep = ({ selectedItems, onItemsChange, errors }) => {
       {searchTerm && (
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-foreground">Available ERP Items</h3>
-          <div className="max-h-64 overflow-y-auto space-y-2">
-            {filteredItems?.map((item) => (
+          {erpItemsLoading ? (
+            <div className="text-center py-4">
+              <div className="text-sm text-muted-foreground">Loading ERP items...</div>
+            </div>
+          ) : (
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {filteredERPItems?.length > 0 ? (
+                filteredERPItems?.map((item) => (
               <div key={item?.id} className="bg-card border border-border rounded-lg p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -241,8 +234,14 @@ const ItemSelectionStep = ({ selectedItems, onItemsChange, errors }) => {
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <div className="text-sm text-muted-foreground">No ERP items found matching "{searchTerm}"</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       {/* Selected Items */}

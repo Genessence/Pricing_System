@@ -40,6 +40,15 @@ const Select = React.forwardRef(({
         )
         : options;
 
+
+        // useEffect(() => {
+        //     console.log(filteredOptions);
+        // return () => {
+            
+        // }
+        // }, [filteredOptions])
+
+
     // Get selected option(s) for display
     const getSelectedDisplay = () => {
         if (!value) return placeholder;
@@ -165,7 +174,7 @@ const Select = React.forwardRef(({
                 >
                     <option value="">Select...</option>
                     {options?.map(option => (
-                        <option key={option?.value} value={option?.value}>
+                        <option key={option.id} value={option?.value}>
                             {option?.label}
                         </option>
                     ))}
@@ -196,7 +205,7 @@ const Select = React.forwardRef(({
                             ) : (
                                 filteredOptions?.map((option) => (
                                     <div
-                                        key={option?.value}
+                                        key={option.id}
                                         className={cn(
                                             "relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
                                             isSelected(option?.value) && "bg-primary text-primary-foreground",

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
-import Icon from '../AppIcon';
-import Image from '../AppImage';
+import Icon from "../AppIcon";
+import Image from "../AppImage";
 
 const UserProfileDropdown = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,71 +25,74 @@ const UserProfileDropdown = ({ user, onLogout }) => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef?.current && !dropdownRef?.current?.contains(event?.target)) {
+      if (
+        dropdownRef?.current &&
+        !dropdownRef?.current?.contains(event?.target)
+      ) {
         closeDropdown();
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   // Close dropdown on escape key
   useEffect(() => {
     const handleEscapeKey = (event) => {
-      if (event?.key === 'Escape') {
+      if (event?.key === "Escape") {
         closeDropdown();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscapeKey);
+      document.addEventListener("keydown", handleEscapeKey);
       return () => {
-        document.removeEventListener('keydown', handleEscapeKey);
+        document.removeEventListener("keydown", handleEscapeKey);
       };
     }
   }, [isOpen]);
 
   const menuItems = [
     {
-      label: 'Profile Settings',
-      icon: 'User',
+      label: "Profile Settings",
+      icon: "User",
       action: () => {
         closeDropdown();
         // Navigate to profile settings
-      }
+      },
     },
     {
-      label: 'Account Preferences',
-      icon: 'Settings',
+      label: "Account Preferences",
+      icon: "Settings",
       action: () => {
         closeDropdown();
         // Navigate to account preferences
-      }
+      },
     },
     {
-      label: 'Help & Support',
-      icon: 'HelpCircle',
+      label: "Help & Support",
+      icon: "HelpCircle",
       action: () => {
         closeDropdown();
         // Navigate to help
-      }
+      },
     },
     {
-      label: 'System Admin',
-      icon: 'Shield',
+      label: "System Admin",
+      icon: "Shield",
       action: () => {
         closeDropdown();
         // Navigate to admin panel
       },
-      adminOnly: true
-    }
+      adminOnly: true,
+    },
   ];
 
-  const displayName = user?.name || user?.email || 'User';
-  const userRole = user?.role || 'Procurement Manager';
+  const displayName = user?.full_name || user?.email || "User";
+  const userRole = user?.role || "Procurement Manager";
   const userAvatar = user?.avatar;
 
   return (
@@ -113,13 +116,17 @@ const UserProfileDropdown = ({ user, onLogout }) => {
           )}
         </div>
         <div className="hidden sm:flex flex-col items-start">
-          <span className="text-sm font-medium text-foreground">{displayName}</span>
+          <span className="text-sm font-medium text-foreground">
+            {displayName}
+          </span>
           <span className="text-xs text-muted-foreground">{userRole}</span>
         </div>
-        <Icon 
-          name="ChevronDown" 
-          size={16} 
-          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        <Icon
+          name="ChevronDown"
+          size={16}
+          className={`transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
       {/* Dropdown Menu */}
@@ -140,10 +147,16 @@ const UserProfileDropdown = ({ user, onLogout }) => {
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-popover-foreground">{displayName}</span>
-                <span className="text-xs text-muted-foreground">{userRole}</span>
+                <span className="text-sm font-medium text-popover-foreground">
+                  {displayName}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {userRole}
+                </span>
                 {user?.email && (
-                  <span className="text-xs text-muted-foreground">{user?.email}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {user?.email}
+                  </span>
                 )}
               </div>
             </div>
@@ -153,7 +166,7 @@ const UserProfileDropdown = ({ user, onLogout }) => {
           <div className="py-2">
             {menuItems?.map((item, index) => {
               // Skip admin-only items if user is not admin
-              if (item?.adminOnly && user?.role !== 'Admin') {
+              if (item?.adminOnly && user?.role !== "Admin") {
                 return null;
               }
 

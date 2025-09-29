@@ -4,11 +4,14 @@ import AppIcon from '../../../components/AppIcon';
 const AdminTransportQuotationTable = ({ 
   suppliers = [], 
   items = [],
+  commodityType = 'Transport',
   adminApproval = {},
   onFinalSupplierChange,
   onFinalPriceChange,
   calculateSumAmount
 }) => {
+  // Convert commodityType to the correct format for state access
+  const commodityTypeKey = "TRANSPORT"; // Transport table always uses TRANSPORT
   // Vehicle size display mapping
   const getVehicleSizeDisplay = (size) => {
     const sizeMap = {
@@ -293,33 +296,31 @@ const AdminTransportQuotationTable = ({
                         Final Supplier
                       </div>
                       <div className="space-y-1">
-                        <input
-                          type="text"
-                          placeholder="Vendor Code"
-                          value={adminApproval?.[item?.id]?.finalSupplier?.vendorCode || ''}
-                          onChange={(e) => onFinalSupplierChange?.(item?.id, 'vendorCode', e?.target?.value)}
-                          className="w-full px-2 py-1 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Vendor Name"
-                          value={adminApproval?.[item?.id]?.finalSupplier?.vendorName || ''}
+                        <select
+                          value={adminApproval?.[commodityTypeKey]?.[item?.id]?.finalSupplier?.vendorName || ''}
                           onChange={(e) => onFinalSupplierChange?.(item?.id, 'vendorName', e?.target?.value)}
                           className="w-full px-2 py-1 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                        />
+                        >
+                          <option value="">Select Vendor</option>
+                          {suppliers?.map((supplier, index) => (
+                            <option key={supplier?.id || index} value={supplier?.name}>
+                              {supplier?.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
                     {/* Final Price Section */}
                     <div className="space-y-2">
                       <div className="text-xs font-medium text-orange-800 dark:text-orange-200 mb-1">
-                        Final Price
+                        Final Total Price
                       </div>
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="Enter final price"
-                        value={adminApproval?.[item?.id]?.finalPrice || ''}
+                        placeholder="Enter total price"
+                        value={adminApproval?.[commodityTypeKey]?.[item?.id]?.totalPrice || ''}
                         onChange={(e) => onFinalPriceChange?.(item?.id, e?.target?.value)}
                         className="w-full px-2 py-1 text-xs border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
                       />

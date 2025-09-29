@@ -1,0 +1,27 @@
+# FastAPI and Core Dependencies
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+sqlalchemy
+psycopg2-binary
+alembic
+
+# Authentication & Security
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Environment & Configuration
+python-dotenv
+pydantic
+pydantic-settings
+
+# Development & Testing
+pytest
+pytest-asyncio
+httpx
+
+# Utilities
+email-validator

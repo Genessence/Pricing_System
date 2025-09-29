@@ -9,25 +9,21 @@ const FilterControls = ({
   onSearch, 
   onClearFilters,
   searchQuery,
-  onSearchChange 
+  onSearchChange,
+  supplierOptions = []
 }) => {
   const statusOptions = [
     { value: '', label: 'All Statuses' },
-    { value: 'Draft', label: 'Draft' },
-    { value: 'Pending', label: 'Pending' },
-    { value: 'In Review', label: 'In Review' },
-    { value: 'Approved', label: 'Approved' },
-    { value: 'Rejected', label: 'Rejected' },
-    { value: 'Completed', label: 'Completed' }
+    { value: 'draft', label: 'Draft' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' }
   ];
 
-  const supplierOptions = [
+  // Use dynamic supplier options passed as props, with fallback to empty array
+  const allSupplierOptions = [
     { value: '', label: 'All Suppliers' },
-    { value: 'acme-corp', label: 'ACME Corporation' },
-    { value: 'global-supply', label: 'Global Supply Co.' },
-    { value: 'tech-solutions', label: 'Tech Solutions Ltd.' },
-    { value: 'industrial-parts', label: 'Industrial Parts Inc.' },
-    { value: 'quality-materials', label: 'Quality Materials LLC' }
+    ...supplierOptions
   ];
 
   const dateRangeOptions = [
@@ -41,11 +37,9 @@ const FilterControls = ({
 
   const categoryOptions = [
     { value: '', label: 'All Categories' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'machinery', label: 'Machinery' },
-    { value: 'raw-materials', label: 'Raw Materials' },
-    { value: 'office-supplies', label: 'Office Supplies' },
-    { value: 'safety-equipment', label: 'Safety Equipment' }
+    { value: 'provided_data', label: 'Provided Data' },
+    { value: 'service', label: 'Service' },
+    { value: 'transport', label: 'Transport' }
   ];
 
   const hasActiveFilters = filters?.status || filters?.supplier || filters?.dateRange || filters?.category || searchQuery;
@@ -77,7 +71,7 @@ const FilterControls = ({
             
             <Select
               placeholder="Supplier"
-              options={supplierOptions}
+              options={allSupplierOptions}
               value={filters?.supplier}
               onChange={(value) => onFilterChange('supplier', value)}
               className="min-w-[160px]"
@@ -155,7 +149,7 @@ const FilterControls = ({
             
             {filters?.supplier && (
               <span className="inline-flex items-center px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                Supplier: {supplierOptions?.find(opt => opt?.value === filters?.supplier)?.label}
+                Supplier: {allSupplierOptions?.find(opt => opt?.value === filters?.supplier)?.label}
                 <button
                   onClick={() => onFilterChange('supplier', '')}
                   className="ml-1 hover:text-primary/80"

@@ -1,0 +1,63 @@
+# FastAPI and ASGI server
+fastapi
+uvicorn[standard]
+
+# Database
+sqlalchemy
+psycopg2-binary
+alembic
+
+# Authentication and Security
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Data Validation and Serialization
+pydantic
+pydantic-settings
+
+# Environment and Configuration
+python-dotenv
+
+# HTTP Client
+httpx
+
+# Testing
+pytest
+pytest-asyncio
+pytest-cov
+pytest-mock
+httpx
+factory-boy
+freezegun
+
+# Development and Code Quality
+black
+flake8
+isort
+mypy
+
+# Logging and Monitoring
+structlog
+
+# File handling
+aiofiles
+
+# Date and time utilities
+python-dateutil
+
+# UUID utilities
+uuid
+# Email utilities (if needed for notifications)
+fastapi-mail
+
+# Caching (optional)
+redis
+hiredis
+
+# Background tasks
+celery
+
+# API Documentation
+sphinx
+sphinx-rtd-theme

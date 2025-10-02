@@ -1,0 +1,94 @@
+# ----------------------------------------------------------------------
+# GLOBAL/OS/IDE IGNORES
+# ----------------------------------------------------------------------
+
+# Operating System Files
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Editor/IDE Files (Common)
+.idea/ # PyCharm/IntelliJ
+.vscode/ # VS Code
+*.swp
+*~
+
+# ----------------------------------------------------------------------
+# PYTHON FASTAPI BACKEND IGNORES
+# ----------------------------------------------------------------------
+
+# Dependencies
+__pycache__/
+*.py[co]
+# Virtual environment (Common names)
+.venv/
+venv/
+env/
+/lib/
+/local/
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*$py.class
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.nox/
+
+# Distribution / Packaging
+/dist
+/build
+*.egg-info/
+.eggs/
+
+# FastAPI/Uvicorn/ASGI Logs and Output
+*.log
+*.sqlite3 # e.g., if using a local SQLite database for development
+media/ # User-uploaded files (optional, if using local storage)
+
+# Environment Variables
+# IGNORE ALL .env files except for a template/example
+.env
+.env.dev
+.env.staging
+.env.production
+.env.local
+!*.example # Keep an example file like .env.example
+
+# ----------------------------------------------------------------------
+# REACT FRONTEND IGNORES
+# ----------------------------------------------------------------------
+
+# Dependency directory
+node_modules/
+
+# Build artifacts
+/build
+/dist
+/out
+/public/build # If you have a custom build dir in public
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# Storybook
+.storybook/out
+
+# Testing and Coverage
+coverage/
+
+# Environment Variables
+# Similar to backend, ignore all actual environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!*.example # Keep an example file like .env.example
+
+# Cache
+.cache/
+.next/ # Next.js specific (if your frontend might evolve)

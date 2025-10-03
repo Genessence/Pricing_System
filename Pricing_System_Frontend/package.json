@@ -1,0 +1,60 @@
+{
+  "name": "pricing-system-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:staging": "vite --mode staging",
+    "dev:testing": "vite --mode testing",
+    "dev:production": "vite --mode production",
+    "build": "tsc -b && vite build",
+    "build:staging": "tsc -b && vite build --mode staging",
+    "build:production": "tsc -b && vite build --mode production",
+    "build:testing": "tsc -b && vite build --mode testing",
+    "build:development": "tsc -b && vite build --mode development",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "preview:staging": "vite preview --mode staging",
+    "preview:production": "vite preview --mode production",
+    "preview:testing": "vite preview --mode testing",
+    "preview:development": "vite preview --mode development",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:mode": "vitest --mode test"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/lab": "^7.0.1-beta.18",
+    "@mui/material": "^7.3.4",
+    "@mui/x-date-pickers": "^8.12.0",
+    "@tailwindcss/postcss": "^4.1.14",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.9.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^24.6.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "autoprefixer": "^10.4.21",
+    "babel-plugin-react-compiler": "^19.1.0-rc.3",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.14",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "npm:rolldown-vite@7.1.14"
+  },
+  "overrides": {
+    "vite": "npm:rolldown-vite@7.1.14"
+  }
+}

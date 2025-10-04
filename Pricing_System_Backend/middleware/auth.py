@@ -7,7 +7,6 @@ from typing import Optional, Dict, Any
 from fastapi import HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 import logging
 
@@ -15,11 +14,9 @@ from config.database import get_db
 from config.settings import settings
 from services.users import UsersService
 from models.users import Users
+from utils.password import hash_password, verify_password
 
 logger = logging.getLogger(__name__)
-
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT token security
 security = HTTPBearer()
@@ -28,31 +25,6 @@ security = HTTPBearer()
 users_service = UsersService()
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verify a password against its hash.
-    
-    Args:
-        plain_password: Plain text password
-        hashed_password: Hashed password from database
-        
-    Returns:
-        True if password matches, False otherwise
-    """
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password: str) -> str:
-    """
-    Hash a password.
-    
-    Args:
-        password: Plain text password
-        
-    Returns:
-        Hashed password
-    """
-    return pwd_context.hash(password)
 
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:

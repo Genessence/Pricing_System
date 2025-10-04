@@ -24,7 +24,7 @@ class RFQVendors(Base):
     
     # Relationships
     rfq = relationship("GeneralPurchaseRFQ", back_populates="rfq_vendors")
-    vendors = relationship("Vendors", back_populates="rfq_vendors")
+    # vendors = relationship("Vendors", back_populates="rfq_vendors")  # Disabled due to array-based relationship
     
     def __repr__(self):
         return f"<RFQVendors(id={self.id}, rfq_id={self.rfq_id})>"

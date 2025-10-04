@@ -41,7 +41,7 @@ class Vendors(Base):
     transport_quotations = relationship("TransportItemsQuotation", back_populates="vendor")
     indent_quotations = relationship("IndentItemsQuotation", back_populates="vendor")
     attachments = relationship("Attachments", back_populates="vendor")
-    rfq_vendors = relationship("RFQVendors", back_populates="vendors")
+    # rfq_vendors = relationship("RFQVendors", back_populates="vendors")  # Disabled due to array-based relationship
     
     def __repr__(self):
         return f"<Vendors(id={self.id}, name={self.name}, code={self.code})>"

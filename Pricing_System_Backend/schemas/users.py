@@ -26,13 +26,7 @@ class UsersBase(BaseCreateSchema):
 class UsersCreate(UsersBase):
     """Schema for creating a new user."""
     
-    password: str = Field(..., min_length=8, max_length=100, description="User password")
-    
-    @validator('password')
-    def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        return v
+    password: str = Field(..., description="User password")
 
 
 class UsersUpdate(BaseUpdateSchema):
@@ -45,13 +39,7 @@ class UsersUpdate(BaseUpdateSchema):
     role: Optional[UserRoles] = None
     is_active: Optional[bool] = None
     site_id: Optional[UUID] = None
-    password: Optional[str] = Field(None, min_length=8, max_length=100)
-    
-    @validator('password')
-    def validate_password(cls, v):
-        if v is not None and len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        return v
+    password: Optional[str] = Field(None)
 
 
 class UsersResponse(UsersBase, BaseResponseSchema):
@@ -82,10 +70,4 @@ class UsersPasswordChange(BaseCreateSchema):
     """Schema for password change."""
     
     current_password: str = Field(..., description="Current password")
-    new_password: str = Field(..., min_length=8, max_length=100, description="New password")
-    
-    @validator('new_password')
-    def validate_new_password(cls, v):
-        if len(v) < 8:
-            raise ValueError('New password must be at least 8 characters long')
-        return v
+    new_password: str = Field(..., description="New password")

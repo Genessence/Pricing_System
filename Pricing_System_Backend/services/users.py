@@ -7,17 +7,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from uuid import UUID
 import logging
-from passlib.context import CryptContext
-
 from services.base import BaseService
 from models.users import Users
 from schemas.users import UsersCreate, UsersUpdate, UsersLogin
 from utils.error_handler import DatabaseError, NotFoundError, ValidationError, UnauthorizedError
+from utils.password import hash_password, verify_password
 
 logger = logging.getLogger(__name__)
-
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UsersService(BaseService[Users]):
@@ -48,11 +44,15 @@ class UsersService(BaseService[Users]):
             if existing_email:
                 raise ValidationError("Email already exists", context={"email": user_data.email})
             
-            # Hash password
-            hashed_password = pwd_context.hash(user_data.password)
+            # Debug: Log the password details
+            logger.info(f"Password: {user_data.password}")
+            logger.info(f"Password length: {len(user_data.password.encode('utf-8'))} bytes")
+            
+            # Hash password using centralized function
+            hashed_password = hash_password(user_data.password)
             
             user_dict = user_data.model_dump(exclude={"password"})
-            user_dict["password"] = hashed_password
+            user_dict["password_hash"] = hashed_password
             
             return self.create(db, user_dict)
         except SQLAlchemyError as e:
@@ -117,7 +117,7 @@ class UsersService(BaseService[Users]):
             if not user.is_active:
                 return None
             
-            if not pwd_context.verify(password, user.password):
+            if not verify_password(password, user.password_hash):
                 return None
             
             return user
@@ -160,7 +160,8 @@ class UsersService(BaseService[Users]):
             
             # Hash password if being updated
             if "password" in update_data and update_data["password"]:
-                update_data["password"] = pwd_context.hash(update_data["password"])
+                update_data["password_hash"] = hash_password(update_data["password"])
+                del update_data["password"]  # Remove plain password
             
             return self.update(db, user_id, update_data)
         except SQLAlchemyError as e:
@@ -200,27 +201,3 @@ class UsersService(BaseService[Users]):
             logger.error(f"Error getting active users: {str(e)}")
             raise DatabaseError("Failed to get active users", context={"error": str(e)})
     
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        """
-        Verify a password against its hash.
-        
-        Args:
-            plain_password: Plain text password
-            hashed_password: Hashed password
-            
-        Returns:
-            True if password matches, False otherwise
-        """
-        return pwd_context.verify(plain_password, hashed_password)
-    
-    def get_password_hash(self, password: str) -> str:
-        """
-        Hash a password.
-        
-        Args:
-            password: Plain text password
-            
-        Returns:
-            Hashed password
-        """
-        return pwd_context.hash(password)

@@ -23,13 +23,13 @@ from models.general_purchase_rfq import GeneralPurchaseRFQ
 from middleware.auth import get_password_hash, create_access_token
 
 
-# Test database configuration
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+# Test database configuration - Use PostgreSQL for testing
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+    pool_pre_ping=True,
+    echo=False,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -50,18 +50,17 @@ def db_session() -> Generator[Session, None, None]:
     Yields:
         Database session
     """
-    # Create tables
-    Base.metadata.create_all(bind=engine)
-    
     # Create session
     session = TestingSessionLocal()
     
     try:
+        # Start transaction
+        session.begin()
         yield session
     finally:
+        # Rollback transaction to clean up test data
+        session.rollback()
         session.close()
-        # Drop tables after test
-        Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")

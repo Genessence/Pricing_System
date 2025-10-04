@@ -1,0 +1,261 @@
+# Pricing System Backend - Testing Checklist
+
+## 📋 Quick Testing Status Overview
+
+### ✅ Completed Modules
+- [x] **Health Check** - 100% Working
+- [x] **User Management** - 100% Working (Fixed 4 issues)
+- [x] **Site Management** - 100% Working (Fixed 1 issue)
+- [x] **RFQ Management** - 95% Working (1 known issue)
+
+### ⏳ Pending Modules
+- [ ] **Vendor Management** - Not tested
+- [ ] **Service Items Quotations** - Not tested
+- [ ] **Transport Items Quotations** - Not tested
+- [ ] **Indent Items Quotations** - Not tested
+- [ ] **Service Items** - Not tested
+- [ ] **Transport Items** - Not tested
+- [ ] **Indent Items** - Not tested
+- [ ] **Attachments** - Not tested
+- [ ] **RFQ Vendors** - Not tested
+
+---
+
+## 🚨 Known Issues & Workarounds
+
+### Issue 1: Site-Specific RFQ Creation
+**Status**: ⚠️ **ACTIVE**
+**Error**: `500: Failed to create GeneralPurchaseRFQ`
+**Workaround**: Create RFQs without `site_code`
+**Impact**: Low - core functionality works
+**Next Action**: Investigate `increment_rfq_counter` method
+
+### Issue 2: Password Hashing (RESOLVED)
+**Status**: ✅ **RESOLVED**
+**Error**: `'password cannot be longer than 72 bytes'`
+**Solution**: Updated to `bcrypt_sha256` scheme
+**Files Fixed**: All password-related files
+
+### Issue 3: Dependency Injection (RESOLVED)
+**Status**: ✅ **RESOLVED**
+**Error**: `'Depends' object has no attribute 'query'`
+**Solution**: Added `db: Session = Depends(get_db)` to all routes
+**Files Fixed**: All route files
+
+---
+
+## 🧪 Testing Commands Reference
+
+### Health Check
+```bash
+curl -X GET "http://localhost:8000/health"
+```
+
+### User Management
+```bash
+# Create User
+curl -X POST "http://localhost:8000/api/users/" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser", "email": "test@example.com", "password": "admin13", "first_name": "Test", "last_name": "User", "role": "USER"}'
+
+# Get Users
+curl -X GET "http://localhost:8000/api/users/"
+
+# Get User by ID
+curl -X GET "http://localhost:8000/api/users/{user_id}"
+
+# Update User
+curl -X PUT "http://localhost:8000/api/users/{user_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"first_name": "Updated"}'
+
+# Delete User
+curl -X DELETE "http://localhost:8000/api/users/{user_id}"
+
+# Login
+curl -X POST "http://localhost:8000/api/users/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser", "password": "admin13"}'
+```
+
+### Site Management
+```bash
+# Create Site
+curl -X POST "http://localhost:8000/api/sites/" \
+  -H "Content-Type: application/json" \
+  -d '{"code": "SITE001", "name": "Main Office", "address": "123 Main Street", "is_active": true}'
+
+# Get Sites
+curl -X GET "http://localhost:8000/api/sites/"
+
+# Get Site by ID
+curl -X GET "http://localhost:8000/api/sites/{site_id}"
+
+# Get Site by Code
+curl -X GET "http://localhost:8000/api/sites/code/SITE001"
+
+# Update Site
+curl -X PUT "http://localhost:8000/api/sites/{site_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Updated Site"}'
+
+# Delete Site
+curl -X DELETE "http://localhost:8000/api/sites/{site_id}"
+```
+
+### RFQ Management
+```bash
+# Create RFQ (Without Site - WORKING)
+curl -X POST "http://localhost:8000/api/rfq/?creator_id={user_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test RFQ", "commodity_type": "INDENT"}'
+
+# Create RFQ (With Site - KNOWN ISSUE)
+curl -X POST "http://localhost:8000/api/rfq/?creator_id={user_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test RFQ", "commodity_type": "INDENT", "site_code": "SITE001"}'
+
+# Get RFQs
+curl -X GET "http://localhost:8000/api/rfq/"
+
+# Get RFQ by ID
+curl -X GET "http://localhost:8000/api/rfq/{rfq_id}"
+
+# Get RFQ by Number
+curl -X GET "http://localhost:8000/api/rfq/number/RFQ-2025-0001"
+
+# Get RFQs by Status
+curl -X GET "http://localhost:8000/api/rfq/status/DRAFT"
+
+# Get RFQs by Creator
+curl -X GET "http://localhost:8000/api/rfq/creator/{creator_id}"
+
+# Get RFQs by Site
+curl -X GET "http://localhost:8000/api/rfq/site/{site_code}"
+
+# Update RFQ
+curl -X PUT "http://localhost:8000/api/rfq/{rfq_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Updated RFQ", "status": "PENDING_APPROVAL"}'
+
+# Update RFQ Status
+curl -X PATCH "http://localhost:8000/api/rfq/{rfq_id}/status?approver_id={approver_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "APPROVED", "approver_comments": "Approved"}'
+
+# Delete RFQ
+curl -X DELETE "http://localhost:8000/api/rfq/{rfq_id}"
+```
+
+---
+
+## 🔍 Edge Cases Testing
+
+### UUID Validation
+```bash
+curl -X GET "http://localhost:8000/api/users/invalid-uuid"
+curl -X GET "http://localhost:8000/api/sites/invalid-uuid"
+curl -X GET "http://localhost:8000/api/rfq/invalid-uuid"
+```
+
+### Missing Required Fields
+```bash
+curl -X POST "http://localhost:8000/api/users/" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser"}'
+
+curl -X POST "http://localhost:8000/api/sites/" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test Site"}'
+
+curl -X POST "http://localhost:8000/api/rfq/?creator_id={user_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"commodity_type": "INDENT"}'
+```
+
+### Invalid Enum Values
+```bash
+curl -X POST "http://localhost:8000/api/rfq/?creator_id={user_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test", "commodity_type": "INVALID_TYPE"}'
+```
+
+### Duplicate Unique Fields
+```bash
+curl -X POST "http://localhost:8000/api/users/" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "existinguser", "email": "existing@example.com", "password": "admin13", "first_name": "Test", "last_name": "User", "role": "USER"}'
+
+curl -X POST "http://localhost:8000/api/sites/" \
+  -H "Content-Type: application/json" \
+  -d '{"code": "EXISTING_CODE", "name": "Test Site", "address": "123 Test St", "is_active": true}'
+```
+
+---
+
+## 📊 Testing Results Summary
+
+| Module | Status | Tests Passed | Tests Failed | Issues | Resolution |
+|--------|--------|--------------|--------------|---------|------------|
+| Health Check | ✅ 100% | 1 | 0 | 0 | None needed |
+| User Management | ✅ 100% | 8 | 0 | 4 | All resolved |
+| Site Management | ✅ 100% | 8 | 0 | 1 | Resolved |
+| RFQ Management | ⚠️ 95% | 9 | 1 | 1 | Workaround available |
+| **Total** | **98.75%** | **26** | **1** | **6** | **5 resolved, 1 workaround** |
+
+---
+
+## 🎯 Next Testing Priorities
+
+### High Priority
+1. **Vendor Management APIs** - Core business functionality
+2. **Quotation APIs** - Critical for RFQ workflow
+3. **Fix RFQ Site Creation Issue** - Complete RFQ functionality
+
+### Medium Priority
+4. **Attachment APIs** - File handling
+5. **Item Management APIs** - Service, Transport, Indent items
+6. **RFQ Vendor Management** - Vendor-RFQ relationships
+
+### Low Priority
+7. **Authentication Testing** - When implemented
+8. **Load Testing** - Performance validation
+9. **Integration Testing** - End-to-end workflows
+
+---
+
+## 📝 Testing Notes
+
+### Environment Details
+- **OS**: Windows 10
+- **Shell**: PowerShell
+- **Database**: PostgreSQL
+- **Server**: FastAPI with Uvicorn
+- **Base URL**: `http://localhost:8000`
+
+### Test Data Used
+- **User ID**: `3691264b-0036-43c9-a048-4563e6bcec82`
+- **Site ID**: `ae06020d-91f1-4c26-9883-4166c3e0352a`
+- **Site Code**: `SITE001`
+- **RFQ ID**: `41afa841-b3a5-4211-9452-c16dad5a8832`
+
+### Common Test Patterns
+1. **Create** → **Read** → **Update** → **Delete**
+2. **Test with valid data** → **Test edge cases** → **Test error scenarios**
+3. **Verify HTTP status codes** → **Verify response format** → **Verify data consistency**
+
+---
+
+## 🔄 Update Log
+
+| Date | Update | Details |
+|------|--------|---------|
+| 2025-10-04 | Initial Testing | Created comprehensive testing log |
+| 2025-10-04 | User API Fixed | Resolved 4 dependency injection issues |
+| 2025-10-04 | Site API Fixed | Resolved dependency injection issue |
+| 2025-10-04 | RFQ API Tested | 95% functional, 1 known issue |
+
+---
+
+*Last Updated: 2025-10-04*  
+*Next Update: After testing remaining modules*

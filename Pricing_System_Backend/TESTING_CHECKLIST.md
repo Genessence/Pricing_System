@@ -9,9 +9,9 @@
 - [x] **RFQ Management** - 95% Working (1 known issue)
 - [x] **Indent Items Management** - 100% Working (Fixed 1 issue)
 - [x] **Service Items Management** - 100% Working (Fixed 1 issue)
+- [x] **Transport Items Management** - 100% Working (Fixed 1 issue)
 
 ### ⏳ Pending Modules
-- [ ] **Transport Items** - Not tested
 - [ ] **Vendor Management** - Not tested
 - [ ] **Service Items Quotations** - Not tested
 - [ ] **Transport Items Quotations** - Not tested
@@ -165,6 +165,37 @@ curl -X PUT "http://localhost:8000/api/service-items/{item_id}" \
 curl -X DELETE "http://localhost:8000/api/service-items/{item_id}"
 ```
 
+### Transport Items Management
+```bash
+# Create Transport Item
+curl -X POST "http://localhost:8000/api/transport-items/" \
+  -H "Content-Type: application/json" \
+  -d '{"from_location": "New York", "to_location": "Boston", "vehicle_size": "Medium Truck", "load": 1000, "frequency": 2, "dimensions": "20x8x10 feet", "suggestions": "Handle with care"}'
+
+# Get Transport Items
+curl -X GET "http://localhost:8000/api/transport-items/"
+
+# Get Transport Item by ID
+curl -X GET "http://localhost:8000/api/transport-items/{item_id}"
+
+# Search Transport Items
+curl -X GET "http://localhost:8000/api/transport-items/search?search_term=New York"
+
+# Get Transport Items by Route
+curl -X GET "http://localhost:8000/api/transport-items/route?from_location=New York&to_location=Boston"
+
+# Get Transport Items by RFQ
+curl -X GET "http://localhost:8000/api/transport-items/rfq/{rfq_id}"
+
+# Update Transport Item
+curl -X PUT "http://localhost:8000/api/transport-items/{item_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"vehicle_size": "Large Truck", "load": 1500}'
+
+# Delete Transport Item
+curl -X DELETE "http://localhost:8000/api/transport-items/{item_id}"
+```
+
 ### RFQ Management
 ```bash
 # Create RFQ (Without Site - WORKING)
@@ -265,7 +296,8 @@ curl -X POST "http://localhost:8000/api/sites/" \
 | RFQ Management | ⚠️ 95% | 9 | 1 | 1 | Workaround available |
 | Indent Items Management | ✅ 100% | 10 | 0 | 1 | Resolved |
 | Service Items Management | ✅ 100% | 7 | 0 | 1 | Resolved |
-| **Total** | **99.17%** | **43** | **1** | **8** | **7 resolved, 1 workaround** |
+| Transport Items Management | ✅ 100% | 8 | 0 | 1 | Resolved |
+| **Total** | **99.29%** | **51** | **1** | **9** | **8 resolved, 1 workaround** |
 
 ---
 

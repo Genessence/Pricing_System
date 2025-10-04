@@ -11,11 +11,11 @@
 - [x] **Service Items Management** - 100% Working (Fixed 1 issue)
 - [x] **Transport Items Management** - 100% Working (Fixed 1 issue)
 - [x] **Vendor Management** - 100% Working (Fixed 1 issue)
+- [x] **Service Quotations** - 100% Working (Fixed 1 issue)
+- [x] **Transport Quotations** - 100% Working (Fixed 1 issue)
+- [x] **Indent Quotations** - 100% Working (Fixed 1 issue)
 
 ### ⏳ Pending Modules
-- [ ] **Service Items Quotations** - Not tested
-- [ ] **Transport Items Quotations** - Not tested
-- [ ] **Indent Items Quotations** - Not tested
 - [ ] **Attachments** - Not tested
 - [ ] **RFQ Vendors** - Not tested
 
@@ -233,6 +233,99 @@ curl -X PATCH "http://localhost:8000/api/vendors/{vendor_id}/rating?rating=3"
 curl -X DELETE "http://localhost:8000/api/vendors/{vendor_id}"
 ```
 
+### Service Quotations
+```bash
+# Create Service Quotation
+curl -X POST "http://localhost:8000/api/service-quotations/" \
+  -H "Content-Type: application/json" \
+  -d '{"rfq_id": "{rfq_id}", "service_items_id": "{service_item_id}", "vendors_id": "{vendor_id}"}'
+
+# Get Service Quotations
+curl -X GET "http://localhost:8000/api/service-quotations/"
+
+# Get Service Quotation by ID
+curl -X GET "http://localhost:8000/api/service-quotations/{quotation_id}"
+
+# Get Quotations by RFQ
+curl -X GET "http://localhost:8000/api/service-quotations/rfq/{rfq_id}"
+
+# Get Quotations by Vendor
+curl -X GET "http://localhost:8000/api/service-quotations/vendor/{vendor_id}"
+
+# Get Quotations by Service Item
+curl -X GET "http://localhost:8000/api/service-quotations/service-item/{service_item_id}"
+
+# Update Service Quotation
+curl -X PUT "http://localhost:8000/api/service-quotations/{quotation_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"rfq_id": "{new_rfq_id}"}'
+
+# Delete Service Quotation
+curl -X DELETE "http://localhost:8000/api/service-quotations/{quotation_id}"
+```
+
+### Transport Quotations
+```bash
+# Create Transport Quotation
+curl -X POST "http://localhost:8000/api/transport-quotations/" \
+  -H "Content-Type: application/json" \
+  -d '{"rfq_id": "{rfq_id}", "transport_items_id": "{transport_item_id}", "vendors_id": "{vendor_id}"}'
+
+# Get Transport Quotations
+curl -X GET "http://localhost:8000/api/transport-quotations/"
+
+# Get Transport Quotation by ID
+curl -X GET "http://localhost:8000/api/transport-quotations/{quotation_id}"
+
+# Get Quotations by RFQ
+curl -X GET "http://localhost:8000/api/transport-quotations/rfq/{rfq_id}"
+
+# Get Quotations by Vendor
+curl -X GET "http://localhost:8000/api/transport-quotations/vendor/{vendor_id}"
+
+# Get Quotations by Transport Item
+curl -X GET "http://localhost:8000/api/transport-quotations/transport-item/{transport_item_id}"
+
+# Update Transport Quotation
+curl -X PUT "http://localhost:8000/api/transport-quotations/{quotation_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"rfq_id": "{new_rfq_id}"}'
+
+# Delete Transport Quotation
+curl -X DELETE "http://localhost:8000/api/transport-quotations/{quotation_id}"
+```
+
+### Indent Quotations
+```bash
+# Create Indent Quotation
+curl -X POST "http://localhost:8000/api/indent-quotations/" \
+  -H "Content-Type: application/json" \
+  -d '{"rfq_id": "{rfq_id}", "indent_items_id": "{indent_item_id}", "vendors_id": "{vendor_id}"}'
+
+# Get Indent Quotations
+curl -X GET "http://localhost:8000/api/indent-quotations/"
+
+# Get Indent Quotation by ID
+curl -X GET "http://localhost:8000/api/indent-quotations/{quotation_id}"
+
+# Get Quotations by RFQ
+curl -X GET "http://localhost:8000/api/indent-quotations/rfq/{rfq_id}"
+
+# Get Quotations by Vendor
+curl -X GET "http://localhost:8000/api/indent-quotations/vendor/{vendor_id}"
+
+# Get Quotations by Indent Item
+curl -X GET "http://localhost:8000/api/indent-quotations/indent-item/{indent_item_id}"
+
+# Update Indent Quotation
+curl -X PUT "http://localhost:8000/api/indent-quotations/{quotation_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"rfq_id": "{new_rfq_id}"}'
+
+# Delete Indent Quotation
+curl -X DELETE "http://localhost:8000/api/indent-quotations/{quotation_id}"
+```
+
 ### RFQ Management
 ```bash
 # Create RFQ (Without Site - WORKING)
@@ -335,7 +428,10 @@ curl -X POST "http://localhost:8000/api/sites/" \
 | Service Items Management | ✅ 100% | 7 | 0 | 1 | Resolved |
 | Transport Items Management | ✅ 100% | 8 | 0 | 1 | Resolved |
 | Vendor Management | ✅ 100% | 9 | 0 | 1 | Resolved |
-| **Total** | **99.38%** | **60** | **1** | **10** | **9 resolved, 1 workaround** |
+| Service Quotations | ✅ 100% | 7 | 0 | 1 | Resolved |
+| Transport Quotations | ✅ 100% | 7 | 0 | 1 | Resolved |
+| Indent Quotations | ✅ 100% | 7 | 0 | 1 | Resolved |
+| **Total** | **99.55%** | **81** | **1** | **13** | **12 resolved, 1 workaround** |
 
 ---
 

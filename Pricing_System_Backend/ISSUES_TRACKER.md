@@ -320,15 +320,108 @@ Added `db: Session = Depends(get_db)` to all vendor route functions.
 
 ---
 
+### Issue #010: Service Quotations Dependency Injection
+**Status**: ✅ **RESOLVED**  
+**Priority**: Medium  
+**Date Reported**: 2025-10-04  
+**Date Resolved**: 2025-10-04  
+
+**Description**:
+Service quotations API failing with dependency injection errors.
+
+**Error Message**:
+```
+'Depends' object has no attribute 'query'
+```
+
+**Root Cause**:
+Same dependency injection issue as other APIs - routes not passing database sessions to controllers.
+
+**Solution**:
+Added `db: Session = Depends(get_db)` to all service quotations route functions.
+
+**Files Modified**:
+- `routes/service_items_quotation.py` - Added database session dependencies to all routes
+
+**Verification**:
+✅ All service quotations endpoints working correctly
+✅ CRUD operations functional
+✅ RFQ, vendor, and service item filtering working
+✅ Error handling working correctly
+
+---
+
+### Issue #011: Transport Quotations Dependency Injection
+**Status**: ✅ **RESOLVED**  
+**Priority**: Medium  
+**Date Reported**: 2025-10-04  
+**Date Resolved**: 2025-10-04  
+
+**Description**:
+Transport quotations API failing with dependency injection errors.
+
+**Error Message**:
+```
+'Depends' object has no attribute 'query'
+```
+
+**Root Cause**:
+Same dependency injection issue as other APIs - routes not passing database sessions to controllers.
+
+**Solution**:
+Added `db: Session = Depends(get_db)` to all transport quotations route functions.
+
+**Files Modified**:
+- `routes/transport_items_quotation.py` - Added database session dependencies to all routes
+
+**Verification**:
+✅ All transport quotations endpoints working correctly
+✅ CRUD operations functional
+✅ RFQ, vendor, and transport item filtering working
+✅ Error handling working correctly
+
+---
+
+### Issue #012: Indent Quotations Dependency Injection
+**Status**: ✅ **RESOLVED**  
+**Priority**: Medium  
+**Date Reported**: 2025-10-04  
+**Date Resolved**: 2025-10-04  
+
+**Description**:
+Indent quotations API failing with dependency injection errors.
+
+**Error Message**:
+```
+'Depends' object has no attribute 'query'
+```
+
+**Root Cause**:
+Same dependency injection issue as other APIs - routes not passing database sessions to controllers.
+
+**Solution**:
+Added `db: Session = Depends(get_db)` to all indent quotations route functions.
+
+**Files Modified**:
+- `routes/indent_items_quotation.py` - Added database session dependencies to all routes
+
+**Verification**:
+✅ All indent quotations endpoints working correctly
+✅ CRUD operations functional
+✅ RFQ, vendor, and indent item filtering working
+✅ Error handling working correctly
+
+---
+
 ## 📊 Issues Summary
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| 🔴 Open | 1 | 10.0% |
-| ✅ Resolved | 9 | 90.0% |
-| **Total** | **10** | **100%** |
+| 🔴 Open | 1 | 7.7% |
+| ✅ Resolved | 12 | 92.3% |
+| **Total** | **13** | **100%** |
 
-### Resolution Rate: 90.0%
+### Resolution Rate: 92.3%
 
 ---
 
@@ -336,10 +429,10 @@ Added `db: Session = Depends(get_db)` to all vendor route functions.
 
 ### By Priority:
 - **High Priority**: 2 issues (both resolved)
-- **Medium Priority**: 8 issues (7 resolved, 1 open)
+- **Medium Priority**: 11 issues (10 resolved, 1 open)
 
 ### By Type:
-- **Dependency Injection**: 5 issues (all resolved)
+- **Dependency Injection**: 8 issues (all resolved)
 - **Password Hashing**: 1 issue (resolved)
 - **Code Structure**: 2 issues (resolved)
 - **Import Management**: 1 issue (resolved)
@@ -353,6 +446,9 @@ Added `db: Session = Depends(get_db)` to all vendor route functions.
 - **Service Items Management**: 1 issue (resolved)
 - **Transport Items Management**: 1 issue (resolved)
 - **Vendor Management**: 1 issue (resolved)
+- **Service Quotations**: 1 issue (resolved)
+- **Transport Quotations**: 1 issue (resolved)
+- **Indent Quotations**: 1 issue (resolved)
 - **Middleware**: 1 issue (resolved)
 
 ---
@@ -360,8 +456,8 @@ Added `db: Session = Depends(get_db)` to all vendor route functions.
 ## 🎯 Next Actions
 
 ### Immediate (This Week):
-1. **Test Quotation APIs** - Priority 1
-2. **Test Attachment APIs** - Priority 2
+1. **Test Attachment APIs** - Priority 1
+2. **Test RFQ Vendor APIs** - Priority 2
 3. **Investigate RFQ Site Creation Issue** - Priority 3
 4. **Document All APIs** - Priority 4
 
@@ -436,6 +532,7 @@ Added `db: Session = Depends(get_db)` to all vendor route functions.
 | 2025-10-04 | Service Items API Fixed | Resolved dependency injection issue, 100% functional |
 | 2025-10-04 | Transport Items API Fixed | Resolved dependency injection issue, 100% functional |
 | 2025-10-04 | Vendor API Fixed | Resolved dependency injection issue, 100% functional |
+| 2025-10-04 | Quotation APIs Fixed | Resolved 3 dependency injection issues, all 100% functional |
 
 ---
 

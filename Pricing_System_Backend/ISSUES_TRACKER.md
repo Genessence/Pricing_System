@@ -225,15 +225,46 @@ Added `db: Session = Depends(get_db)` to all indent items route functions.
 
 ---
 
+### Issue #007: Service Items Dependency Injection
+**Status**: ✅ **RESOLVED**  
+**Priority**: Medium  
+**Date Reported**: 2025-10-04  
+**Date Resolved**: 2025-10-04  
+
+**Description**:
+Service items API failing with dependency injection errors.
+
+**Error Message**:
+```
+'Depends' object has no attribute 'add'
+```
+
+**Root Cause**:
+Same dependency injection issue as other APIs - routes not passing database sessions to controllers.
+
+**Solution**:
+Added `db: Session = Depends(get_db)` to all service items route functions.
+
+**Files Modified**:
+- `routes/service_items.py` - Added database session dependencies to all routes
+
+**Verification**:
+✅ All service items endpoints working correctly
+✅ CRUD operations functional
+✅ Search and RFQ filtering working
+✅ Error handling working correctly
+
+---
+
 ## 📊 Issues Summary
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| 🔴 Open | 1 | 14.3% |
-| ✅ Resolved | 6 | 85.7% |
-| **Total** | **7** | **100%** |
+| 🔴 Open | 1 | 12.5% |
+| ✅ Resolved | 7 | 87.5% |
+| **Total** | **8** | **100%** |
 
-### Resolution Rate: 85.7%
+### Resolution Rate: 87.5%
 
 ---
 
@@ -241,10 +272,10 @@ Added `db: Session = Depends(get_db)` to all indent items route functions.
 
 ### By Priority:
 - **High Priority**: 2 issues (both resolved)
-- **Medium Priority**: 5 issues (4 resolved, 1 open)
+- **Medium Priority**: 6 issues (5 resolved, 1 open)
 
 ### By Type:
-- **Dependency Injection**: 2 issues (both resolved)
+- **Dependency Injection**: 3 issues (all resolved)
 - **Password Hashing**: 1 issue (resolved)
 - **Code Structure**: 2 issues (resolved)
 - **Import Management**: 1 issue (resolved)
@@ -255,6 +286,7 @@ Added `db: Session = Depends(get_db)` to all indent items route functions.
 - **Site Management**: 1 issue (resolved)
 - **RFQ Management**: 1 issue (open)
 - **Indent Items Management**: 1 issue (resolved)
+- **Service Items Management**: 1 issue (resolved)
 - **Middleware**: 1 issue (resolved)
 
 ---
@@ -262,8 +294,8 @@ Added `db: Session = Depends(get_db)` to all indent items route functions.
 ## 🎯 Next Actions
 
 ### Immediate (This Week):
-1. **Test Service Items APIs** - Priority 1
-2. **Test Transport Items APIs** - Priority 2
+1. **Test Transport Items APIs** - Priority 1
+2. **Test Vendor Management APIs** - Priority 2
 3. **Investigate RFQ Site Creation Issue** - Priority 3
 4. **Document All APIs** - Priority 4
 
@@ -335,6 +367,7 @@ Added `db: Session = Depends(get_db)` to all indent items route functions.
 | 2025-10-04 | Site API Fixed | Resolved dependency injection issue |
 | 2025-10-04 | RFQ API Tested | 95% functional, 1 known issue |
 | 2025-10-04 | Indent Items API Fixed | Resolved dependency injection issue, 100% functional |
+| 2025-10-04 | Service Items API Fixed | Resolved dependency injection issue, 100% functional |
 
 ---
 

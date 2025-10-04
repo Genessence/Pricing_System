@@ -8,9 +8,9 @@
 - [x] **Site Management** - 100% Working (Fixed 1 issue)
 - [x] **RFQ Management** - 95% Working (1 known issue)
 - [x] **Indent Items Management** - 100% Working (Fixed 1 issue)
+- [x] **Service Items Management** - 100% Working (Fixed 1 issue)
 
 ### ⏳ Pending Modules
-- [ ] **Service Items** - Not tested
 - [ ] **Transport Items** - Not tested
 - [ ] **Vendor Management** - Not tested
 - [ ] **Service Items Quotations** - Not tested
@@ -137,6 +137,34 @@ curl -X PATCH "http://localhost:8000/api/indent-items/{item_id}/buying-info?pric
 curl -X DELETE "http://localhost:8000/api/indent-items/{item_id}"
 ```
 
+### Service Items Management
+```bash
+# Create Service Item
+curl -X POST "http://localhost:8000/api/service-items/" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Office Cleaning Service", "specification": "Professional office cleaning", "uom": "HOUR", "quantity": 40, "rate": 50}'
+
+# Get Service Items
+curl -X GET "http://localhost:8000/api/service-items/"
+
+# Get Service Item by ID
+curl -X GET "http://localhost:8000/api/service-items/{item_id}"
+
+# Search Service Items
+curl -X GET "http://localhost:8000/api/service-items/search?search_term=Cleaning"
+
+# Get Service Items by RFQ
+curl -X GET "http://localhost:8000/api/service-items/rfq/{rfq_id}"
+
+# Update Service Item
+curl -X PUT "http://localhost:8000/api/service-items/{item_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Updated Service", "rate": 75}'
+
+# Delete Service Item
+curl -X DELETE "http://localhost:8000/api/service-items/{item_id}"
+```
+
 ### RFQ Management
 ```bash
 # Create RFQ (Without Site - WORKING)
@@ -236,7 +264,8 @@ curl -X POST "http://localhost:8000/api/sites/" \
 | Site Management | ✅ 100% | 8 | 0 | 1 | Resolved |
 | RFQ Management | ⚠️ 95% | 9 | 1 | 1 | Workaround available |
 | Indent Items Management | ✅ 100% | 10 | 0 | 1 | Resolved |
-| **Total** | **99%** | **36** | **1** | **7** | **6 resolved, 1 workaround** |
+| Service Items Management | ✅ 100% | 7 | 0 | 1 | Resolved |
+| **Total** | **99.17%** | **43** | **1** | **8** | **7 resolved, 1 workaround** |
 
 ---
 

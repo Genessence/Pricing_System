@@ -244,6 +244,77 @@ curl -X DELETE "http://localhost:8000/api/rfq/{rfq_id}"
 
 ---
 
+## 📦 Indent Items API Testing
+
+### ✅ Test: Create Indent Item
+**Date**: 2025-10-04  
+**Endpoint**: `POST /api/indent-items/`  
+
+**Initial Issue**: `'Depends' object has no attribute 'query'`
+
+**Solution**: Applied same dependency injection fix as other APIs.
+
+**Test Command**:
+```bash
+curl -X POST "http://localhost:8000/api/indent-items/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "item_code": "INDENT001",
+    "description": "Office Equipment",
+    "specification": "High-quality office equipment for daily use",
+    "uom": "PIECE",
+    "is_active": true
+  }'
+```
+
+**Result**: ✅ **PASSED**  
+**Response**: `201 Created` with indent item details
+
+### ✅ Test: Indent Items CRUD Operations
+**Date**: 2025-10-04  
+
+**Tests Performed**:
+- Get all indent items: ✅ `200 OK`
+- Get indent item by ID: ✅ `200 OK`
+- Get indent item by code: ✅ `200 OK`
+- Get active indent items: ✅ `200 OK`
+- Search indent items: ✅ `200 OK`
+- Update indent item: ✅ `200 OK`
+- Update buying info: ✅ `200 OK`
+- Delete indent item: ✅ `200 OK`
+
+**Result**: ✅ **PASSED** - All indent items operations working correctly
+
+### ✅ Test: Indent Items Edge Cases
+**Date**: 2025-10-04  
+
+**Tests Performed**:
+- Invalid UUID: ✅ `422 Unprocessable Entity`
+- Missing required fields: ✅ `422 Unprocessable Entity`
+
+**Result**: ✅ **PASSED** - All error handling working correctly
+
+### 📊 Indent Items API Response Example:
+```json
+{
+  "id": "a51c6a3e-fc39-4d19-adba-ad27b012a41a",
+  "item_code": "INDENT001",
+  "description": "Updated Office Equipment",
+  "specification": "Updated specification for office equipment",
+  "uom": "PIECE",
+  "is_active": true,
+  "quantity": null,
+  "last_buying_price": 500,
+  "last_vendor_name": "ABC Vendor",
+  "created_at": "2025-10-04T09:11:15.269478Z",
+  "updated_at": "2025-10-04T09:11:46.811945Z"
+}
+```
+
+**Status**: ✅ **100% FUNCTIONAL** - All indent items endpoints working perfectly
+
+---
+
 ## 🔧 Technical Issues and Solutions
 
 ### Issue 1: Password Hashing Compatibility
@@ -322,6 +393,7 @@ curl -X DELETE "http://localhost:8000/api/rfq/{rfq_id}"
 2. **User Management** - 100% working (after fixes)
 3. **Site Management** - 100% working (after fixes)
 4. **RFQ Management** - 95% working (site creation issue)
+5. **Indent Items Management** - 100% working (after fixes)
 
 ### 🚨 Known Issues:
 1. **Site-Specific RFQ Creation** - 500 error when using `site_code`
@@ -333,7 +405,8 @@ curl -X DELETE "http://localhost:8000/api/rfq/{rfq_id}"
 - **User Management**: 100%
 - **Site Management**: 100%
 - **RFQ Management**: 95%
-- **Overall**: 98.75%
+- **Indent Items Management**: 100%
+- **Overall**: 99%
 
 ---
 
@@ -408,6 +481,7 @@ curl -X DELETE "http://localhost:8000/api/rfq/{rfq_id}"
 | 2025-10-04 | User Management | ✅ PASSED | 4 issues | All resolved |
 | 2025-10-04 | Site Management | ✅ PASSED | 1 issue | Resolved |
 | 2025-10-04 | RFQ Management | ⚠️ 95% | 1 issue | Workaround found |
+| 2025-10-04 | Indent Items Management | ✅ PASSED | 1 issue | Resolved |
 
 ---
 
@@ -419,6 +493,8 @@ curl -X DELETE "http://localhost:8000/api/rfq/{rfq_id}"
 - Verify RFQ numbering system
 
 ### Priority 2: Test Remaining Modules
+- Service Items APIs
+- Transport Items APIs
 - Vendor Management APIs
 - Quotation APIs (Service, Transport, Indent)
 - Attachment APIs

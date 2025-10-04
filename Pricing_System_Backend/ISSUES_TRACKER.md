@@ -194,15 +194,46 @@ Removed obsolete imports and updated to use centralized functions.
 
 ---
 
+### Issue #006: Indent Items Dependency Injection
+**Status**: ✅ **RESOLVED**  
+**Priority**: Medium  
+**Date Reported**: 2025-10-04  
+**Date Resolved**: 2025-10-04  
+
+**Description**:
+Indent items API failing with dependency injection errors.
+
+**Error Message**:
+```
+'Depends' object has no attribute 'query'
+```
+
+**Root Cause**:
+Same dependency injection issue as other APIs - routes not passing database sessions to controllers.
+
+**Solution**:
+Added `db: Session = Depends(get_db)` to all indent items route functions.
+
+**Files Modified**:
+- `routes/indent_items.py` - Added database session dependencies to all routes
+
+**Verification**:
+✅ All indent items endpoints working correctly
+✅ CRUD operations functional
+✅ Search and filtering working
+✅ Error handling working correctly
+
+---
+
 ## 📊 Issues Summary
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| 🔴 Open | 1 | 16.7% |
-| ✅ Resolved | 5 | 83.3% |
-| **Total** | **6** | **100%** |
+| 🔴 Open | 1 | 14.3% |
+| ✅ Resolved | 6 | 85.7% |
+| **Total** | **7** | **100%** |
 
-### Resolution Rate: 83.3%
+### Resolution Rate: 85.7%
 
 ---
 
@@ -210,10 +241,10 @@ Removed obsolete imports and updated to use centralized functions.
 
 ### By Priority:
 - **High Priority**: 2 issues (both resolved)
-- **Medium Priority**: 4 issues (3 resolved, 1 open)
+- **Medium Priority**: 5 issues (4 resolved, 1 open)
 
 ### By Type:
-- **Dependency Injection**: 1 issue (resolved)
+- **Dependency Injection**: 2 issues (both resolved)
 - **Password Hashing**: 1 issue (resolved)
 - **Code Structure**: 2 issues (resolved)
 - **Import Management**: 1 issue (resolved)
@@ -223,6 +254,7 @@ Removed obsolete imports and updated to use centralized functions.
 - **User Management**: 3 issues (all resolved)
 - **Site Management**: 1 issue (resolved)
 - **RFQ Management**: 1 issue (open)
+- **Indent Items Management**: 1 issue (resolved)
 - **Middleware**: 1 issue (resolved)
 
 ---
@@ -230,9 +262,10 @@ Removed obsolete imports and updated to use centralized functions.
 ## 🎯 Next Actions
 
 ### Immediate (This Week):
-1. **Investigate RFQ Site Creation Issue** - Priority 1
-2. **Test Remaining API Modules** - Priority 2
-3. **Document All APIs** - Priority 3
+1. **Test Service Items APIs** - Priority 1
+2. **Test Transport Items APIs** - Priority 2
+3. **Investigate RFQ Site Creation Issue** - Priority 3
+4. **Document All APIs** - Priority 4
 
 ### Short Term (Next 2 Weeks):
 1. **Complete Integration Testing**
@@ -290,6 +323,18 @@ Removed obsolete imports and updated to use centralized functions.
 **Assigned To**: [Name]  
 **Target Resolution**: [Date]  
 ```
+
+---
+
+## 📝 Update Log
+
+| Date | Update | Details |
+|------|--------|---------|
+| 2025-10-04 | Initial Testing | Created comprehensive testing log |
+| 2025-10-04 | User API Fixed | Resolved 4 dependency injection issues |
+| 2025-10-04 | Site API Fixed | Resolved dependency injection issue |
+| 2025-10-04 | RFQ API Tested | 95% functional, 1 known issue |
+| 2025-10-04 | Indent Items API Fixed | Resolved dependency injection issue, 100% functional |
 
 ---
 

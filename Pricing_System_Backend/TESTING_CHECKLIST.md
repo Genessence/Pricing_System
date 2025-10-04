@@ -7,15 +7,15 @@
 - [x] **User Management** - 100% Working (Fixed 4 issues)
 - [x] **Site Management** - 100% Working (Fixed 1 issue)
 - [x] **RFQ Management** - 95% Working (1 known issue)
+- [x] **Indent Items Management** - 100% Working (Fixed 1 issue)
 
 ### ⏳ Pending Modules
+- [ ] **Service Items** - Not tested
+- [ ] **Transport Items** - Not tested
 - [ ] **Vendor Management** - Not tested
 - [ ] **Service Items Quotations** - Not tested
 - [ ] **Transport Items Quotations** - Not tested
 - [ ] **Indent Items Quotations** - Not tested
-- [ ] **Service Items** - Not tested
-- [ ] **Transport Items** - Not tested
-- [ ] **Indent Items** - Not tested
 - [ ] **Attachments** - Not tested
 - [ ] **RFQ Vendors** - Not tested
 
@@ -40,7 +40,7 @@
 **Status**: ✅ **RESOLVED**
 **Error**: `'Depends' object has no attribute 'query'`
 **Solution**: Added `db: Session = Depends(get_db)` to all routes
-**Files Fixed**: All route files
+**Files Fixed**: All route files (Users, Sites, RFQ, Indent Items)
 
 ---
 
@@ -101,6 +101,40 @@ curl -X PUT "http://localhost:8000/api/sites/{site_id}" \
 
 # Delete Site
 curl -X DELETE "http://localhost:8000/api/sites/{site_id}"
+```
+
+### Indent Items Management
+```bash
+# Create Indent Item
+curl -X POST "http://localhost:8000/api/indent-items/" \
+  -H "Content-Type: application/json" \
+  -d '{"item_code": "INDENT001", "description": "Office Equipment", "specification": "High-quality office equipment", "uom": "PIECE", "is_active": true}'
+
+# Get Indent Items
+curl -X GET "http://localhost:8000/api/indent-items/"
+
+# Get Indent Item by ID
+curl -X GET "http://localhost:8000/api/indent-items/{item_id}"
+
+# Get Indent Item by Code
+curl -X GET "http://localhost:8000/api/indent-items/code/INDENT001"
+
+# Get Active Indent Items
+curl -X GET "http://localhost:8000/api/indent-items/active"
+
+# Search Indent Items
+curl -X GET "http://localhost:8000/api/indent-items/search?search_term=Office"
+
+# Update Indent Item
+curl -X PUT "http://localhost:8000/api/indent-items/{item_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Updated Office Equipment"}'
+
+# Update Buying Info
+curl -X PATCH "http://localhost:8000/api/indent-items/{item_id}/buying-info?price=500&vendor_name=ABC%20Vendor"
+
+# Delete Indent Item
+curl -X DELETE "http://localhost:8000/api/indent-items/{item_id}"
 ```
 
 ### RFQ Management
@@ -201,7 +235,8 @@ curl -X POST "http://localhost:8000/api/sites/" \
 | User Management | ✅ 100% | 8 | 0 | 4 | All resolved |
 | Site Management | ✅ 100% | 8 | 0 | 1 | Resolved |
 | RFQ Management | ⚠️ 95% | 9 | 1 | 1 | Workaround available |
-| **Total** | **98.75%** | **26** | **1** | **6** | **5 resolved, 1 workaround** |
+| Indent Items Management | ✅ 100% | 10 | 0 | 1 | Resolved |
+| **Total** | **99%** | **36** | **1** | **7** | **6 resolved, 1 workaround** |
 
 ---
 

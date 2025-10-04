@@ -451,6 +451,91 @@ curl -X POST "http://localhost:8000/api/transport-items/" \
 
 ---
 
+## 🏢 Vendor Management API Testing
+
+### ✅ Test: Create Vendor
+**Date**: 2025-10-04  
+**Endpoint**: `POST /api/vendors/`  
+
+**Initial Issue**: `'Depends' object has no attribute 'query'`
+
+**Solution**: Applied same dependency injection fix as other APIs.
+
+**Test Command**:
+```bash
+curl -X POST "http://localhost:8000/api/vendors/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ABC Supply Company",
+    "code": "ABC001",
+    "is_active": true,
+    "providing_commodity_type": "INDENT",
+    "contact_person": "John Smith",
+    "email": "john@abcsupply.com",
+    "phone": 1234567890,
+    "address": "123 Business St, City, State 12345",
+    "status": "ACTIVE",
+    "rating": 4
+  }'
+```
+
+**Result**: ✅ **PASSED**  
+**Response**: `201 Created` with vendor details
+
+### ✅ Test: Vendor CRUD Operations
+**Date**: 2025-10-04  
+
+**Tests Performed**:
+- Get all vendors: ✅ `200 OK`
+- Get vendor by ID: ✅ `200 OK`
+- Get vendor by code: ✅ `200 OK`
+- Get active vendors: ✅ `200 OK`
+- Get vendors by commodity type: ✅ `200 OK`
+- Search vendors: ✅ `200 OK`
+- Update vendor: ✅ `200 OK`
+- Update vendor rating: ✅ `200 OK`
+- Delete vendor: ✅ `200 OK`
+
+**Result**: ✅ **PASSED** - All vendor operations working correctly
+
+### ✅ Test: Vendor Edge Cases
+**Date**: 2025-10-04  
+
+**Tests Performed**:
+- Invalid UUID: ✅ `422 Unprocessable Entity`
+- Missing required fields: ✅ `422 Unprocessable Entity`
+- Invalid enum values: ✅ `422 Unprocessable Entity`
+
+**Result**: ✅ **PASSED** - All error handling working correctly
+
+### 📊 Vendor API Response Example:
+```json
+{
+  "id": "7be7f356-ca9d-47b2-802a-33bd24d2427d",
+  "name": "Updated ABC Supply Company",
+  "code": "ABC001",
+  "is_active": true,
+  "providing_commodity_type": "INDENT",
+  "contact_person": "John Smith",
+  "email": "john@abcsupply.com",
+  "phone": 1234567890,
+  "address": "123 Business St, City, State 12345",
+  "state": "",
+  "country": "",
+  "postal_code": null,
+  "tax_id": "",
+  "gst_number": "",
+  "status": "ACTIVE",
+  "rating": 3,
+  "created_at": "2025-10-04T09:33:23.927880Z",
+  "updated_at": "2025-10-04T09:34:14.401007Z"
+}
+```
+
+**Status**: ✅ **100% FUNCTIONAL** - All vendor endpoints working perfectly
+
+---
+
 ## 🔧 Technical Issues and Solutions
 
 ### Issue 1: Password Hashing Compatibility
@@ -532,6 +617,7 @@ curl -X POST "http://localhost:8000/api/transport-items/" \
 5. **Indent Items Management** - 100% working (after fixes)
 6. **Service Items Management** - 100% working (after fixes)
 7. **Transport Items Management** - 100% working (after fixes)
+8. **Vendor Management** - 100% working (after fixes)
 
 ### 🚨 Known Issues:
 1. **Site-Specific RFQ Creation** - 500 error when using `site_code`
@@ -546,7 +632,8 @@ curl -X POST "http://localhost:8000/api/transport-items/" \
 - **Indent Items Management**: 100%
 - **Service Items Management**: 100%
 - **Transport Items Management**: 100%
-- **Overall**: 99.29%
+- **Vendor Management**: 100%
+- **Overall**: 99.38%
 
 ---
 
@@ -624,6 +711,7 @@ curl -X POST "http://localhost:8000/api/transport-items/" \
 | 2025-10-04 | Indent Items Management | ✅ PASSED | 1 issue | Resolved |
 | 2025-10-04 | Service Items Management | ✅ PASSED | 1 issue | Resolved |
 | 2025-10-04 | Transport Items Management | ✅ PASSED | 1 issue | Resolved |
+| 2025-10-04 | Vendor Management | ✅ PASSED | 1 issue | Resolved |
 
 ---
 

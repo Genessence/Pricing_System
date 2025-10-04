@@ -10,9 +10,9 @@
 - [x] **Indent Items Management** - 100% Working (Fixed 1 issue)
 - [x] **Service Items Management** - 100% Working (Fixed 1 issue)
 - [x] **Transport Items Management** - 100% Working (Fixed 1 issue)
+- [x] **Vendor Management** - 100% Working (Fixed 1 issue)
 
 ### ⏳ Pending Modules
-- [ ] **Vendor Management** - Not tested
 - [ ] **Service Items Quotations** - Not tested
 - [ ] **Transport Items Quotations** - Not tested
 - [ ] **Indent Items Quotations** - Not tested
@@ -196,6 +196,43 @@ curl -X PUT "http://localhost:8000/api/transport-items/{item_id}" \
 curl -X DELETE "http://localhost:8000/api/transport-items/{item_id}"
 ```
 
+### Vendor Management
+```bash
+# Create Vendor
+curl -X POST "http://localhost:8000/api/vendors/" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ABC Supply Company", "code": "ABC001", "is_active": true, "providing_commodity_type": "INDENT", "contact_person": "John Smith", "email": "john@abcsupply.com", "phone": 1234567890, "address": "123 Business St", "status": "ACTIVE", "rating": 4}'
+
+# Get Vendors
+curl -X GET "http://localhost:8000/api/vendors/"
+
+# Get Vendor by ID
+curl -X GET "http://localhost:8000/api/vendors/{vendor_id}"
+
+# Get Vendor by Code
+curl -X GET "http://localhost:8000/api/vendors/code/{code}"
+
+# Get Active Vendors
+curl -X GET "http://localhost:8000/api/vendors/active"
+
+# Get Vendors by Commodity Type
+curl -X GET "http://localhost:8000/api/vendors/commodity/{commodity_type}"
+
+# Search Vendors
+curl -X GET "http://localhost:8000/api/vendors/search?search_term=ABC"
+
+# Update Vendor
+curl -X PUT "http://localhost:8000/api/vendors/{vendor_id}" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Updated ABC Supply Company", "rating": 5}'
+
+# Update Vendor Rating
+curl -X PATCH "http://localhost:8000/api/vendors/{vendor_id}/rating?rating=3"
+
+# Delete Vendor
+curl -X DELETE "http://localhost:8000/api/vendors/{vendor_id}"
+```
+
 ### RFQ Management
 ```bash
 # Create RFQ (Without Site - WORKING)
@@ -297,7 +334,8 @@ curl -X POST "http://localhost:8000/api/sites/" \
 | Indent Items Management | ✅ 100% | 10 | 0 | 1 | Resolved |
 | Service Items Management | ✅ 100% | 7 | 0 | 1 | Resolved |
 | Transport Items Management | ✅ 100% | 8 | 0 | 1 | Resolved |
-| **Total** | **99.29%** | **51** | **1** | **9** | **8 resolved, 1 workaround** |
+| Vendor Management | ✅ 100% | 9 | 0 | 1 | Resolved |
+| **Total** | **99.38%** | **60** | **1** | **10** | **9 resolved, 1 workaround** |
 
 ---
 

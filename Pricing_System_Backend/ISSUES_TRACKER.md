@@ -288,15 +288,47 @@ Added `db: Session = Depends(get_db)` to all transport items route functions.
 
 ---
 
+### Issue #009: Vendor Management Dependency Injection
+**Status**: ✅ **RESOLVED**  
+**Priority**: Medium  
+**Date Reported**: 2025-10-04  
+**Date Resolved**: 2025-10-04  
+
+**Description**:
+Vendor management API failing with dependency injection errors.
+
+**Error Message**:
+```
+'Depends' object has no attribute 'query'
+```
+
+**Root Cause**:
+Same dependency injection issue as other APIs - routes not passing database sessions to controllers.
+
+**Solution**:
+Added `db: Session = Depends(get_db)` to all vendor route functions.
+
+**Files Modified**:
+- `routes/vendors.py` - Added database session dependencies to all routes
+
+**Verification**:
+✅ All vendor endpoints working correctly
+✅ CRUD operations functional
+✅ Search and filtering working
+✅ Rating update working
+✅ Error handling working correctly
+
+---
+
 ## 📊 Issues Summary
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| 🔴 Open | 1 | 11.1% |
-| ✅ Resolved | 8 | 88.9% |
-| **Total** | **9** | **100%** |
+| 🔴 Open | 1 | 10.0% |
+| ✅ Resolved | 9 | 90.0% |
+| **Total** | **10** | **100%** |
 
-### Resolution Rate: 88.9%
+### Resolution Rate: 90.0%
 
 ---
 
@@ -304,10 +336,10 @@ Added `db: Session = Depends(get_db)` to all transport items route functions.
 
 ### By Priority:
 - **High Priority**: 2 issues (both resolved)
-- **Medium Priority**: 7 issues (6 resolved, 1 open)
+- **Medium Priority**: 8 issues (7 resolved, 1 open)
 
 ### By Type:
-- **Dependency Injection**: 4 issues (all resolved)
+- **Dependency Injection**: 5 issues (all resolved)
 - **Password Hashing**: 1 issue (resolved)
 - **Code Structure**: 2 issues (resolved)
 - **Import Management**: 1 issue (resolved)
@@ -320,6 +352,7 @@ Added `db: Session = Depends(get_db)` to all transport items route functions.
 - **Indent Items Management**: 1 issue (resolved)
 - **Service Items Management**: 1 issue (resolved)
 - **Transport Items Management**: 1 issue (resolved)
+- **Vendor Management**: 1 issue (resolved)
 - **Middleware**: 1 issue (resolved)
 
 ---
@@ -327,8 +360,8 @@ Added `db: Session = Depends(get_db)` to all transport items route functions.
 ## 🎯 Next Actions
 
 ### Immediate (This Week):
-1. **Test Vendor Management APIs** - Priority 1
-2. **Test Quotation APIs** - Priority 2
+1. **Test Quotation APIs** - Priority 1
+2. **Test Attachment APIs** - Priority 2
 3. **Investigate RFQ Site Creation Issue** - Priority 3
 4. **Document All APIs** - Priority 4
 
@@ -402,6 +435,7 @@ Added `db: Session = Depends(get_db)` to all transport items route functions.
 | 2025-10-04 | Indent Items API Fixed | Resolved dependency injection issue, 100% functional |
 | 2025-10-04 | Service Items API Fixed | Resolved dependency injection issue, 100% functional |
 | 2025-10-04 | Transport Items API Fixed | Resolved dependency injection issue, 100% functional |
+| 2025-10-04 | Vendor API Fixed | Resolved dependency injection issue, 100% functional |
 
 ---
 
